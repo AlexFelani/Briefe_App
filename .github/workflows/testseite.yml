@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  pages: write
 
 concurrency:
   group: testseite
@@ -50,3 +51,8 @@ jobs:
           git add -A
           git commit -q -m "Testseite aus ${GITHUB_SHA::7}"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
+      # Ein Push aus einem Workflow löst die Veröffentlichung von GitHub Pages nicht von selbst aus, deshalb hier ausdrücklich anstoßen.
+      - name: Veröffentlichung der Testseite anstoßen
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds"
