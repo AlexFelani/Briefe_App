@@ -164,7 +164,13 @@ const UI_STRINGS = {
     detailsAiHint: "Von der KI ausgefüllt – bitte prüfen.", detailsAiFail: "Die KI konnte nichts lesen. Du kannst die Angaben selbst eintragen.",
     fName: "Name", moreFields: "Weitere Angaben", lessFields: "Weniger Angaben", caseNewName: "Name des neuen Falls", backWord: "Zurück",
     grpLook: "Darstellung", grpAi: "KI", grpRemind: "Erinnerungen", grpSecurity: "Sicherheit & Profile", grpData: "Daten", grpHelp: "Hilfe & Rechtliches", grpOperator: "Betreiber-Schalter",
-    toolsSection: "Fristen & Daten", viewToggle: "Ansicht wechseln", caseRename: "Fall umbenennen", caseDelete: "Leeren Fall löschen", caseName: "Name des Falls",
+    toolsSection: "Fristen & Daten", viewToggle: "Ansicht wechseln", caseRename: "Fall umbenennen", caseDelete: "Fall löschen", caseName: "Name des Falls",
+    moveWord: "Verschieben", deleteWord: "Löschen", selectWord: "Auswählen", selectedN: "{n} ausgewählt", moveTitle: "Verschieben nach", moveDo: "Hierhin verschieben",
+    delDocsTitle: "Löschen?", delDocsText: "{n} Dokument(e) mit allen Dateien endgültig löschen? Das kann nicht rückgängig gemacht werden.",
+    delFile: "Diese Datei löschen", delFileText: "Datei „{n}“ endgültig löschen? Das kann nicht rückgängig gemacht werden.",
+    delCaseText: "Fall „{n}“ löschen?", delCaseWith: "Der Fall enthält {n} Dokument(e). Was soll mit ihnen geschehen?",
+    delCaseAll: "Fall und Dokumente endgültig löschen", delCaseKeep: "Dokumente nach „Unsortiert“ verschieben, nur den Fall löschen",
+    noticeMoved: "{n} Dokument(e) verschoben.", noticeDeleted: "{n} Dokument(e) gelöscht.", fileDeleted: "Datei gelöscht.", caseDeleted: "Fall gelöscht.",
     replyOwnPh: "Schreibe hier deine Antwort.", replyOwnStart: "Eigene Antwort schreiben", replyAiHead: "Antwort von der KI entwerfen lassen",
     home: "Übersicht", langSearch: "Sprache suchen…", noLangFound: "Keine Sprache gefunden", copied: "Kopiert!",
     intakeTitle: "Dokument hinzufügen", takePhoto: "Foto aufnehmen", addPage: "Weitere Seite fotografieren",
@@ -325,7 +331,13 @@ const UI_STRINGS = {
     detailsAiHint: "Filled in by the AI – please check.", detailsAiFail: "The AI could not read anything. You can enter the details yourself.",
     fName: "Name", moreFields: "More details", lessFields: "Fewer details", caseNewName: "Name of the new case", backWord: "Back",
     grpLook: "Appearance", grpAi: "AI", grpRemind: "Reminders", grpSecurity: "Security & profiles", grpData: "Data", grpHelp: "Help & legal", grpOperator: "Operator switches",
-    toolsSection: "Deadlines & data", viewToggle: "Switch view", caseRename: "Rename case", caseDelete: "Delete empty case", caseName: "Name of the case",
+    toolsSection: "Deadlines & data", viewToggle: "Switch view", caseRename: "Rename case", caseDelete: "Delete case", caseName: "Name of the case",
+    moveWord: "Move", deleteWord: "Delete", selectWord: "Select", selectedN: "{n} selected", moveTitle: "Move to", moveDo: "Move here",
+    delDocsTitle: "Delete?", delDocsText: "Permanently delete {n} document(s) with all files? This cannot be undone.",
+    delFile: "Delete this file", delFileText: "Permanently delete file “{n}”? This cannot be undone.",
+    delCaseText: "Delete case “{n}”?", delCaseWith: "The case contains {n} document(s). What should happen to them?",
+    delCaseAll: "Permanently delete case and documents", delCaseKeep: "Move documents to “Unsorted”, delete only the case",
+    noticeMoved: "{n} document(s) moved.", noticeDeleted: "{n} document(s) deleted.", fileDeleted: "File deleted.", caseDeleted: "Case deleted.",
     replyOwnPh: "Write your reply here.", replyOwnStart: "Write your own reply", replyAiHead: "Have the AI draft a reply",
     home: "Overview", langSearch: "Search language…", noLangFound: "No language found", copied: "Copied!",
     intakeTitle: "Add document", takePhoto: "Take photo", addPage: "Photograph another page",
@@ -724,6 +736,9 @@ function BriefeCore({ profileApi }) {
   const [viewer, setViewer] = useState(false);               // Dokument groß ansehen
   const [opOpen, setOpOpen] = useState(false);               // Betreiber-Schalter aufgeklappt
   const [caseEdit, setCaseEdit] = useState(null);            // Fall umbenennen: { id, name }
+  const [sel, setSel] = useState(null);                      // Auswahl in der Fall-Ansicht: null oder Liste von Dokument-IDs
+  const [moveFor, setMoveFor] = useState(null);              // Verschieben-Dialog: { ids }
+  const [confirmDel, setConfirmDel] = useState(null);        // Nachfrage vor dem Löschen: { kind: "docs", ids } | { kind: "file", letterId, file } | { kind: "case", id }
 
   // Ordnernamen zweisprachig: übersetzt die Fallnamen in die gewählte App-Sprache
   useEffect(() => {
@@ -962,6 +977,7 @@ function BriefeCore({ profileApi }) {
 
   const activeLetter = allLetters.find((l) => l.id === activeTab);
   useEffect(() => { setViewer(false); }, [activeTab]);
+  useEffect(() => { setSel(null); }, [activeTab, openCaseId]);
   const activeCase = cases.find((cs) => cs.id === activeLetter?.caseId);
 
   // ---------- Shop / Recht: Logik ----------
@@ -1104,10 +1120,6 @@ function BriefeCore({ profileApi }) {
     const nm = String(name || "").trim(); if (!nm) return;
     persist(cases.map((cs) => (cs.id !== caseId ? cs : { ...cs, name: nm })));
     setCaseNameTranslations((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith(caseId + ":"))));
-  };
-  const deleteEmptyCase = (caseId) => {
-    const cs = cases.find((x) => x.id === caseId); if (!cs || cs.letters.length) return;
-    persist(cases.filter((x) => x.id !== caseId)); setOpenCaseId(null);
   };
   const toggleCaseStatus = (caseId) => {
     const next = cases.map((cs) => cs.id !== caseId ? cs : { ...cs, status: cs.status === "open" ? "done" : "open" });
@@ -1260,6 +1272,7 @@ function BriefeCore({ profileApi }) {
   const fileActions = {
     get: (f) => fileGet(f.id),
     notify: setNotice,
+    remove: (letter, f) => setConfirmDel({ kind: "file", letterId: letter.id, file: f }),
     download: async (f) => { const b = await fileGet(f.id); if (!b) return setNotice(t.noticeMissing); downloadBlob(b, f.name); },
     share: async (f) => {
       const b = await fileGet(f.id); if (!b) return setNotice(t.noticeMissing);
@@ -1284,11 +1297,55 @@ function BriefeCore({ profileApi }) {
     setEditOpen(false);
     if (patch.deadline && patch.deadline !== letter.deadline) autoCalendar([{ ...letter, ...patch }]);
   };
-  const deleteLetter = async (letter) => {
-    for (const f of letter.files || []) await fileDelete(f.id);
-    persist(casesRef.current.map((cs) => (cs.id !== letter.caseId ? cs : { ...cs, letters: cs.letters.filter((l) => l.id !== letter.id) })));
-    setEditOpen(false);
-    closeTab(letter.id);
+  const ensureUnsorted = (list) => (list.some((cs) => cs.id === "unsorted") ? list : [...list, { id: "unsorted", name: t.unsortedCase, status: "open", color: "#726B5E", letters: [] }]);
+  // Dokumente endgültig löschen (mit allen Dateien)
+  const deleteLetters = async (ids) => {
+    const hit = casesRef.current.flatMap((cs) => cs.letters.filter((l) => ids.includes(l.id)).map((l) => ({ l, caseId: cs.id })));
+    for (const { l } of hit) for (const f of l.files || []) await fileDelete(f.id);
+    persist(casesRef.current.map((cs) => ({ ...cs, letters: cs.letters.filter((l) => !ids.includes(l.id)) })));
+    setOpenTabs((tabs) => tabs.filter((id) => !ids.includes(id)));
+    if (ids.includes(activeTab)) { setOpenCaseId(hit.find((x) => x.l.id === activeTab)?.caseId || null); setActiveTab(null); }
+    setEditOpen(false); setSel(null);
+    setNotice(t.noticeDeleted.replace("{n}", hit.length));
+  };
+  const deleteLetter = (letter) => deleteLetters([letter.id]);
+  // Dokumente in einen anderen Fall legen: vorhandener Fall, „Unsortiert“ oder neuer Fall mit Namen
+  const moveLetters = (ids, target, newName) => {
+    let working = casesRef.current; const moved = [];
+    for (const cs of working) for (const l of cs.letters) if (ids.includes(l.id)) moved.push(l);
+    if (!moved.length) return;
+    if (target === "new") {
+      const name = cleanVal(newName); if (!name) return;
+      const cs = { ...newCaseFor(moved[0], working.length), name, letters: [] };
+      working = [...working, cs]; target = cs.id;
+    } else if (target === "unsorted") working = ensureUnsorted(working);
+    if (!working.some((cs) => cs.id === target)) return;
+    working = working.map((cs) => ({ ...cs, letters: cs.letters.filter((l) => !ids.includes(l.id)) }));
+    working = working.map((cs) => (cs.id === target ? { ...cs, letters: [...moved, ...cs.letters] } : cs));
+    persist(working);
+    setMoveFor(null); setSel(null);
+    setNotice(t.noticeMoved.replace("{n}", moved.length));
+  };
+  // Einzelne Datei (Seite, Anhang, Umschlag) aus einem Dokument löschen
+  const deleteFile = async (letterId, file) => {
+    await fileDelete(file.id);
+    persist(casesRef.current.map((cs) => ({ ...cs, letters: cs.letters.map((l) => (l.id === letterId ? { ...l, files: (l.files || []).filter((f) => f.id !== file.id) } : l)) })));
+    setNotice(t.fileDeleted);
+  };
+  // Fall löschen: mit seinen Dokumenten ("all") oder die Dokumente vorher nach „Unsortiert“ legen ("keep")
+  const deleteCase = async (caseId, mode) => {
+    const cs = casesRef.current.find((x) => x.id === caseId); if (!cs) return;
+    let working = casesRef.current;
+    if (cs.letters.length && mode === "keep" && caseId !== "unsorted") {
+      working = ensureUnsorted(working).map((x) => (x.id === "unsorted" ? { ...x, letters: [...cs.letters, ...x.letters] } : x));
+    } else {
+      for (const l of cs.letters) for (const f of l.files || []) await fileDelete(f.id);
+      const gone = cs.letters.map((l) => l.id);
+      setOpenTabs((tabs) => tabs.filter((id) => !gone.includes(id)));
+    }
+    persist(working.filter((x) => x.id !== caseId));
+    setOpenCaseId(null); setSel(null);
+    setNotice(t.caseDeleted);
   };
   const addLetterFiles = async (letter, list, kind) => {
     const meta = [];
@@ -1527,13 +1584,13 @@ function BriefeCore({ profileApi }) {
   const menuOver = ovl && sidebarOpen && sbFor === ovl;
   // Geöffnete Fenster/Dialoge (oberstes zuerst): Zurück schließt zuerst das Fenster
   const overlays = [
-    [caseEdit, () => setCaseEdit(null)], [viewer, () => setViewer(false)], [aiConsentOpen, () => setAiConsentOpen(false)], [drafts && !savingDrafts, () => draftsBack()],
+    [confirmDel, () => setConfirmDel(null)], [moveFor, () => setMoveFor(null)], [caseEdit, () => setCaseEdit(null)], [viewer, () => setViewer(false)], [aiConsentOpen, () => setAiConsentOpen(false)], [drafts && !savingDrafts, () => draftsBack()],
     [showHomeConfirm, () => setShowHomeConfirm(false)], [legalTab, () => setLegalTab(null)], [modal, () => setModal(null)],
     [casePdfFor, () => setCasePdfFor(null)], [exportOpen, () => setExportOpen(null)], [wipeOpen, () => setWipeOpen(false)],
     [lockOpen, () => setLockOpen(false)], [profilesOpen, () => setProfilesOpen(false)], [backupOpen, () => setBackupOpen(false)],
     [remindersOpen, () => setRemindersOpen(false)], [cloudModal, () => setCloudModal(null)], [authOpen, () => setAuthOpen(false)],
     [editOpen, () => setEditOpen(false)], [tileModal, () => setTileModal(false)], [intake && !progress, () => setIntake(null)],
-    [showSettings, () => setShowSettings(false)],
+    [showSettings, () => setShowSettings(false)], [sel, () => setSel(null)],
   ].filter(([open]) => !!open);
   const navDepth = (activeLetter ? 2 : openCase ? 1 : 0) + (menuOver ? 1 : 0) + overlays.length;
   backRef.current = () => {
@@ -1548,7 +1605,7 @@ function BriefeCore({ profileApi }) {
       if (navDepth > prev) { for (let i = prev; i < navDepth; i++) window.history.pushState({ briefe: i + 1 }, ""); }
       else if (navDepth < prev) {
         if (N.popPending) N.popPending = false;      // Verlauf wurde schon vom Gerät zurückgesetzt
-        else { N.ignorePop += prev - navDepth; window.history.go(-(prev - navDepth)); }
+        else { N.ignorePop += 1; window.history.go(-(prev - navDepth)); }   // go(-n) meldet sich nur einmal zurück, egal wie viele Schritte
       }
     } catch (e) { N.histOk = false; N.popPending = false; N.ignorePop = 0; }
   }, [navDepth]);
@@ -1805,6 +1862,7 @@ function BriefeCore({ profileApi }) {
               uiLang={uiLang}
               aiOn={aiOn} aiPossible={aiPossible} reading={reading} onReadText={doReadText} onTurnAiOn={() => setAiConsentOpen(true)}
               viewer={viewer} setViewer={setViewer}
+              onMove={() => setMoveFor({ ids: [activeLetter.id] })} onDelete={() => setConfirmDel({ kind: "docs", ids: [activeLetter.id] })}
             />
           ) : openCase ? (
             <CaseView
@@ -1814,7 +1872,8 @@ function BriefeCore({ profileApi }) {
               onBack={() => setOpenCaseId(null)} onOpenLetter={openLetter}
               onCustomize={() => setTileModal(true)} onToggleStatus={() => toggleCaseStatus(openCase.id)}
               onAdd={() => setIntake((s) => s || { files: [], asPages: false })} onExport={() => openExport([openCase.id])} onCasePdf={() => setCasePdfFor(openCase.id)}
-              onRename={() => setCaseEdit({ id: openCase.id, name: openCase.name })} onDelete={() => deleteEmptyCase(openCase.id)}
+              onRename={() => setCaseEdit({ id: openCase.id, name: openCase.name })} onDelete={() => setConfirmDel({ kind: "case", id: openCase.id })}
+              sel={sel} setSel={setSel} onMoveSel={() => sel && sel.length && setMoveFor({ ids: sel })} onDeleteSel={() => sel && sel.length && setConfirmDel({ kind: "docs", ids: sel })}
               daysUntil={daysUntil} uiLang={uiLang} isMobile={isMobile} isRTL={isRTL} searching={searchTerms.length > 0}
             />
           ) : (
@@ -2072,6 +2131,37 @@ function BriefeCore({ profileApi }) {
           </div>
         </AppModal>
       )}
+
+      {moveFor && (
+        <MoveModal c={c} t={t} fontScale={fontScale} rtl={isRTL} count={moveFor.ids.length}
+          cases={visibleCases.filter((cs) => !cs.demo && cs.id !== "unsorted")}
+          currentId={(() => { const ids = moveFor.ids; const from = cases.filter((cs) => cs.letters.some((l) => ids.includes(l.id))); return from.length === 1 ? from[0].id : null; })()}
+          onMove={(target, name) => moveLetters(moveFor.ids, target, name)} onClose={() => setMoveFor(null)} />
+      )}
+      {confirmDel && (() => {
+        const close = () => setConfirmDel(null);
+        const k = confirmDel.kind;
+        const cs = k === "case" ? cases.find((x) => x.id === confirmDel.id) : null;
+        if (k === "case" && !cs) return null;
+        const n = k === "case" ? cs.letters.length : 0;
+        const warnBtn = { ...btnSmall(c), background: c.warn, color: "#fff", borderColor: c.warn, justifyContent: "center", padding: "10px 12px" };
+        return (
+          <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={k === "case" ? t.caseDelete : k === "file" ? t.delFile : t.delDocsTitle} onClose={close} maxWidth={440} z={96}>
+            <div style={{ marginBottom: 14, lineHeight: 1.55, overflowWrap: "anywhere" }}>
+              {k === "docs" && t.delDocsText.replace("{n}", confirmDel.ids.length)}
+              {k === "file" && t.delFileText.replace("{n}", confirmDel.file.name)}
+              {k === "case" && <>{t.delCaseText.replace("{n}", cs.name)}{n > 0 && <div style={{ marginTop: 6 }}>{t.delCaseWith.replace("{n}", n)}</div>}</>}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {k === "docs" && <button onClick={() => { deleteLetters(confirmDel.ids); close(); }} style={warnBtn}><Trash2 size={14} /> {t.deleteWord}</button>}
+              {k === "file" && <button onClick={() => { deleteFile(confirmDel.letterId, confirmDel.file); close(); }} style={warnBtn}><Trash2 size={14} /> {t.deleteWord}</button>}
+              {k === "case" && n > 0 && cs.id !== "unsorted" && <button onClick={() => { deleteCase(cs.id, "keep"); close(); }} style={{ ...btnSmall(c), justifyContent: "center", padding: "10px 12px" }}><Folder size={14} /> {t.delCaseKeep}</button>}
+              {k === "case" && <button onClick={() => { deleteCase(cs.id, "all"); close(); }} style={warnBtn}><Trash2 size={14} /> {n > 0 ? t.delCaseAll : t.deleteWord}</button>}
+              <button onClick={close} style={{ ...btnSmall(c), justifyContent: "center", padding: "10px 12px" }}>{t.cancel}</button>
+            </div>
+          </AppModal>
+        );
+      })()}
 
       {/* ---------- KI einschalten: erst nach Hinweis und Zustimmung ---------- */}
       {aiConsentOpen && (
@@ -2350,7 +2440,7 @@ function CaseRow({ c, t, fontScale, cs, onOpen, onToggleStatus, daysUntil, trans
 /* ---------- Dokument-Ansicht: Datei oben, darunter Reiter (Text · Übersetzung · Antwort) ---------- */
 // Text des Dokuments; ältere Einträge enthalten statt eines leeren Textes noch einen Platzhaltersatz
 const letterText = (l) => { const x = String(l?.original || ""); return x.startsWith("(Der Text konnte nicht gelesen werden") ? "" : x; };
-function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, targetLang, setTargetLang, busy, onTranslate, onReply, userNote, setUserNote, copyText, saved, daysUntil, isMobile, replyLang, setReplyLang, onTranslateReply, isRTL, fileActions, onBackToCase, onEdit, onReplyEdit, onConfirmReply, onPdf, onMail, onShareReply, uiLang, onRate, aiOn, aiPossible, reading, onReadText, onTurnAiOn, viewer, setViewer }) {
+function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, targetLang, setTargetLang, busy, onTranslate, onReply, userNote, setUserNote, copyText, saved, daysUntil, isMobile, replyLang, setReplyLang, onTranslateReply, isRTL, fileActions, onBackToCase, onEdit, onReplyEdit, onConfirmReply, onPdf, onMail, onShareReply, uiLang, onRate, aiOn, aiPossible, reading, onReadText, onTurnAiOn, viewer, setViewer, onMove, onDelete }) {
   const critical = criticalReasons(letter, daysUntil);
   const d = letter.deadline ? daysUntil(letter.deadline) : null;
   const confirmed = !!letter.replyConfirmedAt;
@@ -2373,9 +2463,11 @@ function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, ta
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       {/* Kopf: Fall, Name, Bearbeiten, wenige Angaben */}
       <div onClick={onBackToCase} style={{ fontSize: 11.5 * fontScale, color: c.accent, marginBottom: 4, cursor: "pointer", textDecoration: "underline", overflowWrap: "anywhere" }}>{caseObj?.name}</div>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 6 }}>
-        <h2 style={{ margin: 0, fontSize: 19 * fontScale, flex: 1, minWidth: 0, overflowWrap: "anywhere", lineHeight: 1.25 }}>{letter.subject}</h2>
-        <button onClick={onEdit} style={{ ...btnSmall(c), flexShrink: 0 }}><Pencil size={13} /> {t.edit}</button>
+      <h2 style={{ margin: "0 0 8px", fontSize: 19 * fontScale, overflowWrap: "anywhere", lineHeight: 1.25 }}>{letter.subject}</h2>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+        <button onClick={onEdit} style={btnSmall(c)}><Pencil size={13} /> {t.edit}</button>
+        <button onClick={onMove} style={btnSmall(c)}><Folder size={13} /> {t.moveWord}</button>
+        <button onClick={onDelete} style={{ ...btnSmall(c), color: c.warn }}><Trash2 size={13} /> {t.deleteWord}</button>
       </div>
       <div style={{ display: "flex", gap: "6px 12px", flexWrap: "wrap", alignItems: "center", marginBottom: 14, fontSize: 12 * fontScale, color: c.textMuted }}>
         {meta.length > 0 && <span style={{ overflowWrap: "anywhere" }}>{meta.join(" · ")}</span>}
@@ -2521,20 +2613,30 @@ function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, ta
 /* ---------- Aufklapp-Menü „Mehr“ für selten gebrauchte Aktionen ---------- */
 function MoreMenu({ c, fontScale, label, items, align = "end" }) {
   const [open, setOpen] = useState(false);
+  const [up, setUp] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
     if (!open) return;
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("pointerdown", h);
-    return () => document.removeEventListener("pointerdown", h);
+    const k = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("pointerdown", h); document.addEventListener("keydown", k);
+    return () => { document.removeEventListener("pointerdown", h); document.removeEventListener("keydown", k); };
   }, [open]);
   const list = items.filter(Boolean);
+  // Ist unter dem Knopf zu wenig Platz (z. B. über der unteren Leiste), klappt das Menü nach oben auf
+  const toggle = () => {
+    if (!open && ref.current) {
+      const r = ref.current.getBoundingClientRect(); const need = list.length * 42 + 16;
+      setUp(window.innerHeight - r.bottom - 70 < need && r.top > need);
+    }
+    setOpen((o) => !o);
+  };
   return (
     <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
-      <button onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} style={btnSmall(c)}>{label} <ChevronDown size={13} /></button>
+      <button onClick={toggle} aria-haspopup="menu" aria-expanded={open} style={btnSmall(c)}>{label} <ChevronDown size={13} /></button>
       {open && (
         <div role="menu" style={{
-          position: "absolute", top: "calc(100% + 4px)", [align === "end" ? "insetInlineEnd" : "insetInlineStart"]: 0, zIndex: 30, minWidth: 220, maxWidth: "80vw",
+          position: "absolute", [up ? "bottom" : "top"]: "calc(100% + 4px)", [align === "end" ? "insetInlineEnd" : "insetInlineStart"]: 0, zIndex: 30, minWidth: 220, maxWidth: "80vw",
           background: c.surface, border: `1px solid ${c.border}`, borderRadius: 10, boxShadow: "0 8px 28px rgba(0,0,0,.22)", padding: 4,
         }}>
           {list.map((it) => {
@@ -3874,6 +3976,34 @@ function FieldRow({ c, fontScale, label, children }) {
 }
 const fieldStyle = (c, fontScale) => ({ width: "100%", padding: "9px 10px", borderRadius: 8, border: `1px solid ${c.border}`, background: c.bg, color: c.text, boxSizing: "border-box", fontFamily: "inherit", fontSize: 13 * fontScale });
 
+/* ---------- Verschieben: vorhandener Fall, „Unsortiert“ oder neuer Fall ---------- */
+function MoveModal({ c, t, fontScale, rtl, count, cases, currentId, onMove, onClose }) {
+  const options = [...cases.filter((cs) => cs.id !== currentId).map((cs) => [cs.id, cs.name]), ...(currentId === "unsorted" ? [] : [["unsorted", t.unsortedCase]]), ["new", t.assignNew + " …"]];
+  const [target, setTarget] = useState(options[0][0]);
+  const [name, setName] = useState("");
+  const ok = target !== "new" || name.trim().length > 0;
+  return (
+    <AppModal c={c} fontScale={fontScale} rtl={rtl} title={t.moveTitle} onClose={onClose} maxWidth={440} z={96}>
+      <div style={{ color: c.textMuted, marginBottom: 10 }}>{nLetters(count, t)}</div>
+      <div role="radiogroup" style={{ maxHeight: "46vh", overflowY: "auto", marginBottom: 10 }}>
+        {options.map(([id, label]) => (
+          <label key={id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 10px", borderRadius: 8, marginBottom: 6, cursor: "pointer", border: `1px solid ${target === id ? c.accent : c.border}`, background: target === id ? c.accentSoft : "transparent" }}>
+            <input type="radio" name="movetarget" checked={target === id} onChange={() => setTarget(id)} />
+            <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>{label}</span>
+          </label>
+        ))}
+      </div>
+      {target === "new" && (
+        <FieldRow c={c} fontScale={fontScale} label={t.caseNewName}><input autoFocus style={fieldStyle(c, fontScale)} value={name} onChange={(e) => setName(e.target.value)} /></FieldRow>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={onClose} style={btnSmall(c)}>{t.cancel}</button>
+        <button disabled={!ok} onClick={() => onMove(target, name)} style={{ ...btnPrimary(c, !ok), flex: 1, width: "auto" }}>{t.moveDo}</button>
+      </div>
+    </AppModal>
+  );
+}
+
 /* ---------- Angaben zum Dokument: einmal nach der letzten Seite, alles freiwillig ---------- */
 function DetailsModal({ c, t, fontScale, rtl, drafts, cases, uiLang, saving, onSave, onClose }) {
   const [items, setItems] = useState(drafts.items);
@@ -4014,6 +4144,7 @@ function DocFiles({ c, t, fontScale, letter, files, actions, isMobile, viewer, s
             { label: t.toCloud, icon: Cloud, onClick: () => actions.cloud(cur) },
             img && url ? { label: t.openNewTab, icon: FileText, onClick: openTab } : null,
             ...addItems,
+            { label: t.delFile, icon: Trash2, warn: true, onClick: () => actions.remove(letter, cur) },
           ]} />
         </div>
       </div>
@@ -4651,7 +4782,28 @@ function LetterTile({ c, t, fontScale, letter, fields, onOpen, daysUntil, uiLang
 }
 
 /* ---------- Fall-Ansicht: Liste der Briefe dieses Falls ---------- */
-function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, setSort, fields, onBack, onOpenLetter, onCustomize, onToggleStatus, onAdd, onExport, onCasePdf, onRename, onDelete, daysUntil, uiLang, isMobile, isRTL, searching }) {
+function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, setSort, fields, onBack, onOpenLetter, onCustomize, onToggleStatus, onAdd, onExport, onCasePdf, onRename, onDelete, daysUntil, uiLang, isMobile, isRTL, searching, sel, setSel, onMoveSel, onDeleteSel }) {
+  const selecting = Array.isArray(sel);
+  const toggle = (id) => setSel((x) => { const a = x || []; return a.includes(id) ? a.filter((y) => y !== id) : [...a, id]; });
+  // Langes Tippen (oder Rechtsklick) auf ein Dokument startet die Auswahl
+  const lp = useRef({ timer: null, fired: false });
+  const press = (id) => ({
+    onTouchStart: () => { lp.current.fired = false; clearTimeout(lp.current.timer); lp.current.timer = setTimeout(() => { lp.current.fired = true; setSel((x) => ((x || []).includes(id) ? x : [...(x || []), id])); }, 550); },
+    onTouchMove: () => clearTimeout(lp.current.timer),
+    onTouchEnd: () => { clearTimeout(lp.current.timer); if (lp.current.fired) setTimeout(() => { lp.current.fired = false; }, 350); },   // der Klick direkt nach dem langen Tippen zählt nicht, spätere schon
+    onContextMenu: (e) => { e.preventDefault(); lp.current.fired = false; setSel((x) => ((x || []).includes(id) ? x : [...(x || []), id])); },
+  });
+  const open = (id) => { if (lp.current.fired) { lp.current.fired = false; return; } if (selecting) toggle(id); else onOpenLetter(id); };
+  const wrap = (l, tile) => (
+    <div key={l.id} {...press(l.id)} style={{ position: "relative", borderRadius: view === "tiles" ? 16 : 12, outline: selecting && sel.includes(l.id) ? `2px solid ${c.accent}` : "none", outlineOffset: 1, WebkitTouchCallout: "none", userSelect: selecting ? "none" : "auto" }}>
+      {tile}
+      {selecting && (
+        <div aria-hidden="true" style={{ position: "absolute", top: 8, insetInlineStart: 8, width: 22, height: 22, borderRadius: 11, border: `2px solid ${sel.includes(l.id) ? c.accent : "#fff"}`, background: sel.includes(l.id) ? c.accent : "rgba(0,0,0,.25)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+          {sel.includes(l.id) && <Check size={14} />}
+        </div>
+      )}
+    </div>
+  );
   const sortOpts = [["date", t.sortDate], ["caseNumber", t.fCaseNumber], ["sender", t.fSender], ["deadline", t.sortDeadline], ["subject", t.fSubject]];
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -4684,8 +4836,9 @@ function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, se
           { label: t.casePdf, icon: FileText, onClick: onCasePdf },
           { label: t.exportCase, icon: Download, onClick: onExport },
           { label: t.caseRename, icon: Pencil, onClick: onRename },
-          cs.letters.length === 0 ? { label: t.caseDelete, icon: Trash2, onClick: onDelete, warn: true } : null,
+          { label: t.caseDelete, icon: Trash2, onClick: onDelete, warn: true },
         ]} />
+        {letters.length > 0 && !selecting && <button onClick={() => setSel([])} style={btnSmall(c)}><Check size={14} /> {t.selectWord}</button>}
         <button onClick={onAdd} style={{ ...btnSmall(c), background: c.accent, color: "#fff", borderColor: c.accent }}><Upload size={14} /> {t.upload}</button>
       </div>
 
@@ -4693,15 +4846,23 @@ function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, se
         <div style={{ textAlign: "center", padding: 50, color: c.textMuted }}>{searching ? t.noHits : t.caseEmpty}</div>
       ) : view === "tiles" ? (
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(auto-fill, minmax(150px,1fr))" : "repeat(auto-fill, minmax(230px,1fr))", gap: isMobile ? 10 : 16 }}>
-          {letters.map((l) => (
-            <LetterTile key={l.id} c={c} t={t} fontScale={fontScale} letter={l} fields={fields} onOpen={() => onOpenLetter(l.id)} daysUntil={daysUntil} uiLang={uiLang} caseColor={cs.color} />
+          {letters.map((l) => wrap(l,
+            <LetterTile c={c} t={t} fontScale={fontScale} letter={l} fields={fields} onOpen={() => open(l.id)} daysUntil={daysUntil} uiLang={uiLang} caseColor={cs.color} />
           ))}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {letters.map((l) => (
-            <LetterTile key={l.id} list c={c} t={t} fontScale={fontScale} letter={l} fields={fields} onOpen={() => onOpenLetter(l.id)} daysUntil={daysUntil} uiLang={uiLang} caseColor={cs.color} />
+          {letters.map((l) => wrap(l,
+            <LetterTile list c={c} t={t} fontScale={fontScale} letter={l} fields={fields} onOpen={() => open(l.id)} daysUntil={daysUntil} uiLang={uiLang} caseColor={cs.color} />
           ))}
+        </div>
+      )}
+      {selecting && (
+        <div role="toolbar" style={{ position: "sticky", bottom: 0, marginTop: 14, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 12px", borderRadius: 12, background: c.surface, border: `1px solid ${c.border}`, boxShadow: "0 -4px 18px rgba(0,0,0,.12)" }}>
+          <span style={{ fontWeight: 600, flex: "1 1 90px" }}>{t.selectedN.replace("{n}", sel.length)}</span>
+          <button disabled={!sel.length} onClick={onMoveSel} style={{ ...btnSmall(c), opacity: sel.length ? 1 : 0.45 }}><Folder size={14} /> {t.moveWord}</button>
+          <button disabled={!sel.length} onClick={onDeleteSel} style={{ ...btnSmall(c), color: c.warn, opacity: sel.length ? 1 : 0.45 }}><Trash2 size={14} /> {t.deleteWord}</button>
+          <button onClick={() => setSel(null)} style={btnSmall(c)}>{t.cancel}</button>
         </div>
       )}
     </div>
