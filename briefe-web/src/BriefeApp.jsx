@@ -60,7 +60,7 @@ const OPERATOR = {               // Betreiberangaben für Impressum/Datenschutz 
   phone: "[Telefonnummer oder zweiter schneller Kontaktweg]",
 };
 const DEFAULT_SHOP = {
-  flags: { paymentRequired: false, subscription: false, tracking: false, newsletter: false, usSales: false, ai: true },   // ai = KI-Funktionen anbieten (Nutzer schaltet sie selbst zu)
+  flags: { paymentRequired: false, subscription: false, tracking: false, newsletter: false, usSales: false, ai: true, moreClouds: true },   // ai = KI-Funktionen anbieten (Nutzer schaltet sie selbst zu)
   orders: [],
   unlocked: {},     // letterId -> "free" | "paid"
   consent: null,    // { status: "accepted" | "declined", at }
@@ -186,6 +186,7 @@ const UI_STRINGS = {
     takeSelected: "Auswählen und hinzufügen", encryptLabel: "Vor dem Speichern verschlüsseln (empfohlen)", passLabel: "Passwort für die Verschlüsselung",
     systemShare: "Teilen-Menü / In Dateien sichern", systemShareHint: "Funktioniert mit jeder Cloud-App auf deinem Gerät, auch mit iCloud.",
     notConnected: "Nicht verbunden", notConfigured: "Noch nicht eingerichtet (Betreiber)", connected: "Verbunden",
+    cloudMore: "Weitere Cloud verbinden", cloudMoreTitle: "Weitere Clouds", davUrl: "WebDAV-Adresse (https://…)", davUser: "Benutzername oder E-Mail-Adresse", davPass: "Passwort oder App-Passwort",
     connIntro: "Alles ist freiwillig und standardmäßig aus. Deine Dateien liegen immer auf deinem Gerät. Eine Cloud wird nur genutzt, wenn du sie hier verbindest.",
     connect: "Verbinden", disconnect: "Trennen", cancel: "Abbrechen",
     consentLabel: "Ich willige ausdrücklich ein. Ich kann die Einwilligung jederzeit widerrufen, indem ich die Verbindung trenne.",
@@ -356,6 +357,7 @@ const UI_STRINGS = {
     takeSelected: "Select and add", encryptLabel: "Encrypt before saving (recommended)", passLabel: "Password for encryption",
     systemShare: "Share menu / Save to Files", systemShareHint: "Works with any cloud app on your device, including iCloud.",
     notConnected: "Not connected", notConfigured: "Not set up yet (operator)", connected: "Connected",
+    cloudMore: "Connect another cloud", cloudMoreTitle: "More clouds", davUrl: "WebDAV address (https://…)", davUser: "User name or e-mail address", davPass: "Password or app password",
     connIntro: "Everything is optional and off by default. Your files always stay on your device. A cloud is only used if you connect it here.",
     connect: "Connect", disconnect: "Disconnect", cancel: "Cancel",
     consentLabel: "I explicitly consent. I can withdraw my consent at any time by disconnecting.",
@@ -2113,6 +2115,7 @@ function BriefeCore({ profileApi }) {
                     ["tracking", "Tracking / Consent-Banner"],
                     ["newsletter", "Newsletter (Double-Opt-In)"],
                     ["usSales", "Verkauf in die USA"],
+                    ["moreClouds", "Weitere Clouds anbieten (Box, pCloud, MagentaCLOUD, GMX, WEB.DE, HiDrive, Nextcloud)"],
                   ].map(([k, label]) => (
                     <SettingRow key={k} c={c} label={label} fontScale={fontScale}>
                       <ToggleSwitch c={c} on={!!flags[k]} label={label} onClick={() => setFlag(k, !flags[k])} />
@@ -2285,7 +2288,7 @@ function BriefeCore({ profileApi }) {
           key={(cloudModal.files || []).map((f) => f.id).join(",")}
           c={c} t={t} fontScale={fontScale} rtl={isRTL}
           tab={cloudModal.tab} setTab={(tab) => setCloudModal((m) => ({ ...m, tab }))}
-          cloud={cloud} setCloud={setCloud} tokens={tokens} setTokens={setTokens}
+          cloud={cloud} setCloud={setCloud} tokens={tokens} setTokens={setTokens} flags={flags}
           pass={cloudPass} setPass={setCloudPass}
           exportFiles={cloudModal.files || []} getBlob={(f) => fileGet(f.id)}
           onImported={(files) => { addToIntake(files); setCloudModal(null); }}
@@ -3268,7 +3271,7 @@ function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
           <H>Dateiablage auf dem Gerät</H>
           <P>Fotos, PDFs und andere Dateien, die du hinzufügst, werden auf deinem Gerät gespeichert und nicht auf unseren Servern. Zum Auslesen (Texterkennung, Absender, Aktenzeichen, Fristen) wird der Inhalt an den KI-Dienst <Ph>[Anbieter, Serverstandort]</Ph> gesendet (Art. 6 Abs. 1 lit. b DSGVO; bei Gesundheitsdaten Art. 9 Abs. 2 lit. a DSGVO).</P>
           <H>Cloud-Anbindung (freiwillig)</H>
-          <P>Du kannst Google Drive, Microsoft OneDrive und Dropbox mit der App verbinden, um Dateien zu holen oder zu sichern; iCloud nutzt du über das Teilen-Menü deines Geräts. Das ist standardmäßig ausgeschaltet. Rechtsgrundlage ist deine ausdrückliche Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die du jederzeit durch Trennen der Verbindung widerrufen kannst. Die Dateien gehen direkt von deinem Gerät in dein Konto beim jeweiligen Anbieter, nicht über unseren Server. Die Anbieter können Daten in Drittländer außerhalb der EU übertragen (z. B. USA); es gelten deren Datenschutzbestimmungen. Beim Verbinden wird ein Skript des Anbieters nachgeladen. Zugangsdaten für die Clouds werden nicht gespeichert und gelten nur für die laufende Sitzung. Vor dem Speichern in eine Cloud kannst du die Dateien mit einem eigenen Passwort verschlüsseln. <Ph>[Angaben zu Auftragsverarbeitung und Drittlandübermittlung vor Livegang prüfen]</Ph></P>
+          <P>Du kannst Google Drive, Microsoft OneDrive, Dropbox, Box und pCloud mit der App verbinden, um Dateien zu holen oder zu sichern; iCloud nutzt du über das Teilen-Menü deines Geräts. Das ist standardmäßig ausgeschaltet. Rechtsgrundlage ist deine ausdrückliche Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die du jederzeit durch Trennen der Verbindung widerrufen kannst. Die Dateien gehen direkt von deinem Gerät in dein Konto beim jeweiligen Anbieter, nicht über unseren Server. Die Anbieter können Daten in Drittländer außerhalb der EU übertragen (z. B. USA); es gelten deren Datenschutzbestimmungen. Beim Verbinden wird ein Skript des Anbieters nachgeladen. Zugangsdaten für die Clouds werden nicht gespeichert und gelten nur für die laufende Sitzung. Ausnahme beim Übertragungsweg: MagentaCLOUD, GMX Cloud, WEB.DE Online-Speicher, HiDrive und Nextcloud (WebDAV) erlauben keinen direkten Zugriff aus dem Browser. Bei diesen Anbietern laufen deine Zugangsdaten und die Dateien verschlüsselt über unseren Server zu deinem Konto beim Anbieter; unser Server speichert und protokolliert sie nicht. Bei Box läuft nur der Abschluss der Anmeldung über unseren Server, die Dateien nicht. Vor dem Speichern in eine Cloud kannst du die Dateien mit einem eigenen Passwort verschlüsseln. <Ph>[Angaben zu Auftragsverarbeitung und Drittlandübermittlung vor Livegang prüfen]</Ph></P>
           <H>Unser Server: Konto, Erinnerungen, Bestellungen</H>
           <P>Auf unserem Server speichern wir nur: eine zufällige Gerätekennung für die Sitzung, deine E-Mail-Adresse bzw. Profil-Adresse (wenn du dich anmeldest), welche Dokumente freigeschaltet sind (nur eine zufällige Dokument-Kennung, kein Inhalt), Bestellungen sowie – nur wenn du sie einschaltest – Zeitpunkte für Push-Erinnerungen und dein Kalender-Abo. Über „Alle Daten löschen“ wird dein Konto auf dem Server gelöscht; Bestellungen bewahren wir ohne Kontobezug nur so lange auf, wie es gesetzlich vorgeschrieben ist.</P>
           <H>Anmeldung mit Universal Profile (LUKSO)</H>
@@ -3418,6 +3421,8 @@ const CLOUD_CONFIG = {
   gdrive: { clientId: "", apiKey: "" },   // Google Cloud Console: OAuth-Client (Web) + API-Key für den Picker
   onedrive: { clientId: "" },             // Microsoft Entra: App-Registrierung, Plattform "Single-page application"
   dropbox: { appKey: "" },                // Dropbox App Console (Zugriffsart je nach Wunsch "App folder" oder "Full Dropbox")
+  pcloud: { clientId: "" },               // pCloud: App unter docs.pcloud.com anlegen ("My applications"), Redirect-Adresse = Adresse der App
+  // Box und WebDAV (MagentaCLOUD, GMX, WEB.DE, HiDrive, Nextcloud) brauchen den Briefe-Server und werden dort eingerichtet (.env)
 };
 const SERVER_URL = "";                    // Dein Briefe-Server (Ordner briefe-server/), z. B. "https://api.deine-domain.de". Leer = Demo bzw. Claude-Umgebung
 // Ist ein KI-Dienst erreichbar? Mit eigenem Server ja; ohne Server nur in der Claude-Vorschau (dort stellt die Umgebung die KI bereit).
@@ -3448,8 +3453,53 @@ const CLOUD_META = {
     privacy: "https://www.apple.com/legal/privacy/de-ww/",
     scope: "Apple bietet Web-Apps keine eigene Schnittstelle. Nutze das Teilen-Menü bzw. die Dateien-Auswahl deines Geräts.",
   },
+  box: {
+    label: "Box", company: "Box, Inc. (USA)",
+    privacy: "https://www.box.com/legal/privacypolicy",
+    scope: "Zugriff auf Dateien in deinem Box-Konto laut Freigabe-Bildschirm von Box (Lesen und Schreiben). Nur die Anmeldung läuft kurz über unseren Server, die Dateien nicht.",
+  },
+  pcloud: {
+    label: "pCloud", company: "pCloud AG (Schweiz). Speicherort je nach deinem Konto: EU oder USA",
+    scope: "Zugriff auf Dateien in deinem pCloud-Konto laut Freigabe-Bildschirm von pCloud (Lesen und Schreiben).",
+  },
+  magenta: {
+    label: "MagentaCLOUD (Telekom)", company: "Telekom Deutschland GmbH (Deutschland)", dav: true, eu: true,
+    privacy: "https://www.telekom.de/datenschutzhinweise",
+    hint: "Benutzername und das eigene WebDAV-Passwort, das du in den Einstellungen der MagentaCLOUD festlegst.",
+  },
+  gmx: {
+    label: "GMX Cloud", company: "1&1 Mail & Media GmbH (Deutschland)", dav: true, eu: true,
+    hint: "Deine GMX-E-Mail-Adresse und ein App-Passwort, das du im GMX-Konto anlegst (nicht dein normales Passwort).",
+  },
+  webde: {
+    label: "WEB.DE Online-Speicher", company: "1&1 Mail & Media GmbH (Deutschland)", dav: true, eu: true,
+    hint: "Deine WEB.DE-E-Mail-Adresse und dein Passwort bzw. ein App-Passwort, falls du App-Passwörter eingeschaltet hast.",
+  },
+  hidrive: {
+    label: "HiDrive (STRATO)", company: "STRATO (Deutschland)", dav: true, eu: true,
+    hint: "Dein HiDrive-Benutzername und Passwort. WebDAV muss in deinem HiDrive-Konto erlaubt sein.",
+  },
+  hidriveionos: {
+    label: "HiDrive (IONOS)", company: "IONOS SE (Deutschland)", dav: true, eu: true,
+    privacy: "https://www.ionos.de/datenschutzerklaerung",
+    hint: "Dein HiDrive-Benutzername und Passwort. WebDAV muss in HiDrive unter „Zugriffsrechte und Protokolle“ eingeschaltet sein.",
+  },
+  nextcloud: {
+    label: "Nextcloud / anderes WebDAV", company: "der Betreiber deiner Nextcloud (das kannst auch du selbst sein)", dav: true, needsUrl: true,
+    hint: "Die WebDAV-Adresse deiner Nextcloud (z. B. https://deine-cloud.de/remote.php/webdav), dein Benutzername und ein App-Passwort.",
+  },
 };
-const DIRECT_PROVIDERS = ["gdrive", "onedrive", "dropbox"];
+const BASE_PROVIDERS = ["gdrive", "onedrive", "dropbox"];
+const DAV_PROVIDERS = ["magenta", "gmx", "webde", "hidrive", "hidriveionos", "nextcloud"];
+const MORE_PROVIDERS = ["box", "pcloud", ...DAV_PROVIDERS];
+const DIRECT_PROVIDERS = [...BASE_PROVIDERS, ...MORE_PROVIDERS];
+const PCLOUD_HOSTS = ["api.pcloud.com", "eapi.pcloud.com"];
+// Ist die Anbindung vom Betreiber eingerichtet?
+const cloudConfigured = (p) => {
+  if (CLOUD_META[p]?.dav) return !!(SERVER_URL && SERVER_CFG?.dav);
+  if (p === "box") return !!(SERVER_URL && SERVER_CFG?.boxClientId);
+  return !!CLOUD_CONFIG[p] && Object.values(CLOUD_CONFIG[p]).every(Boolean);
+};
 const DEFAULT_CLOUD = { consent: {}, encrypt: true, auto: null };
 const DEFAULT_ACCOUNT = null;
 
@@ -3725,8 +3775,34 @@ function loadScript(src) {
 }
 const dbxArg = (o) => JSON.stringify(o).replace(/[\u007f-￿]/g, (ch) => "\\u" + ("0000" + ch.charCodeAt(0).toString(16)).slice(-4));
 
-async function cloudConnect(provider) {
+async function cloudConnect(provider, extra) {
   const ru = redirectUri();
+  if (CLOUD_META[provider]?.dav) {
+    if (!cloudConfigured(provider)) throw new Error("not-configured");
+    const cred = { dav: true, provider, user: String(extra?.user || "").trim(), pass: String(extra?.pass || ""), base: String(extra?.base || "").trim() };
+    if (!cred.user || !cred.pass || (CLOUD_META[provider].needsUrl && !cred.base)) throw new Error("dav-input");
+    await srv("/dav/list", { provider, user: cred.user, pass: cred.pass, base: cred.base, path: "" });   // prüft die Zugangsdaten
+    return cred;
+  }
+  if (provider === "pcloud") {
+    const id = CLOUD_CONFIG.pcloud.clientId; if (!id) throw new Error("not-configured");
+    const state = b64url(crypto.getRandomValues(new Uint8Array(12)));
+    const res = await oauthPopup(`https://my.pcloud.com/oauth2/authorize?client_id=${encodeURIComponent(id)}&response_type=token&redirect_uri=${encodeURIComponent(ru)}&state=${state}`, ru);
+    const f = new URLSearchParams(res.hash.replace(/^#/, ""));
+    if (f.get("state") !== state) throw new Error("state");
+    const host = f.get("hostname") || "api.pcloud.com";
+    if (!f.get("access_token") || !PCLOUD_HOSTS.includes(host)) throw new Error("token");
+    return { token: f.get("access_token"), host };
+  }
+  if (provider === "box") {
+    const id = SERVER_URL && SERVER_CFG?.boxClientId; if (!id) throw new Error("not-configured");
+    const state = b64url(crypto.getRandomValues(new Uint8Array(12)));
+    const res = await oauthPopup(`https://account.box.com/api/oauth2/authorize?client_id=${encodeURIComponent(id)}&response_type=code&redirect_uri=${encodeURIComponent(ru)}&state=${state}`, ru);
+    if (res.searchParams.get("state") !== state || !res.searchParams.get("code")) throw new Error("state");
+    const j = await srv("/cloud/box/token", { code: res.searchParams.get("code"), redirectUri: ru });
+    if (!j.accessToken) throw new Error("token");
+    return j.accessToken;
+  }
   if (provider === "dropbox") {
     const key = CLOUD_CONFIG.dropbox.appKey; if (!key) throw new Error("not-configured");
     const { verifier, challenge } = await pkcePair(); const state = b64url(crypto.getRandomValues(new Uint8Array(12)));
@@ -3767,8 +3843,34 @@ async function cloudConnect(provider) {
   throw new Error("unsupported");
 }
 
+const pcloudCall = async (tok, method, params) => {
+  const r = await fetch(`https://${tok.host}/${method}?${new URLSearchParams(params)}`, { headers: { Authorization: "Bearer " + tok.token } });
+  const j = await r.json(); if (j.result !== 0) throw new Error(method === "getfilelink" ? "download" : "upload");
+  return j;
+};
 async function cloudUpload(provider, token, name, blob) {
+  if (token?.dav) {
+    await srv("/dav/put", { provider: token.provider, user: token.user, pass: token.pass, base: token.base, name, b64: await blobToBase64(blob), type: blob.type || "application/octet-stream" });
+    return;
+  }
+  if (provider === "pcloud") {
+    const folder = (await pcloudCall(token, "createfolderifnotexists", { path: "/Briefe-App" })).metadata?.folderid;
+    const fd = new FormData(); fd.append("file", blob, name);
+    const r = await fetch(`https://${token.host}/uploadfile?${new URLSearchParams({ folderid: String(folder ?? 0), filename: name, renameifexists: "1" })}`, { method: "POST", headers: { Authorization: "Bearer " + token.token }, body: fd });
+    const j = await r.json(); if (j.result !== 0) throw new Error("upload");
+    return;
+  }
   const auth = { Authorization: "Bearer " + token };
+  if (provider === "box") {
+    let fr = await fetch("https://api.box.com/2.0/folders", { method: "POST", headers: { ...auth, "Content-Type": "application/json" }, body: JSON.stringify({ name: "Briefe-App", parent: { id: "0" } }) });
+    let fj = await fr.json().catch(() => ({}));
+    const folder = fr.ok ? fj.id : fj?.context_info?.conflicts?.[0]?.id;
+    if (!folder) throw new Error("upload");
+    const send = (n) => { const fd = new FormData(); fd.append("attributes", JSON.stringify({ name: n, parent: { id: folder } })); fd.append("file", blob, n); return fetch("https://upload.box.com/api/2.0/files/content", { method: "POST", headers: auth, body: fd }); };
+    let r = await send(name);
+    if (r.status === 409) r = await send(new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + " " + name);   // Name schon vergeben
+    if (!r.ok) throw new Error("upload"); return;
+  }
   if (provider === "dropbox") {
     const r = await fetch("https://content.dropboxapi.com/2/files/upload", {
       method: "POST",
@@ -3814,7 +3916,16 @@ async function cloudUpload(provider, token, name, blob) {
 }
 
 async function cloudList(provider, token, folder) {
+  if (token?.dav) return (await srv("/dav/list", { provider: token.provider, user: token.user, pass: token.pass, base: token.base, path: folder || "" })).items || [];
+  if (provider === "pcloud") {
+    const j = await pcloudCall(token, "listfolder", { folderid: folder || "0" });
+    return (j.metadata?.contents || []).map((e) => ({ id: String(e.isfolder ? e.folderid : e.fileid), name: e.name, folder: !!e.isfolder, size: e.size || 0 }));
+  }
   const auth = { Authorization: "Bearer " + token };
+  if (provider === "box") {
+    const j = await (await fetch(`https://api.box.com/2.0/folders/${encodeURIComponent(folder || "0")}/items?fields=name,size,type&limit=200`, { headers: auth })).json();
+    return (j.entries || []).filter((e) => e.type === "folder" || e.type === "file").map((e) => ({ id: e.id, name: e.name, folder: e.type === "folder", size: e.size || 0 }));
+  }
   if (provider === "dropbox") {
     const r = await fetch("https://api.dropboxapi.com/2/files/list_folder", {
       method: "POST", headers: { ...auth, "Content-Type": "application/json" }, body: JSON.stringify({ path: folder || "", limit: 200 }),
@@ -3830,9 +3941,20 @@ async function cloudList(provider, token, folder) {
   return [];
 }
 async function cloudDownload(provider, token, item) {
+  if (token?.dav) {
+    const j = await srv("/dav/get", { provider: token.provider, user: token.user, pass: token.pass, base: token.base, path: item.id });
+    return new Blob([b64ToU8(j.b64)], { type: j.type || guessType(item.name) });
+  }
+  if (provider === "pcloud") {
+    const j = await pcloudCall(token, "getfilelink", { fileid: item.id });
+    const pr = await fetch(`https://${j.hosts[0]}${j.path}`);
+    if (!pr.ok) throw new Error("download");
+    return await pr.blob();
+  }
   const auth = { Authorization: "Bearer " + token };
   let r;
-  if (provider === "dropbox") r = await fetch("https://content.dropboxapi.com/2/files/download", { method: "POST", headers: { ...auth, "Dropbox-API-Arg": dbxArg({ path: item.id }) } });
+  if (provider === "box") r = await fetch(`https://api.box.com/2.0/files/${encodeURIComponent(item.id)}/content`, { headers: auth });
+  else if (provider === "dropbox") r = await fetch("https://content.dropboxapi.com/2/files/download", { method: "POST", headers: { ...auth, "Dropbox-API-Arg": dbxArg({ path: item.id }) } });
   else if (provider === "onedrive") r = await fetch(`https://graph.microsoft.com/v1.0/me/drive/items/${item.id}/content`, { headers: auth });
   else if (provider === "gdrive") r = await fetch(`https://www.googleapis.com/drive/v3/files/${item.id}?alt=media`, { headers: auth });
   if (!r || !r.ok) throw new Error("download");
@@ -4176,7 +4298,9 @@ function DocFiles({ c, t, fontScale, letter, files, actions, isMobile, viewer, s
 }
 
 /* ---------- Dateien & Clouds ---------- */
-function CloudModal({ c, t, fontScale, rtl, tab, setTab, cloud, setCloud, tokens, setTokens, pass, setPass, exportFiles, onImported, onClose, notify, getBlob }) {
+function CloudModal({ c, t, fontScale, rtl, flags, tab, setTab, cloud, setCloud, tokens, setTokens, pass, setPass, exportFiles, onImported, onClose, notify, getBlob }) {
+  const moreOn = flags?.moreClouds !== false;
+  const [moreOpen, setMoreOpen] = useState(() => MORE_PROVIDERS.some((p) => tokens[p]));
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [draft, setDraft] = useState(null);
@@ -4187,13 +4311,21 @@ function CloudModal({ c, t, fontScale, rtl, tab, setTab, cloud, setCloud, tokens
     popup: "Das Anmelde-Fenster wurde blockiert. Bitte Pop-ups erlauben.",
     cancel: "Abgebrochen.", token: "Die Anmeldung beim Anbieter ist fehlgeschlagen.",
     upload: "Hochladen fehlgeschlagen.", download: "Herunterladen fehlgeschlagen.",
+    "dav-input": "Bitte Benutzername und Passwort eingeben (bei Nextcloud auch die Adresse).",
+    "dav-login": "Benutzername oder Passwort stimmt nicht. Viele Anbieter verlangen ein eigenes App-Passwort.",
+    "dav-url": "Die Adresse ist nicht erlaubt. Sie muss mit https:// beginnen.", "dav-host": "Die Adresse ist nicht erreichbar oder nicht erlaubt.",
+    "dav-not-found": "Der Ordner oder die Datei wurde beim Anbieter nicht gefunden.", "dav-full": "Der Speicher beim Anbieter ist voll.",
+    "too-large": "Die Datei ist zu groß für diese Verbindung.", "dav-too-large": "Die Datei ist zu groß für diese Verbindung.",
+    "dav-off": "Diese Anbindung ist vom Betreiber ausgeschaltet.", "box-off": "Diese Anbindung ist vom Betreiber noch nicht eingerichtet.",
+    "dav-timeout": "Der Anbieter antwortet nicht. Bitte später erneut versuchen.", "dav-network": "Der Anbieter ist gerade nicht erreichbar.",
+    box: "Die Anmeldung bei Box ist fehlgeschlagen.", session: "Der Server ist gerade nicht erreichbar.",
   })[e?.message] || "Das hat nicht geklappt. Bitte erneut versuchen.";
   const noPass = "Bitte zuerst ein Passwort für die Verschlüsselung eingeben (unter „Verbindungen“) oder die Verschlüsselung ausschalten.";
 
   const doConnect = async (p) => {
     setErr(""); setBusy(p);
     try {
-      const tok = await cloudConnect(p);
+      const tok = await cloudConnect(p, draft);
       setTokens((x) => ({ ...x, [p]: tok }));
       setCloud((cl) => ({ ...cl, consent: { ...cl.consent, [p]: cl.consent[p] || { at: new Date().toISOString() } } }));
       setDraft(null);
@@ -4269,8 +4401,64 @@ function CloudModal({ c, t, fontScale, rtl, tab, setTab, cloud, setCloud, tokens
     setBusy("");
   };
 
+  const inp = { width: "100%", padding: "9px 10px", borderRadius: 8, border: `1px solid ${c.border}`, background: c.bg, color: c.text, boxSizing: "border-box", marginBottom: 8, fontFamily: "inherit" };
+  const connCard = (p) => {
+    const m = CLOUD_META[p]; const direct = p !== "icloud"; const live = !!tokens[p];
+    const configured = direct && cloudConfigured(p);
+    const d = draft?.provider === p ? draft : null;
+    const davReady = !m.dav || (!!d?.user && !!d?.pass && (!m.needsUrl || !!d?.base));
+    return (
+      <div key={p} data-cloud={p} style={{ border: `1px solid ${c.border}`, borderRadius: 10, padding: 10, marginBottom: 10 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+          <b>{m.label}</b>
+          <span style={{ fontSize: 12 * fontScale, color: live ? c.accent : c.textMuted }}>
+            {!direct ? "" : live ? t.connected : !configured ? t.notConfigured : cloud.consent[p] ? t.notConnected + " (Einwilligung gespeichert)" : t.notConnected}
+          </span>
+        </div>
+        {!direct && <div style={{ color: c.textMuted, fontSize: 12 * fontScale, marginTop: 4 }}>{m.scope}</div>}
+        {direct && !live && !d && (
+          <button onClick={() => (cloud.consent[p] && !m.dav ? doConnect(p) : setDraft({ provider: p, ok: !!cloud.consent[p], user: "", pass: "", base: "" }))} disabled={!!busy || (!configured && (!!m.dav || p === "box" || p === "pcloud"))} style={{ ...btnSmall(c), marginTop: 8, opacity: !configured && (m.dav || p === "box" || p === "pcloud") ? 0.55 : 1 }}>{t.connect}</button>
+        )}
+        {direct && live && <button onClick={() => doDisconnect(p)} style={{ ...btnSmall(c), marginTop: 8, color: c.warn }}>{t.disconnect}</button>}
+        {direct && !live && d && (
+          <div style={{ marginTop: 10, fontSize: 12.5 * fontScale }} dir="ltr">
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>Einwilligung zur Verbindung mit {m.label}</div>
+            <div style={{ marginBottom: 4 }}><b>Anbieter:</b> {m.company}.{m.eu ? "" : m.needsUrl ? " Wo deine Daten liegen, hängt von diesem Anbieter ab." : " Der Anbieter kann Daten in Länder außerhalb der EU übertragen (z. B. USA)."}</div>
+            {m.dav ? (
+              <div style={{ marginBottom: 4 }}><b>Was passiert:</b> Dieser Anbieter erlaubt keinen direkten Zugriff aus dem Browser. Deshalb laufen deine Zugangsdaten und die Dateien verschlüsselt über unseren Server zu deinem Konto beim Anbieter. Unser Server speichert und protokolliert dabei weder Zugangsdaten noch Dateien. Die App merkt sich die Zugangsdaten nur, solange sie geöffnet ist.</div>
+            ) : (
+              <div style={{ marginBottom: 4 }}><b>Was passiert:</b> Dateien werden direkt zwischen deinem Gerät und deinem Konto beim Anbieter übertragen, nicht über unseren Server. {BASE_PROVIDERS.includes(p) ? "Beim Verbinden wird ein Skript des Anbieters nachgeladen." : "Zum Anmelden öffnet sich ein Fenster des Anbieters."} {m.scope}</div>
+            )}
+            <div style={{ marginBottom: 4 }}>Dokumente können sensible Daten enthalten (z. B. Gesundheitsdaten). Verschlüssele sie deshalb vor dem Speichern in einer Cloud.</div>
+            <div style={{ marginBottom: 8 }}>{m.privacy ? <a href={m.privacy} target="_blank" rel="noopener noreferrer" style={{ color: c.accent }}>Datenschutzerklärung von {m.label}</a> : "Die Datenschutzerklärung findest du auf der Website des Anbieters."}</div>
+            {m.dav && (
+              <div dir={rtl ? "rtl" : "ltr"}>
+                <div style={{ color: c.textMuted, marginBottom: 6 }}>{m.hint}</div>
+                {m.needsUrl && <input value={d.base} onChange={(e) => setDraft((x) => ({ ...x, base: e.target.value }))} placeholder={t.davUrl} aria-label={t.davUrl} inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={inp} />}
+                <input value={d.user} onChange={(e) => setDraft((x) => ({ ...x, user: e.target.value }))} placeholder={t.davUser} aria-label={t.davUser} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="off" style={inp} />
+                <input type="password" value={d.pass} onChange={(e) => setDraft((x) => ({ ...x, pass: e.target.value }))} placeholder={t.davPass} aria-label={t.davPass} autoComplete="off" style={inp} />
+              </div>
+            )}
+            <CheckRow checked={d.ok} onChange={(v) => setDraft((x) => ({ ...x, ok: v }))}>{t.consentLabel} (Art. 6 Abs. 1 lit. a DSGVO)</CheckRow>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setDraft(null)} style={btnSmall(c)}>{t.cancel}</button>
+              <button disabled={!d.ok || !davReady || !!busy} onClick={() => doConnect(p)} style={{ ...btnPrimary(c, !d.ok || !davReady || !!busy), flex: 1, width: "auto" }}>{busy === p ? "…" : t.connect}</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const tabs = [["import", t.cloudTabImport], ["export", t.cloudTabExport], ["conn", t.cloudTabConn]];
   const connectedList = DIRECT_PROVIDERS.filter((p) => tokens[p]);
+  // In „Holen“ und „Sichern“: die drei großen Anbieter immer, weitere nur, wenn verbunden
+  const shownProviders = [...BASE_PROVIDERS, ...(moreOn ? MORE_PROVIDERS.filter((p) => tokens[p]) : [])];
+  const moreBtn = moreOn && (
+    <button onClick={() => { setMoreOpen(true); setTab("conn"); }} style={{ ...btnSmall(c), width: "100%", justifyContent: "center", padding: "11px 10px", marginBottom: 8, color: c.textMuted }}>
+      <Cloud size={15} /> {t.cloudMore}
+    </button>
+  );
   const sysInput = useRef(null);
 
   return (
@@ -4292,7 +4480,7 @@ function CloudModal({ c, t, fontScale, rtl, tab, setTab, cloud, setCloud, tokens
           </button>
           <div style={{ color: c.textMuted, fontSize: 12 * fontScale, marginBottom: 14 }}>{t.systemPickerHint}</div>
 
-          {DIRECT_PROVIDERS.map((p) => (
+          {shownProviders.map((p) => (
             <div key={p} style={{ marginBottom: 8 }}>
               {tokens[p] ? (
                 <button disabled={!!busy} onClick={() => (p === "gdrive" ? pickGoogle() : openBrowse(p))} style={{ ...btnSmall(c), width: "100%", justifyContent: "center", padding: "11px 10px" }}>
@@ -4305,6 +4493,7 @@ function CloudModal({ c, t, fontScale, rtl, tab, setTab, cloud, setCloud, tokens
               )}
             </div>
           ))}
+          {moreBtn}
 
           {browse && (
             <div style={{ marginTop: 10, border: `1px solid ${c.border}`, borderRadius: 10, padding: 10 }}>
@@ -4363,11 +4552,12 @@ function CloudModal({ c, t, fontScale, rtl, tab, setTab, cloud, setCloud, tokens
                 <Share2 size={15} /> {t.systemShare}
               </button>
               <div style={{ color: c.textMuted, fontSize: 12 * fontScale, marginBottom: 12 }}>{t.systemShareHint}</div>
-              {DIRECT_PROVIDERS.map((p) => (
+              {shownProviders.map((p) => (
                 <button key={p} disabled={!tokens[p] || !chosen.length || !!busy} onClick={() => exportTo(p)} style={{ ...btnSmall(c), width: "100%", justifyContent: "center", padding: "11px 10px", marginBottom: 8, opacity: tokens[p] ? 1 : 0.55 }}>
                   <Cloud size={15} /> {CLOUD_META[p].label}{tokens[p] ? "" : " · " + t.notConnected}
                 </button>
               ))}
+              {moreBtn}
             </>
           )}
         </>
@@ -4377,39 +4567,15 @@ function CloudModal({ c, t, fontScale, rtl, tab, setTab, cloud, setCloud, tokens
       {tab === "conn" && (
         <>
           <InfoBox c={c}>{t.connIntro}</InfoBox>
-          {["gdrive", "onedrive", "dropbox", "icloud"].map((p) => {
-            const m = CLOUD_META[p]; const direct = p !== "icloud"; const live = !!tokens[p];
-            const configured = direct && Object.values(CLOUD_CONFIG[p]).every(Boolean);
-            return (
-              <div key={p} style={{ border: `1px solid ${c.border}`, borderRadius: 10, padding: 10, marginBottom: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
-                  <b>{m.label}</b>
-                  <span style={{ fontSize: 12 * fontScale, color: live ? c.accent : c.textMuted }}>
-                    {!direct ? "" : live ? t.connected : cloud.consent[p] ? t.notConnected + " (Einwilligung gespeichert)" : !configured ? t.notConfigured : t.notConnected}
-                  </span>
-                </div>
-                {!direct && <div style={{ color: c.textMuted, fontSize: 12 * fontScale, marginTop: 4 }}>{m.scope}</div>}
-                {direct && !live && draft?.provider !== p && (
-                  <button onClick={() => (cloud.consent[p] ? doConnect(p) : setDraft({ provider: p, ok: false }))} disabled={!!busy} style={{ ...btnSmall(c), marginTop: 8 }}>{t.connect}</button>
-                )}
-                {direct && live && <button onClick={() => doDisconnect(p)} style={{ ...btnSmall(c), marginTop: 8, color: c.warn }}>{t.disconnect}</button>}
-                {direct && !live && draft?.provider === p && (
-                  <div style={{ marginTop: 10, fontSize: 12.5 * fontScale }} dir="ltr">
-                    <div style={{ fontWeight: 700, marginBottom: 4 }}>Einwilligung zur Verbindung mit {m.label}</div>
-                    <div style={{ marginBottom: 4 }}><b>Anbieter:</b> {m.company}. Der Anbieter kann Daten in Länder außerhalb der EU übertragen (z. B. USA).</div>
-                    <div style={{ marginBottom: 4 }}><b>Was passiert:</b> Dateien werden direkt zwischen deinem Gerät und deinem Konto beim Anbieter übertragen, nicht über unseren Server. Beim Verbinden wird ein Skript des Anbieters nachgeladen. {m.scope}</div>
-                    <div style={{ marginBottom: 4 }}>Dokumente können sensible Daten enthalten (z. B. Gesundheitsdaten). Verschlüssele sie deshalb vor dem Speichern in einer Cloud.</div>
-                    <div style={{ marginBottom: 8 }}><a href={m.privacy} target="_blank" rel="noopener noreferrer" style={{ color: c.accent }}>Datenschutzerklärung von {m.label}</a></div>
-                    <CheckRow checked={draft.ok} onChange={(v) => setDraft({ provider: p, ok: v })}>{t.consentLabel} (Art. 6 Abs. 1 lit. a DSGVO)</CheckRow>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button onClick={() => setDraft(null)} style={btnSmall(c)}>{t.cancel}</button>
-                      <button disabled={!draft.ok || !!busy} onClick={() => doConnect(p)} style={{ ...btnPrimary(c, !draft.ok || !!busy), flex: 1, width: "auto" }}>{busy === p ? "…" : t.connect}</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {[...BASE_PROVIDERS, "icloud"].map(connCard)}
+          {moreOn && (
+            <>
+              <button onClick={() => setMoreOpen((o) => !o)} aria-expanded={moreOpen} style={{ display: "flex", alignItems: "center", gap: 6, width: "100%", background: "transparent", border: "none", padding: "8px 0", cursor: "pointer", color: c.text, fontWeight: 700, fontSize: 13.5 * fontScale, fontFamily: "inherit" }}>
+                {moreOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />} {t.cloudMoreTitle}
+              </button>
+              {moreOpen && MORE_PROVIDERS.map(connCard)}
+            </>
+          )}
 
           <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${c.border}` }}>
             <CheckRow checked={cloud.encrypt} onChange={(v) => setCloud((cl) => ({ ...cl, encrypt: v }))}>{t.encryptLabel}</CheckRow>

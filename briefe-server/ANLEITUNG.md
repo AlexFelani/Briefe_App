@@ -15,7 +15,7 @@ Der Server braucht nur **Node.js ab Version 22.13**. Fremdpakete gibt es keine, 
 
 ```bash
 cd briefe-server
-npm test                      # 56 automatische Prüfungen (u. a. offizielle Prüfwerte RFC 8291 und AWS)
+npm test                      # 76 automatische Prüfungen (u. a. offizielle Prüfwerte RFC 8291 und AWS)
 cp .env.example .env          # Werte eintragen
 npm start
 ```
@@ -81,7 +81,7 @@ Mit `npm run vapid` die Schlüssel erzeugen und in `.env` eintragen. Die App üb
 ### F. App veröffentlichen
 1. In `briefe-web/src/BriefeApp.jsx` eintragen:
    - `SERVER_URL`
-   - optional `CLOUD_CONFIG` (Google, Microsoft, Dropbox)
+   - optional `CLOUD_CONFIG` (Google, Microsoft, Dropbox, pCloud)
    - `OPERATOR` (Impressum)
    - `LEGAL_DRAFT = false` erst nach der anwaltlichen Prüfung
 2. `npm run build` ausführen und den Ordner `dist/` nach `/var/www/briefe-web` kopieren.
@@ -121,3 +121,12 @@ Briefinhalte gehen nur zur Verarbeitung an den KI-Anbieter und werden auf dem Se
 - [Übersicht EU-Datenresidenz Claude, Sept. 2026 (Sonomos)](https://sonomos.ai/blog/claude-eu-data-residency-2026/)
 - [LUKSO Mainnet-Parameter](https://docs.lukso.network/networks/mainnet/parameters/) · [Testnet](https://docs.lukso.network/networks/testnet/parameters/)
 - [RFC 8291 – Web-Push-Verschlüsselung](https://datatracker.ietf.org/doc/html/rfc8291)
+
+## Weitere Clouds
+
+- **MagentaCLOUD, GMX, WEB.DE, HiDrive, Nextcloud (WebDAV):** Diese Anbieter erlauben keinen direkten Zugriff aus dem Browser. Die App schickt Zugangsdaten und Dateien deshalb über den Briefe-Server (`/dav/...`). Der Server speichert und protokolliert beides nicht. Ein- und ausschalten mit `DAV_ENABLED` in `.env`, größte Datei mit `DAV_MAX_MB`. Ohne Server zeigt die App „Noch nicht eingerichtet".
+- **Box:** Box verlangt für die Anmeldung ein Geheimnis, das nicht in die App darf. In der Box-Entwicklerkonsole eine App mit OAuth 2.0 anlegen, als Redirect-Adresse und unter „CORS Domains" die Adresse der App eintragen, dann `BOX_CLIENT_ID` und `BOX_CLIENT_SECRET` in `.env` setzen.
+- **pCloud:** App bei pCloud anlegen, Redirect-Adresse = Adresse der App, die Client-ID in `CLOUD_CONFIG.pcloud.clientId` (Datei `BriefeApp.jsx`) eintragen. Kein Server nötig.
+- **iCloud:** Apple bietet Web-Apps keine Schnittstelle. Es bleibt beim Teilen-Menü und der Dateiauswahl des Geräts.
+- In der App lassen sich alle weiteren Clouds mit dem Betreiberschalter „Weitere Clouds anbieten" ausblenden.
+- Mit echten Konten bei diesen Anbietern wurde noch nicht getestet, nur gegen nachgebaute Gegenstellen.

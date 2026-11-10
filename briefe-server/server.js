@@ -16,6 +16,7 @@ const { sendMail } = require("./lib/smtp");
 const { verifyUp } = require("./lib/up");
 const { sendPush } = require("./lib/webpush");
 const mails = require("./lib/mails");
+const { DavError, resolveBase, davList, davGet, davPut } = require("./lib/dav");
 
 /* ---------- Konfiguration (Umgebungsvariablen oder Datei .env) ---------- */
 function loadEnv(file) {
@@ -55,6 +56,10 @@ const cfg = {
   LUKSO_RPC: { 42: E.LUKSO_RPC_MAINNET || "https://42.rpc.thirdweb.com", 4201: E.LUKSO_RPC_TESTNET || "https://rpc.testnet.lukso.network" },
   // Web Push
   VAPID_PUBLIC: E.VAPID_PUBLIC || "", VAPID_PRIVATE: E.VAPID_PRIVATE || "", VAPID_SUBJECT: E.VAPID_SUBJECT || "mailto:" + (E.OPERATOR_EMAIL || "kontakt@example.eu"),
+  // Weitere Clouds: WebDAV-Weiterleitung (MagentaCLOUD, GMX, WEB.DE, HiDrive, Nextcloud) und Box-Anmeldung
+  DAV_ENABLED: bool(E.DAV_ENABLED, true), DAV_MAX_MB: Number(E.DAV_MAX_MB ?? 25),
+  DAV_TEST_INSECURE: bool(E.DAV_TEST_INSECURE, false), DAV_TEST_PRESETS: E.DAV_TEST_PRESETS ? JSON.parse(E.DAV_TEST_PRESETS) : null,   // nur für automatische Tests
+  BOX_CLIENT_ID: E.BOX_CLIENT_ID || "", BOX_CLIENT_SECRET: E.BOX_CLIENT_SECRET || "", BOX_BASE: (E.BOX_BASE || "https://api.box.com").replace(/\/$/, ""),
   // Grenzen je Konto und Tag
   LIMITS: { extract: Number(E.LIMIT_EXTRACT ?? 40), ui: Number(E.LIMIT_UI ?? 80), search: Number(E.LIMIT_SEARCH ?? 300), caseName: Number(E.LIMIT_CASENAME ?? 300), perLetter: Number(E.LIMIT_PER_LETTER ?? 30) },
 };
@@ -173,6 +178,7 @@ route("GET", "/config", () => ({
   basePrice: cfg.BASE_PRICE_CENTS / 100, extraPagePrice: cfg.EXTRA_PAGE_CENTS / 100, basePages: cfg.BASE_PAGES,
   payments: !!cfg.STRIPE_SECRET_KEY, subscription: cfg.SUB_ENABLED, subPrice: cfg.SUB_PRICE_CENTS / 100,
   ai: aiReady(), aiProvider: cfg.AI_PROVIDER, vapidPublic: cfg.VAPID_PUBLIC || null, mail: !!cfg.SMTP_HOST,
+  dav: cfg.DAV_ENABLED, davMaxMb: cfg.DAV_MAX_MB, boxClientId: cfg.BOX_CLIENT_ID && cfg.BOX_CLIENT_SECRET ? cfg.BOX_CLIENT_ID : null,
 }));
 
 // Anonyme Sitzung je Gerät/Profil; Anmeldung verknüpft sie später mit E-Mail oder UP
@@ -462,6 +468,54 @@ route("POST", "/cal/sync", ({ body, ip }) => {
   return { ok: true };
 });
 route("POST", "/cal/delete", ({ body }) => { if (okTok(body.token)) run("DELETE FROM cals WHERE token = ?", body.token); return { ok: true }; });
+
+/* ---------- Weitere Clouds ---------- */
+// WebDAV: Diese Anbieter erlauben keinen direkten Zugriff aus dem Browser. Der Server reicht die Anfrage nur durch.
+// Zugangsdaten und Dateien werden weder gespeichert noch protokolliert.
+async function davCtx({ req, body, ip }, cost) {
+  rateLimit(ip, cost);
+  auth(req);
+  if (!cfg.DAV_ENABLED) fail(503, "dav-off");
+  const user = String(body.user || ""); const pass = String(body.pass || "");
+  if (!user || !pass || user.length > 200 || pass.length > 400 || /[\r\n]/.test(user + pass)) fail(400, "login");
+  try { return { base: await resolveBase(String(body.provider || ""), body.base, { insecure: cfg.DAV_TEST_INSECURE, presets: cfg.DAV_TEST_PRESETS }), cred: { user, pass } }; }
+  catch (e) { if (e instanceof DavError) fail(e.status, "dav-" + e.code); throw e; }
+}
+const davRun = async (fn) => { try { return await fn(); } catch (e) { if (e instanceof DavError) fail(e.status, "dav-" + e.code); throw e; } };
+route("POST", "/dav/list", async (x) => {
+  const { base, cred } = await davCtx(x, 2);
+  return davRun(async () => ({ items: await davList(base, cred, String(x.body.path || "")) }));
+});
+route("POST", "/dav/get", async (x) => {
+  const { base, cred } = await davCtx(x, 5);
+  return davRun(async () => { const r = await davGet(base, cred, String(x.body.path || ""), cfg.DAV_MAX_MB * 1024 * 1024); return { b64: r.data.toString("base64"), type: r.type }; });
+});
+route("POST", "/dav/put", async (x) => {
+  const { base, cred } = await davCtx(x, 5);
+  const data = Buffer.from(String(x.body.b64 || ""), "base64");
+  if (!data.length || data.length > cfg.DAV_MAX_MB * 1024 * 1024) fail(413, "too-large");
+  return davRun(() => davPut(base, cred, x.body.name, data, String(x.body.type || "").slice(0, 100)));
+}, { maxBody: Math.ceil(cfg.DAV_MAX_MB * 1024 * 1024 * 1.4) + 4096 });
+
+// Box: Der Tausch des Anmelde-Codes braucht das Geheimnis der Box-App, deshalb läuft nur dieser Schritt über den Server.
+route("POST", "/cloud/box/token", async ({ req, body, ip }) => {
+  rateLimit(ip, 10);
+  auth(req);
+  if (!cfg.BOX_CLIENT_ID || !cfg.BOX_CLIENT_SECRET) fail(503, "box-off");
+  const code = String(body.code || ""); const ru = String(body.redirectUri || "");
+  let origin = ""; try { origin = new URL(ru).origin; } catch (e) { /* ungültig */ }
+  if (!code || code.length > 500 || origin !== cfg.APP_ORIGIN) fail(400, "input");
+  let j = {};
+  try {
+    const r = await fetch(cfg.BOX_BASE + "/oauth2/token", {
+      method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ grant_type: "authorization_code", code, client_id: cfg.BOX_CLIENT_ID, client_secret: cfg.BOX_CLIENT_SECRET, redirect_uri: ru }),
+    });
+    j = await r.json();
+  } catch (e) { fail(502, "box"); }
+  if (!j.access_token) fail(502, "box");
+  return { accessToken: j.access_token, expiresIn: j.expires_in || null };   // kein Refresh-Token an die App, nichts gespeichert
+});
 
 /* ---------- HTTP-Server ---------- */
 function cors(res, noCors) {

@@ -299,6 +299,78 @@ async function main() {
     } finally { B.p.kill(); }
   }
 
+  /* Weitere Clouds: WebDAV-Weiterleitung und Box-Anmeldung */
+  {
+    const dav = require("../lib/dav");
+    ok("WebDAV: interne Adressen gesperrt", dav.isPrivateIp("127.0.0.1") && dav.isPrivateIp("10.1.2.3") && dav.isPrivateIp("192.168.1.5") && dav.isPrivateIp("169.254.169.254") && dav.isPrivateIp("::1") && dav.isPrivateIp("fd00::1") && !dav.isPrivateIp("8.8.8.8"));
+    const rej = async (prov, base) => { try { await dav.resolveBase(prov, base); return ""; } catch (e) { return e.code; } };
+    ok("WebDAV: nur https, keine internen Ziele, keine Zugangsdaten in der Adresse", (await rej("nextcloud", "http://example.com/dav")) === "url" && (await rej("nextcloud", "https://127.0.0.1/dav")) === "host" && (await rej("nextcloud", "https://u:p@example.com/")) === "url" && (await rej("nextcloud", "https://example.com:8080/")) === "url" && (await rej("unbekannt", "")) === "provider");
+    ok("WebDAV: feste Adressen der Anbieter", dav.DAV_PRESETS.gmx === "https://webdav.mc.gmx.net" && dav.DAV_PRESETS.webde === "https://webdav.smartdrive.web.de" && dav.DAV_PRESETS.magenta === "https://magentacloud.de/remote.php/webdav" && dav.DAV_PRESETS.hidrive === "https://webdav.hidrive.strato.com" && dav.DAV_PRESETS.hidriveionos === "https://webdav.hidrive.ionos.com");
+    let pathErr = ""; try { dav.joinPath({ url: new URL("https://x/dav/") }, "a/../b"); } catch (e) { pathErr = e.code; }
+    ok("WebDAV: kein Ausbruch aus dem Ordner (..)", pathErr === "path" && dav.joinPath({ url: new URL("https://x/dav/") }, "Ordner A/ä.pdf") === "/dav/Ordner%20A/%C3%A4.pdf");
+
+    // Test-Gegenstelle: kleiner WebDAV-Server
+    const store = { "/dav/Alt/": null, "/dav/Alt/brief.pdf": Buffer.from("PDFDATA"), "/dav/notiz ä.txt": Buffer.from("hallo") };
+    const seen = [];
+    const davMock = await mockHttp((req, body, rsp) => {
+      seen.push({ method: req.method, url: req.url, auth: req.headers.authorization });
+      if (req.headers.authorization !== "Basic " + Buffer.from("anna@gmx.de:app-pass").toString("base64")) { rsp.writeHead(401); return rsp.end(); }
+      const pth = decodeURIComponent(req.url);
+      if (req.method === "PROPFIND") {
+        const dir = pth.endsWith("/") ? pth : pth + "/";
+        const kids = Object.keys(store).filter((k) => k.startsWith(dir) && k !== dir && !k.slice(dir.length).replace(/\/$/, "").includes("/"));
+        const item = (k) => `<D:response><D:href>${k.split("/").map(encodeURIComponent).join("/")}</D:href><D:propstat><D:prop><D:resourcetype>${k.endsWith("/") ? "<D:collection/>" : ""}</D:resourcetype>${k.endsWith("/") ? "" : `<D:getcontentlength>${store[k].length}</D:getcontentlength>`}</D:prop></D:propstat></D:response>`;
+        rsp.writeHead(207, { "Content-Type": "application/xml" });
+        return rsp.end(`<?xml version="1.0"?><D:multistatus xmlns:D="DAV:">${item(dir)}${kids.map(item).join("")}</D:multistatus>`);
+      }
+      if (req.method === "MKCOL") { if (store[pth] !== undefined) { rsp.writeHead(405); return rsp.end(); } store[pth] = null; rsp.writeHead(201); return rsp.end(); }
+      if (req.method === "PUT") { store[pth] = body; rsp.writeHead(201); return rsp.end(); }
+      if (req.method === "GET") { if (!store[pth]) { rsp.writeHead(404); return rsp.end(); } rsp.writeHead(200, { "Content-Type": "application/pdf" }); return rsp.end(store[pth]); }
+      rsp.writeHead(405); rsp.end();
+    });
+    const boxMock = await mockHttp((req, body, rsp) => {
+      const f = new URLSearchParams(body.toString());
+      calls.box = { url: req.url, form: Object.fromEntries(f) };
+      if (f.get("code") === "good" && f.get("client_secret") === "box-secret") return json(rsp, 200, { access_token: "BOXTOKEN", refresh_token: "REFRESH", expires_in: 3600 });
+      json(rsp, 400, { error: "invalid_grant" });
+    });
+    const C = await start({ DAV_TEST_INSECURE: "true", DAV_TEST_PRESETS: JSON.stringify({ gmx: davMock.url + "/dav" }), DAV_MAX_MB: "1", BOX_CLIENT_ID: "box-id", BOX_CLIENT_SECRET: "box-secret", BOX_BASE: boxMock.url });
+    try {
+      const call = async (pth, body, token) => { const r = await fetch(C.base + pth, { method: "POST", headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}) }, body: JSON.stringify(body) }); return { status: r.status, data: await r.json().catch(() => ({})) }; };
+      const tok = (await (await fetch(C.base + "/session/anon", { method: "POST" })).json()).token;
+      const cfgOut = await (await fetch(C.base + "/config")).json();
+      ok("Einstellungen melden WebDAV und Box (ohne Geheimnis)", cfgOut.dav === true && cfgOut.boxClientId === "box-id" && !JSON.stringify(cfgOut).includes("box-secret"));
+      const cred = { provider: "gmx", user: "anna@gmx.de", pass: "app-pass" };
+      ok("WebDAV: ohne Sitzung kein Zugriff", (await call("/dav/list", cred)).status === 401);
+      const l = await call("/dav/list", { ...cred, path: "" }, tok);
+      ok("WebDAV: Ordner auflisten (Ordner zuerst, Umlaute, Größe)", l.status === 200 && l.data.items.length === 2 && l.data.items[0].folder && l.data.items[0].name === "Alt" && l.data.items[1].name === "notiz ä.txt" && l.data.items[1].size === 5);
+      const l2 = await call("/dav/list", { ...cred, path: "Alt" }, tok);
+      ok("WebDAV: Unterordner auflisten", l2.status === 200 && l2.data.items.length === 1 && l2.data.items[0].id === "Alt/brief.pdf");
+      const g = await call("/dav/get", { ...cred, path: "Alt/brief.pdf" }, tok);
+      ok("WebDAV: Datei holen", g.status === 200 && Buffer.from(g.data.b64, "base64").toString() === "PDFDATA" && g.data.type === "application/pdf");
+      const pu = await call("/dav/put", { ...cred, name: "Krank/meldung ä.pdf.enc", b64: Buffer.from("GEHEIM").toString("base64"), type: "application/octet-stream" }, tok);
+      ok("WebDAV: Datei sichern in Ordner Briefe-App (Name bereinigt)", pu.status === 200 && pu.data.path === "Briefe-App/Krank_meldung ä.pdf.enc" && store["/dav/Briefe-App/Krank_meldung ä.pdf.enc"].toString() === "GEHEIM" && store["/dav/Briefe-App/"] === null);
+      const pu2 = await call("/dav/put", { ...cred, name: "zwei.txt", b64: Buffer.from("2").toString("base64") }, tok);
+      ok("WebDAV: vorhandener Ordner ist kein Fehler", pu2.status === 200);
+      ok("WebDAV: falsches Passwort wird gemeldet", (await call("/dav/list", { ...cred, pass: "falsch" }, tok)).data.error === "dav-login");
+      ok("WebDAV: Pfad mit .. abgelehnt", (await call("/dav/get", { ...cred, path: "../etc/passwd" }, tok)).data.error === "dav-path");
+      ok("WebDAV: zu große Datei abgelehnt", (await call("/dav/put", { ...cred, name: "gross.bin", b64: Buffer.alloc(1100000, 1).toString("base64") }, tok)).status === 413);
+      ok("WebDAV: fehlende Datei gemeldet", (await call("/dav/get", { ...cred, path: "gibtsnicht.pdf" }, tok)).data.error === "dav-not-found");
+      ok("WebDAV: Zugangsdaten nicht in der Datenbank", !fs.readFileSync(path.join(tmp, fs.readdirSync(tmp).filter((f) => f.endsWith(".db")).at(-1))).includes("app-pass") && !C.err().includes("app-pass"));
+      const b1 = await call("/cloud/box/token", { code: "good", redirectUri: "https://app.example.eu/" }, tok);
+      ok("Box: Code-Tausch über den Server, kein Refresh-Token an die App", b1.status === 200 && b1.data.accessToken === "BOXTOKEN" && !JSON.stringify(b1.data).includes("REFRESH") && calls.box.form.client_id === "box-id");
+      ok("Box: fremde Rücksprung-Adresse abgelehnt", (await call("/cloud/box/token", { code: "good", redirectUri: "https://boese.example/" }, tok)).status === 400);
+      ok("Box: falscher Code gemeldet", (await call("/cloud/box/token", { code: "bad", redirectUri: "https://app.example.eu/" }, tok)).data.error === "box");
+    } finally { C.p.kill(); davMock.server.close(); boxMock.server.close(); }
+    const D = await start({ DAV_ENABLED: "false" });
+    try {
+      const tok = (await (await fetch(D.base + "/session/anon", { method: "POST" })).json()).token;
+      const r = await fetch(D.base + "/dav/list", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok }, body: JSON.stringify({ provider: "gmx", user: "a", pass: "b" }) });
+      const c2 = await (await fetch(D.base + "/config")).json();
+      ok("Betreiberschalter: WebDAV aus, Box ohne Schlüssel aus", r.status === 503 && c2.dav === false && c2.boxClientId === null);
+    } finally { D.p.kill(); }
+  }
+
   for (const s of [anthropic, bedrock, stripeMock, rpc, pushSvc, smtp]) s.server.close();
   console.log(`\n${passed} Prüfungen bestanden.`);
   process.exit(0);
