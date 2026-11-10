@@ -164,7 +164,7 @@ const UI_STRINGS = {
     detailsAiHint: "Von der KI ausgefüllt – bitte prüfen.", detailsAiFail: "Die KI konnte nichts lesen. Du kannst die Angaben selbst eintragen.",
     fName: "Name", moreFields: "Weitere Angaben", lessFields: "Weniger Angaben", caseNewName: "Name des neuen Falls", backWord: "Zurück",
     grpLook: "Darstellung", grpAi: "KI", grpRemind: "Erinnerungen", grpSecurity: "Sicherheit & Profile", grpData: "Daten", grpHelp: "Hilfe & Rechtliches", grpOperator: "Betreiber-Schalter",
-    toolsSection: "Fristen & Daten", viewToggle: "Ansicht wechseln",
+    toolsSection: "Fristen & Daten", viewToggle: "Ansicht wechseln", caseRename: "Fall umbenennen", caseDelete: "Leeren Fall löschen", caseName: "Name des Falls",
     replyOwnPh: "Schreibe hier deine Antwort.", replyOwnStart: "Eigene Antwort schreiben", replyAiHead: "Antwort von der KI entwerfen lassen",
     home: "Übersicht", langSearch: "Sprache suchen…", noLangFound: "Keine Sprache gefunden", copied: "Kopiert!",
     intakeTitle: "Dokument hinzufügen", takePhoto: "Foto aufnehmen", addPage: "Weitere Seite fotografieren",
@@ -325,7 +325,7 @@ const UI_STRINGS = {
     detailsAiHint: "Filled in by the AI – please check.", detailsAiFail: "The AI could not read anything. You can enter the details yourself.",
     fName: "Name", moreFields: "More details", lessFields: "Fewer details", caseNewName: "Name of the new case", backWord: "Back",
     grpLook: "Appearance", grpAi: "AI", grpRemind: "Reminders", grpSecurity: "Security & profiles", grpData: "Data", grpHelp: "Help & legal", grpOperator: "Operator switches",
-    toolsSection: "Deadlines & data", viewToggle: "Switch view",
+    toolsSection: "Deadlines & data", viewToggle: "Switch view", caseRename: "Rename case", caseDelete: "Delete empty case", caseName: "Name of the case",
     replyOwnPh: "Write your reply here.", replyOwnStart: "Write your own reply", replyAiHead: "Have the AI draft a reply",
     home: "Overview", langSearch: "Search language…", noLangFound: "No language found", copied: "Copied!",
     intakeTitle: "Add document", takePhoto: "Take photo", addPage: "Photograph another page",
@@ -723,6 +723,7 @@ function BriefeCore({ profileApi }) {
   const [reading, setReading] = useState(false);
   const [viewer, setViewer] = useState(false);               // Dokument groß ansehen
   const [opOpen, setOpOpen] = useState(false);               // Betreiber-Schalter aufgeklappt
+  const [caseEdit, setCaseEdit] = useState(null);            // Fall umbenennen: { id, name }
 
   // Ordnernamen zweisprachig: übersetzt die Fallnamen in die gewählte App-Sprache
   useEffect(() => {
@@ -1099,6 +1100,15 @@ function BriefeCore({ profileApi }) {
     persist(next);
   };
 
+  const renameCase = (caseId, name) => {
+    const nm = String(name || "").trim(); if (!nm) return;
+    persist(cases.map((cs) => (cs.id !== caseId ? cs : { ...cs, name: nm })));
+    setCaseNameTranslations((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith(caseId + ":"))));
+  };
+  const deleteEmptyCase = (caseId) => {
+    const cs = cases.find((x) => x.id === caseId); if (!cs || cs.letters.length) return;
+    persist(cases.filter((x) => x.id !== caseId)); setOpenCaseId(null);
+  };
   const toggleCaseStatus = (caseId) => {
     const next = cases.map((cs) => cs.id !== caseId ? cs : { ...cs, status: cs.status === "open" ? "done" : "open" });
     persist(next);
@@ -1517,7 +1527,7 @@ function BriefeCore({ profileApi }) {
   const menuOver = ovl && sidebarOpen && sbFor === ovl;
   // Geöffnete Fenster/Dialoge (oberstes zuerst): Zurück schließt zuerst das Fenster
   const overlays = [
-    [viewer, () => setViewer(false)], [aiConsentOpen, () => setAiConsentOpen(false)], [drafts && !savingDrafts, () => draftsBack()],
+    [caseEdit, () => setCaseEdit(null)], [viewer, () => setViewer(false)], [aiConsentOpen, () => setAiConsentOpen(false)], [drafts && !savingDrafts, () => draftsBack()],
     [showHomeConfirm, () => setShowHomeConfirm(false)], [legalTab, () => setLegalTab(null)], [modal, () => setModal(null)],
     [casePdfFor, () => setCasePdfFor(null)], [exportOpen, () => setExportOpen(null)], [wipeOpen, () => setWipeOpen(false)],
     [lockOpen, () => setLockOpen(false)], [profilesOpen, () => setProfilesOpen(false)], [backupOpen, () => setBackupOpen(false)],
@@ -1804,6 +1814,7 @@ function BriefeCore({ profileApi }) {
               onBack={() => setOpenCaseId(null)} onOpenLetter={openLetter}
               onCustomize={() => setTileModal(true)} onToggleStatus={() => toggleCaseStatus(openCase.id)}
               onAdd={() => setIntake((s) => s || { files: [], asPages: false })} onExport={() => openExport([openCase.id])} onCasePdf={() => setCasePdfFor(openCase.id)}
+              onRename={() => setCaseEdit({ id: openCase.id, name: openCase.name })} onDelete={() => deleteEmptyCase(openCase.id)}
               daysUntil={daysUntil} uiLang={uiLang} isMobile={isMobile} isRTL={isRTL} searching={searchTerms.length > 0}
             />
           ) : (
@@ -2047,6 +2058,19 @@ function BriefeCore({ profileApi }) {
             </div>
           </div>
         </div>
+      )}
+
+      {caseEdit && (
+        <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={t.caseRename} onClose={() => setCaseEdit(null)} maxWidth={440}>
+          <FieldRow c={c} fontScale={fontScale} label={t.caseName}>
+            <input autoFocus style={fieldStyle(c, fontScale)} value={caseEdit.name} onChange={(e) => setCaseEdit({ ...caseEdit, name: e.target.value })}
+              onKeyDown={(e) => { if (e.key === "Enter" && caseEdit.name.trim()) { renameCase(caseEdit.id, caseEdit.name); setCaseEdit(null); } }} />
+          </FieldRow>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => setCaseEdit(null)} style={btnSmall(c)}>{t.cancel}</button>
+            <button disabled={!caseEdit.name.trim()} onClick={() => { renameCase(caseEdit.id, caseEdit.name); setCaseEdit(null); }} style={{ ...btnPrimary(c, !caseEdit.name.trim()), flex: 1, width: "auto" }}>{t.save}</button>
+          </div>
+        </AppModal>
       )}
 
       {/* ---------- KI einschalten: erst nach Hinweis und Zustimmung ---------- */}
@@ -4627,7 +4651,7 @@ function LetterTile({ c, t, fontScale, letter, fields, onOpen, daysUntil, uiLang
 }
 
 /* ---------- Fall-Ansicht: Liste der Briefe dieses Falls ---------- */
-function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, setSort, fields, onBack, onOpenLetter, onCustomize, onToggleStatus, onAdd, onExport, onCasePdf, daysUntil, uiLang, isMobile, isRTL, searching }) {
+function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, setSort, fields, onBack, onOpenLetter, onCustomize, onToggleStatus, onAdd, onExport, onCasePdf, onRename, onDelete, daysUntil, uiLang, isMobile, isRTL, searching }) {
   const sortOpts = [["date", t.sortDate], ["caseNumber", t.fCaseNumber], ["sender", t.fSender], ["deadline", t.sortDeadline], ["subject", t.fSubject]];
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -4659,6 +4683,8 @@ function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, se
           { label: t.customizeTiles, icon: SlidersHorizontal, onClick: onCustomize },
           { label: t.casePdf, icon: FileText, onClick: onCasePdf },
           { label: t.exportCase, icon: Download, onClick: onExport },
+          { label: t.caseRename, icon: Pencil, onClick: onRename },
+          cs.letters.length === 0 ? { label: t.caseDelete, icon: Trash2, onClick: onDelete, warn: true } : null,
         ]} />
         <button onClick={onAdd} style={{ ...btnSmall(c), background: c.accent, color: "#fff", borderColor: c.accent }}><Upload size={14} /> {t.upload}</button>
       </div>
