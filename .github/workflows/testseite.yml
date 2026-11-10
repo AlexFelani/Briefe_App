@@ -1,0 +1,52 @@
+# Baut die App und veröffentlicht sie als Testseite (GitHub Pages, Zweig "gh-pages").
+# Läuft bei jeder Änderung auf "main" und kann unter "Actions" auch von Hand gestartet werden.
+name: Testseite
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: testseite
+  cancel-in-progress: true
+
+jobs:
+  server-tests:
+    name: Server prüfen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Automatische Prüfungen des Servers
+        working-directory: briefe-server
+        run: npm test
+
+  testseite:
+    name: App bauen und veröffentlichen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: App bauen
+        working-directory: briefe-web
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+          touch dist/.nojekyll
+      - name: Auf den Zweig gh-pages legen
+        run: |
+          cd briefe-web/dist
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Testseite aus ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages

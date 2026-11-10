@@ -1,0 +1,12 @@
+{
+  "name": "briefe-server",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Server der Briefe-App: KI-Zugang, Anmeldung, Zahlungen, Erinnerungen – ohne Fremdpakete",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "test": "node test/webpush.test.js && node test/sigv4.test.js && node --disable-warning=ExperimentalWarning test/e2e.test.js",
+    "vapid": "node scripts/vapid.js"
+  }
+}

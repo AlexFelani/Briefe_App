@@ -1,0 +1,19 @@
+# Caddy besorgt die HTTPS-Zertifikate automatisch.
+app.deine-domain.de {
+	root * /var/www/briefe-web
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		Permissions-Policy "camera=(self), geolocation=()"
+	}
+	header /sw.js Cache-Control "no-cache"
+	try_files {path} /index.html
+	file_server
+}
+
+api.deine-domain.de {
+	encode gzip
+	reverse_proxy 127.0.0.1:3000
+}

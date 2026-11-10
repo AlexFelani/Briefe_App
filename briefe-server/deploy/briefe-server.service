@@ -1,0 +1,19 @@
+# systemd-Dienst: sudo cp deploy/briefe-server.service /etc/systemd/system/ && sudo systemctl enable --now briefe-server
+[Unit]
+Description=Briefe-App Server
+After=network-online.target
+
+[Service]
+User=briefe
+WorkingDirectory=/opt/briefe-server
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning server.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/briefe-server/data
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
