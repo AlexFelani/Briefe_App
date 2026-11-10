@@ -4,8 +4,8 @@ Zwei Teile:
 
 | Ordner | Was | Läuft wo |
 |---|---|---|
-| `briefe-web/` | Die App (React). Briefe, Fotos und Fälle bleiben auf dem Gerät. | Als statische Website, z. B. `app.deine-domain.de` |
-| `briefe-server/` | Der Server: KI-Zugang mit geheimem Schlüssel, Anmeldung, Zahlungen, Erinnerungen, Newsletter. Er speichert keine Briefinhalte. | Auf einem EU-Server, z. B. `api.deine-domain.de` |
+| `briefe-web/` | Die App (React). Dokumente, Fotos und Fälle bleiben auf dem Gerät. Die KI ist beim Start aus; der Nutzer schaltet sie selbst ein. | Als statische Website, z. B. `app.deine-domain.de` |
+| `briefe-server/` | Der Server: KI-Zugang mit geheimem Schlüssel, Anmeldung, Zahlungen, Erinnerungen, Newsletter. Er speichert keine Inhalte von Dokumenten. | Auf einem EU-Server, z. B. `api.deine-domain.de` |
 
 Der Server braucht nur **Node.js ab Version 22.13**. Fremdpakete gibt es keine, deshalb entfällt `npm install`. Die Datenbank (SQLite) ist in Node.js eingebaut.
 
@@ -94,9 +94,9 @@ Mit `npm run vapid` die Schlüssel erzeugen und in `.env` eintragen. Die App üb
 - [ ] Gewerbe anmelden bzw. Firma gründen. Klären, ob die Kleinunternehmerregelung greift oder Umsatzsteuer anfällt.
 - [ ] AVVs mit Hoster, KI-Anbieter (AWS bzw. Anthropic), E-Mail-Anbieter und Stripe ablegen.
 - [ ] Rechtstexte ausfüllen und **anwaltlich prüfen** lassen: Impressum, Datenschutzerklärung, AGB, Widerrufsbelehrung, E-Mail-Vorlagen in `lib/mails.js`. Alle `[Platzhalter]` ersetzen.
-- [ ] **Datenschutz-Folgenabschätzung** (Art. 35 DSGVO) prüfen lassen. Briefe vom Jobcenter, von Ärzten oder Behörden enthalten oft besonders geschützte Daten.
+- [ ] **Datenschutz-Folgenabschätzung** (Art. 35 DSGVO) prüfen lassen. Dokumente vom Jobcenter, von Ärzten oder Behörden enthalten oft besonders geschützte Daten.
 - [ ] Verzeichnis der Verarbeitungstätigkeiten und technisch-organisatorische Maßnahmen dokumentieren.
-- [ ] EU-KI-Verordnung: Die App kennzeichnet KI-Inhalte und verweist bei kritischen Briefen auf Beratung. Die Einstufung (Art. 50, Anhang III) solltest du rechtlich bestätigen lassen.
+- [ ] EU-KI-Verordnung: Die App kennzeichnet KI-Inhalte und verweist bei kritischen Dokumenten auf Beratung. Die Einstufung (Art. 50, Anhang III) solltest du rechtlich bestätigen lassen.
 - [ ] Rechtsdienstleistungsgesetz klären lassen. Die App erstellt Entwürfe nach den Angaben des Nutzers und ersetzt keinen Anwalt; die Grenze sollte ein Anwalt bewerten.
 
 ---
@@ -105,13 +105,13 @@ Mit `npm run vapid` die Schlüssel erzeugen und in `.env` eintragen. Die App üb
 
 - Zufällige Sitzungskennung je Gerät/Profil (nur als Prüfwert)
 - E-Mail-Adresse bzw. UP-Adresse nach der Anmeldung
-- Welche Briefe freigeschaltet sind: nur eine zufällige Brief-Kennung, **kein Inhalt**
+- Welche Dokumente freigeschaltet sind: nur eine zufällige Dokument-Kennung, **kein Inhalt**
 - Bestellungen (nach Kontolöschung ohne Kontobezug, wegen Aufbewahrungspflichten)
 - Nur wenn der Nutzer es einschaltet: Erinnerungszeitpunkte (Push) und das Kalender-Abo (standardmäßig nur „Frist“, ohne Betreff)
 - Newsletter nur nach Bestätigung. Unbestätigte Anmeldungen werden nach 30 Tagen gelöscht.
-- Anonyme Bewertungen ohne Brieftext
+- Anonyme Bewertungen ohne Text des Dokuments
 
-Briefinhalte gehen nur zur Verarbeitung an den KI-Anbieter und werden auf dem Server nicht gespeichert. Der Server baut alle KI-Anweisungen selbst, deshalb kann ihn niemand als freien KI-Zugang missbrauchen. Tageslimits und Rate-Limits sind eingebaut.
+Inhalte von Dokumenten gehen nur bei eingeschalteter KI zur Verarbeitung an den KI-Anbieter und werden auf dem Server nicht gespeichert. Der Server baut alle KI-Anweisungen selbst, deshalb kann ihn niemand als freien KI-Zugang missbrauchen. Tageslimits und Rate-Limits sind eingebaut.
 
 ---
 

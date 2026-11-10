@@ -60,7 +60,7 @@ const OPERATOR = {               // Betreiberangaben für Impressum/Datenschutz 
   phone: "[Telefonnummer oder zweiter schneller Kontaktweg]",
 };
 const DEFAULT_SHOP = {
-  flags: { paymentRequired: false, subscription: false, tracking: false, newsletter: false, usSales: false },
+  flags: { paymentRequired: false, subscription: false, tracking: false, newsletter: false, usSales: false, ai: true },   // ai = KI-Funktionen anbieten (Nutzer schaltet sie selbst zu)
   orders: [],
   unlocked: {},     // letterId -> "free" | "paid"
   consent: null,    // { status: "accepted" | "declined", at }
@@ -126,15 +126,15 @@ const UI_STRINGS = {
   de: {
     appName: "Briefe", newCase: "Neuer Fall", search: "Suchen…", myCases: "Meine Fälle",
     settings: "Einstellungen", allCases: "Alle Fälle", open: "Offen", done: "Erledigt",
-    upload: "Brief hochladen", translate: "Übersetzen", reply: "Antwort erstellen",
-    deadline: "Frist", noDeadline: "Keine Frist erkannt", original: "Original",
+    upload: "Dokument hochladen", translate: "Übersetzen", reply: "Antwort erstellen",
+    deadline: "Frist", noDeadline: "Keine Frist erkannt", tabText: "Text", tabReply: "Antwort",
     translation: "Übersetzung", generateReply: "KI-Antwort generieren", confirm: "Geprüft & bestätigen",
     edit: "Bearbeiten", copy: "Text kopieren", share: "Teilen", exportPdf: "Als PDF exportieren",
     tileView: "Kacheln", listView: "Liste", darkMode: "Dunkelmodus", fontSize: "Schriftgröße",
     disclaimer: "Diese App ersetzt keinen Anwalt.",
     sortSection: "Sortierung", accountSection: "Konto", backup: "Backup", logout: "Abmelden",
     shopMenu: "Käufe & Widerruf", cancelMenu: "Verträge hier kündigen", legalMenu: "Rechtliches",
-    appLanguage: "App-Sprache", tileSize: "Kachelgröße", tileSizeAuto: "Passt sich automatisch an",
+    appLanguage: "App-Sprache",
     sortDate: "Datum", sortName: "Alphabetisch", sortCase: "Aktenzeichen", sortDeadline: "Frist-Dringlichkeit",
     replyPlaceholder: "Was möchtest du antworten? (in deiner Sprache möglich)",
     checkReplyIn: "Antwort prüfen in:", writeExpand: "Groß schreiben", replyWriteTitle: "Antwort schreiben",
@@ -145,20 +145,35 @@ const UI_STRINGS = {
     replyLiability: "Die App ersetzt keine Rechtsberatung und übernimmt keine Haftung für den Inhalt. Du prüfst den Entwurf selbst und entscheidest, ob du ihn absendest.",
     checkTitle: "Gegenprobe der Übersetzung", checkNone: "Im Original wurden keine Datumsangaben, Beträge oder Aktenzeichen erkannt.",
     checkOk: "Alle {n} Angaben aus dem Original (Datum, Betrag, Aktenzeichen, Kontonummer) stehen mit denselben Ziffern in der Übersetzung.",
-    checkMissing: "Diese Angaben aus dem Original wurden in der Übersetzung nicht gefunden:", checkCompare: "Bitte vergleiche diese Stellen mit dem deutschen Original. Es gilt das Original.",
-    checkAi: "Übersetzung von der KI prüfen lassen", checkAiLabel: "Prüfung durch KI – kann selbst Fehler enthalten. Verbindlich ist nur das deutsche Original.",
-    letterWord: "Brief", noCases: "Keine Fälle gefunden. Lade einen Brief hoch, um zu starten.", searchHint: "(auch in deiner Sprache, z. B. „recovery“)", menu: "Menü",
+    checkMissing: "Diese Angaben aus dem Original wurden in der Übersetzung nicht gefunden:", checkCompare: "Bitte vergleiche diese Stellen mit dem Original. Es gilt das Original.",
+    checkAi: "Übersetzung von der KI prüfen lassen", checkAiLabel: "Prüfung durch KI – kann selbst Fehler enthalten. Verbindlich ist nur das Original.",
+    letterWord: "Dokument", noCases: "Keine Fälle gefunden. Füge ein Dokument hinzu, um zu starten.", searchHint: "(auch in deiner Sprache, z. B. „recovery“)", menu: "Menü",
     layoutLabel: "Design", layoutClassic: "Desktop", layoutNew: "Klassisch",
     tabHome: "Home", tabSearch: "Suche", tabAdd: "Hinzufügen", tabDeadlines: "Fristen", tabProfile: "Profil",
+    docFrom: "Dokument vom {d}", unsortedCase: "Unsortiert", more: "Mehr", viewLarge: "Groß ansehen", fileOf: "Datei {n} von {total}", closeWord: "Schließen",
+    noFile: "Zu diesem Dokument ist keine Datei gespeichert.", previewNone: "Für diese Datei gibt es keine Vorschau.",
+    noTextAiOff: "Der Text wurde nicht gelesen, weil die KI ausgeschaltet ist.", noTextFail: "Der Text konnte nicht gelesen werden.", noTextPlain: "Zu diesem Dokument ist kein Text gespeichert.",
+    noTextNoBackend: "Die Texterkennung ist hier noch nicht eingerichtet. Das Dokument ist als Datei gespeichert.",
+    readNow: "Text jetzt mit KI lesen", readBusy: "Wird gelesen …", readDone: "Der Text wurde gelesen.",
+    aiSwitch: "KI verwenden", aiOffInfo: "Aus: Deine Dokumente verlassen das Gerät nicht. Du benennst und ordnest sie selbst.",
+    aiOnInfo: "An: Die KI liest Dokumente, füllt Angaben aus, übersetzt und entwirft Antworten. Dafür wird der Inhalt an den KI-Dienst gesendet.",
+    aiNotSetUp: "Der KI-Dienst ist noch nicht eingerichtet (Betreiber). Die App funktioniert ohne KI.",
+    aiConsentTitle: "KI einschalten?", aiConsentText: "Wenn die KI eingeschaltet ist, wird der Inhalt deiner Dokumente zum Lesen, Übersetzen und für Antwortentwürfe an den KI-Dienst gesendet. Dokumente können sensible Daten enthalten, zum Beispiel Gesundheitsdaten. Die KI kann Fehler machen. Du kannst sie jederzeit wieder ausschalten.",
+    aiConsentYes: "Einschalten", aiUseHere: "Mit KI lesen und Angaben ausfüllen", aiIsOff: "Die KI ist aus.", aiTurnOn: "KI einschalten",
+    detailsTitle: "Angaben zum Dokument", detailsTitleN: "Angaben zu {n} Dokumenten", detailsHint: "Alles ist freiwillig. Leere Felder kannst du später ausfüllen.",
+    detailsAiHint: "Von der KI ausgefüllt – bitte prüfen.", detailsAiFail: "Die KI konnte nichts lesen. Du kannst die Angaben selbst eintragen.",
+    fName: "Name", moreFields: "Weitere Angaben", lessFields: "Weniger Angaben", caseNewName: "Name des neuen Falls", backWord: "Zurück",
+    grpLook: "Darstellung", grpAi: "KI", grpRemind: "Erinnerungen", grpSecurity: "Sicherheit & Profile", grpData: "Daten", grpHelp: "Hilfe & Rechtliches", grpOperator: "Betreiber-Schalter",
+    toolsSection: "Fristen & Daten", viewToggle: "Ansicht wechseln",
+    replyOwnPh: "Schreibe hier deine Antwort.", replyOwnStart: "Eigene Antwort schreiben", replyAiHead: "Antwort von der KI entwerfen lassen",
     home: "Übersicht", langSearch: "Sprache suchen…", noLangFound: "Keine Sprache gefunden", copied: "Kopiert!",
-    intakeTitle: "Briefe hinzufügen", takePhoto: "Foto aufnehmen", addPage: "Weitere Seite fotografieren",
+    intakeTitle: "Dokument hinzufügen", takePhoto: "Foto aufnehmen", addPage: "Weitere Seite fotografieren",
     chooseFiles: "Dateien auswählen (Foto, PDF, Word …)", fromCloud: "Aus Cloud holen",
-    noFilesYet: "Noch keine Dateien ausgewählt.", pagesOfOne: "Diese Dateien sind Seiten eines einzigen Briefes",
-    intakeLocalNote: "Die Originale bleiben auf deinem Gerät. Zum Auslesen wird der Inhalt an den KI-Dienst gesendet.",
-    intakeReading: "Wird gelesen … ({n} von {total})", startIntake: "Lesen und automatisch ablegen",
-    assignTitle: "Zu welchem Fall gehört dieser Brief?", assignWhySender: "Gleicher Absender wie in diesen Fällen, aber das Aktenzeichen passt nicht sicher.",
-    assignNew: "Neuer Fall", assignOther: "Anderer Fall", assignDo: "Hier ablegen",
-    filesTitle: "Originale (auf deinem Gerät)", view: "Ansehen", download: "Herunterladen", shareFile: "Teilen",
+    noFilesYet: "Noch keine Dateien ausgewählt.", pagesOfOne: "Diese Dateien sind Seiten eines einzigen Dokuments",
+    intakeLocalNote: "Die Dateien bleiben auf deinem Gerät. Es wird nichts übertragen.", intakeAiNote: "Die Dateien bleiben auf deinem Gerät. Zum Lesen wird der Inhalt an den KI-Dienst gesendet.",
+    intakeReading: "Wird gelesen … ({n} von {total})", startIntake: "Weiter",
+    assignNew: "Neuer Fall", sameSenderHint: "Gleicher Absender wie in diesem Fall – bitte prüfen.",
+    filesTitle: "Dateien (auf deinem Gerät)", view: "Ansehen", download: "Herunterladen", shareFile: "Teilen",
     toCloud: "In Cloud sichern", openNewTab: "In neuem Tab öffnen",
     cloudsMenu: "Dateien & Clouds", cloudTabImport: "Holen aus …", cloudTabExport: "Sichern in …", cloudTabConn: "Verbindungen",
     systemPicker: "Dateien vom Gerät oder aus Cloud-Apps wählen", systemPickerHint: "Die Auswahl deines Geräts zeigt alle Clouds, die dort eingerichtet sind (iCloud, Google Drive, OneDrive, Dropbox …).",
@@ -179,49 +194,49 @@ const UI_STRINGS = {
     mailPending: "Bestätigung ausstehend: Du bekommst eine E-Mail mit einem Link.", demoConfirm: "Bestätigungslink öffnen (Demo)",
     mailConfirmedNote: "Deine E-Mail-Adresse ist bestätigt.", unlinkEmail: "E-Mail-Verknüpfung entfernen",
     linkUp: "Universal Profile verknüpfen", demoAuthNote: "Demo: Ohne Server werden E-Mails nicht versendet und Signaturen nicht serverseitig geprüft.",
-    noticeDone: "{n} Brief(e) abgelegt.", noticeFailed: "{n} konnte(n) nicht gelesen werden – bitte prüfen.",
+    noticeDone: "{n} Dokument(e) gespeichert.", noticeFailed: "{n} konnte(n) nicht gelesen werden – bitte prüfen.",
     noticeMissing: "Datei nicht gefunden.", noticeAutoOff: "Automatisches Sichern übersprungen: Cloud nicht verbunden.",
     noticeAutoPass: "Automatisches Sichern übersprungen: Passwort für die Verschlüsselung fehlt.",
     noticeSaved: "{n} Datei(en) gesichert in {name}.", noticeUploadFail: "Sichern in die Cloud ist fehlgeschlagen.",
-    fSubject: "Betreff", fSender: "Absender", fCaseNumber: "Aktenzeichen", fDate: "Briefdatum", fReceived: "Zugangsdatum",
+    fSubject: "Betreff", fSender: "Absender", fCaseNumber: "Aktenzeichen", fDate: "Datum", fReceived: "Zugangsdatum",
     fDeadline: "Frist", fPages: "Seiten", fNote: "Notiz", fUploaded: "Hochgeladen",
-    lettersWord: "Briefe", sortBy: "Sortieren nach", ascending: "Aufsteigend", descending: "Absteigend",
-    customizeTiles: "Kachel anpassen", customizeHint: "Wähle, was auf der Brief-Kachel steht, und verschiebe die Reihenfolge. Das gilt für alle Briefe.",
-    resetDefault: "Voreinstellung", previewWord: "Vorschau", noHits: "Keine Treffer in diesem Fall.", caseEmpty: "In diesem Fall sind noch keine Briefe.",
-    editLetter: "Brief bearbeiten", deadlineNoteLabel: "Frist als Text (wenn kein Datum bekannt)", moveToCase: "Fall", save: "Speichern",
-    deleteLetter: "Brief löschen", deleteConfirm: "Wirklich löschen? Die Originaldateien werden ebenfalls gelöscht.",
+    lettersWord: "Dokumente", sortBy: "Sortieren nach", ascending: "Aufsteigend", descending: "Absteigend",
+    customizeTiles: "Kachel anpassen", customizeHint: "Wähle, was auf der Dokument-Kachel steht, und verschiebe die Reihenfolge. Das gilt für alle Dokumente.",
+    resetDefault: "Voreinstellung", previewWord: "Vorschau", noHits: "Keine Treffer in diesem Fall.", caseEmpty: "In diesem Fall sind noch keine Dokumente.",
+    editLetter: "Dokument bearbeiten", deadlineNoteLabel: "Frist als Text (wenn kein Datum bekannt)", moveToCase: "Fall", save: "Speichern",
+    deleteLetter: "Dokument löschen", deleteConfirm: "Wirklich löschen? Die Originaldateien werden ebenfalls gelöscht.",
     addAttachment: "Anhang hinzufügen", addEnvelope: "Umschlag fotografieren", envelope: "Umschlag",
-    escTitle: "Wichtiger Brief – Beratung empfohlen", escIntro: "Bei diesem Brief kann viel davon abhängen. Du kannst trotzdem eine Antwort erstellen. Wir empfehlen dir zusätzlich eine Beratung. Gründe:",
+    escTitle: "Wichtiges Dokument – Beratung empfohlen", escIntro: "Bei diesem Dokument kann viel davon abhängen. Du kannst trotzdem eine Antwort erstellen. Wir empfehlen dir zusätzlich eine Beratung. Gründe:",
     escCourt: "Gericht oder Klage", escCriminal: "Strafverfahren, Bußgeld oder Vorladung", escEnforcement: "Mahnbescheid, Vollstreckung oder Pfändung", escHousing: "Kündigung oder Räumung der Wohnung",
     escBenefits: "Kürzung, Einstellung oder Rückforderung von Leistungen", escResidence: "Aufenthalt (z. B. Ausweisung oder Abschiebung)", escDeadline: "Die Frist endet in weniger als 7 Tagen oder ist abgelaufen",
     escHelpTitle: "Hier bekommst du Hilfe:", escHelp1: "Beratungshilfe: Mit wenig Geld bekommst du beim Amtsgericht (Rechtsantragstelle) einen Beratungshilfeschein für einen Anwalt.",
     escHelp2: "Rechtsanwältin oder Rechtsanwalt (Fachanwalt für das Thema)", escHelp3: "Sozialberatung (z. B. Caritas, Diakonie, AWO) bei Jobcenter, Sozialamt oder Schulden",
     escHelp4: "Mieterverein bei Problemen mit der Wohnung, Verbraucherzentrale bei Inkasso und Verträgen", escHelp5: "Migrationsberatung oder Flüchtlingsberatung bei Fragen zum Aufenthalt",
-    escDeadlineHint: "Wichtig: Lass die Frist nicht verstreichen. Nimm diesen Brief zur Beratung mit (z. B. als Fall-PDF).",
-    aiLabelTranslation: "Mit KI übersetzt – kann Fehler enthalten. Verbindlich ist nur das deutsche Original.", aiLabelReply: "Mit KI erstellter Entwurf – bitte vor dem Absenden selbst prüfen.",
-    freeNeedsLogin: "Für die kostenlosen Briefe bitte kurz anmelden (E-Mail-Link oder Universal Profile).", serverFail: "Der Server ist gerade nicht erreichbar. Bitte später erneut versuchen.",
+    escDeadlineHint: "Wichtig: Lass die Frist nicht verstreichen. Nimm dieses Dokument zur Beratung mit (z. B. als Fall-PDF).",
+    aiLabelTranslation: "Mit KI übersetzt – kann Fehler enthalten. Verbindlich ist nur das Original.", aiLabelReply: "Mit KI erstellter Entwurf – bitte vor dem Absenden selbst prüfen.",
+    freeNeedsLogin: "Für die kostenlosen Dokumente bitte kurz anmelden (E-Mail-Link oder Universal Profile).", serverFail: "Der Server ist gerade nicht erreichbar. Bitte später erneut versuchen.",
     loginDone: "Du bist angemeldet.", loginLinkBad: "Der Anmeldelink ist ungültig oder abgelaufen. Bitte fordere einen neuen an.", mailSent: "Wir haben dir einen Link geschickt. Bitte öffne ihn auf diesem Gerät.",
-    payDone: "Zahlung erhalten – der Brief ist freigeschaltet.", payPending: "Die Zahlung wird noch bearbeitet. Der Brief wird freigeschaltet, sobald sie bestätigt ist.",
+    payDone: "Zahlung erhalten – das Dokument ist freigeschaltet.", payPending: "Die Zahlung wird noch bearbeitet. Das Dokument wird freigeschaltet, sobald sie bestätigt ist.",
     payCancelled: "Zahlung abgebrochen. Es wurde nichts abgebucht.", payFail: "Die Zahlung konnte nicht gestartet werden. Bitte später erneut versuchen.",
     logTitle: "Verlauf der Antwort", logGenerated: "KI-Entwurf erstellt", logEdited: "bearbeitet", logConfirmed: "geprüft und bestätigt", logPdf: "als PDF ausgegeben",
     logMail: "E-Mail-Programm geöffnet", logShare: "geteilt", logTranslated: "zur Kontrolle übersetzt", logShow: "Text ansehen", logHide: "ausblenden",
     logInfo: "Der Verlauf wird nur auf diesem Gerät gespeichert und ist im Export enthalten.",
     fbAsk: "Wie gut war das?", fbGood: "Gut", fbBad: "Nicht gut", fbThanks: "Danke!", fbComment: "Was war falsch? (optional)", fbSave: "Speichern",
-    fbShareLabel: "Bewertungen anonym an den Anbieter senden (ohne Brieftext), damit Übersetzungen besser werden",
-    obLangTitle: "Willkommen! Welche Sprache sprichst du?", obLangText: "Die App zeigt alles in deiner Sprache. Deine Briefe bleiben auf Deutsch und werden für dich übersetzt.",
-    obAddTitle: "Briefe hinzufügen", obAddText: "Fotografiere einen Brief oder lade ein Foto oder eine PDF hoch – auch aus deiner Cloud. Die App liest den Brief und legt ihn automatisch in den passenden Fall. Wenn sie unsicher ist, fragt sie dich.",
-    obReadTitle: "Verstehen und antworten", obReadText: "Lass dir jeden Brief übersetzen. Auf Wunsch schreibt die App einen Antwort-Entwurf auf Deutsch. Prüfe ihn immer selbst – erst nach deiner Bestätigung kannst du ihn als PDF, per E-Mail oder zum Teilen verwenden. Die App sendet nie etwas von allein.",
-    obDeadTitle: "Fristen nicht verpassen", obDeadText: "Die App erkennt Fristen und trägt sie mit Erinnerung in deinen Kalender ein. Das kannst du jederzeit unter „Fristen & Erinnerungen“ ändern.",
-    obPrivTitle: "Deine Daten", obPrivText: "Briefe und Dateien werden auf deinem Gerät gespeichert. Zum Lesen, Übersetzen und Antworten wird der Brieftext an einen KI-Dienst übertragen. Die KI kann Fehler machen und ersetzt keine Rechtsberatung. Du kannst die App mit einer PIN sperren und alle Daten jederzeit exportieren oder löschen.",
+    fbShareLabel: "Bewertungen anonym an den Anbieter senden (ohne Text des Dokuments), damit Übersetzungen besser werden",
+    obLangTitle: "Willkommen! Welche Sprache sprichst du?", obLangText: "Die App zeigt alles in deiner Sprache.",
+    obAddTitle: "Dokumente hinzufügen", obAddText: "Fotografiere ein Dokument oder lade ein Foto oder eine PDF hoch – auch aus deiner Cloud. Mehrere Seiten gehören zu einem Dokument. Am Ende gibst du ihm einen Namen und legst es in einen Fall. Alle Angaben sind freiwillig.",
+    obReadTitle: "KI – nur wenn du willst", obReadText: "Die KI ist beim Start aus. Die App funktioniert auch ohne sie. Schaltest du die KI in den Einstellungen ein, liest sie deine Dokumente, füllt Name, Absender und Frist aus, übersetzt und schreibt auf Wunsch einen Antwort-Entwurf. Prüfe jeden Entwurf selbst. Die App sendet nie etwas von allein.",
+    obDeadTitle: "Fristen nicht verpassen", obDeadText: "Trage zu einem Dokument eine Frist ein – oder lass sie von der KI erkennen. Die App erinnert dich und trägt die Frist auf Wunsch in deinen Kalender ein. Das kannst du jederzeit unter „Fristen & Erinnerungen“ ändern.",
+    obPrivTitle: "Deine Daten", obPrivText: "Dokumente und Dateien werden auf deinem Gerät gespeichert. Ohne KI verlässt nichts dein Gerät. Nur wenn du die KI einschaltest, wird der Inhalt zum Lesen, Übersetzen und Antworten an einen KI-Dienst übertragen. Die KI kann Fehler machen und ersetzt keine Rechtsberatung. Du kannst die App mit einer PIN sperren und alle Daten jederzeit exportieren oder löschen.",
     obNext: "Weiter", obBack: "Zurück", obStart: "Los geht's", obSkip: "Überspringen", obTranslating: "Die App wird in deine Sprache übersetzt …", obAgain: "Einführung ansehen",
-    casePdf: "Fall als PDF", casePdfInfo: "Eine PDF mit Inhaltsverzeichnis und allen Briefen dieses Falls – Angaben, Originaltext, Übersetzung, Antwort und Verlauf –, z. B. für Anwalt, Beratungsstelle oder Amt.",
-    casePdfPhotos: "Fotos der Original-Briefe einfügen", casePdfBuild: "PDF erstellen", casePdfBusy: "Erstelle PDF …", casePdfToc: "Inhalt",
+    casePdf: "Fall als PDF", casePdfInfo: "Eine PDF mit Inhaltsverzeichnis und allen Dokumenten dieses Falls – Angaben, Text, Übersetzung, Antwort und Verlauf –, z. B. für Anwalt, Beratungsstelle oder Amt.",
+    casePdfPhotos: "Fotos der Dokumente einfügen", casePdfBuild: "PDF erstellen", casePdfBusy: "Erstelle PDF …", casePdfToc: "Inhalt",
     casePdfImgFail: "Foto „{n}“ konnte nicht eingefügt werden (Format wird hier nicht unterstützt). Es ist im Fall als eigene Datei gespeichert.",
     casePdfSeparate: "Anlage „{n}“ ist als eigene Datei gespeichert (nicht in dieser PDF).", casePdfMissing: "Datei „{n}“ ist auf diesem Gerät nicht mehr vorhanden.",
     profilesTitle: "Profile (mehrere Nutzer)", profileWho: "Wer nutzt die App?", profileAdd: "Hinzufügen", profileName: "Name des neuen Profils",
     profileDefaultName: "Ich", profileSwitch: "Profil wechseln", profileActive: "aktiv", profileRename: "Umbenennen", profileDelete: "Profil löschen",
-    profileDeleteConfirm: "Profil „{n}“ mit allen Briefen, Dateien und Einstellungen endgültig löschen?",
-    profilesInfo: "Jedes Profil hat eigene Fälle, Briefe, Dateien, Einstellungen und eine eigene Sperre. Andere Profile sehen diese Daten nicht. Käufe und Guthaben gelten für das ganze Gerät.",
+    profileDeleteConfirm: "Profil „{n}“ mit allen Dokumenten, Dateien und Einstellungen endgültig löschen?",
+    profilesInfo: "Jedes Profil hat eigene Fälle, Dokumente, Dateien, Einstellungen und eine eigene Sperre. Andere Profile sehen diese Daten nicht. Käufe und Guthaben gelten für das ganze Gerät.",
     lockTitle: "App-Sperre (PIN / Biometrie)", lockInfo: "Schützt dieses Profil mit einer PIN (4–8 Ziffern) und auf Wunsch mit Fingerabdruck oder Gesichtserkennung. Gespeichert wird nur ein Prüfwert, nicht die PIN.",
     lockHonest: "Die Sperre schützt den Zugang über die App. Nutze zusätzlich die Bildschirmsperre deines Handys.",
     lockSet: "PIN festlegen", lockChange: "Änderungen speichern", lockRemove: "Sperre entfernen", pinCurrent: "Aktuelle PIN", pinNew: "Neue PIN", pinRepeat: "Neue PIN wiederholen",
@@ -230,32 +245,32 @@ const UI_STRINGS = {
     lockNoCrypto: "Die Sperre braucht eine sichere Verbindung (https).", lockSaved: "Sperre gespeichert.", lockRemoved: "Sperre entfernt.", lockNow: "Jetzt sperren",
     unlockTitle: "Entsperren", pinEnter: "PIN", unlockBtn: "Entsperren", pinWrong: "Falsche PIN.", pinWait: "Zu viele Versuche. Bitte {n} Sekunden warten.", bioBtn: "Mit Fingerabdruck / Gesicht",
     pinForgot: "PIN vergessen?", pinForgotInfo: "Die PIN kann aus Sicherheitsgründen nicht wiederhergestellt werden. Du kannst dieses Profil mit allen Daten löschen und neu beginnen. Ein vorhandenes Backup kannst du danach wieder einspielen.",
-    wipeTitle: "Alle Daten löschen", wipeInfo: "Löscht Fälle, Briefe, Dateien, Einstellungen und Erinnerungen von diesem Gerät, außerdem Kalender-Abo und Push-Erinnerungen auf dem Server. Kopien in deinen Clouds, Kalendern oder Backups bleiben dort und müssen dort gelöscht werden.",
+    wipeTitle: "Alle Daten löschen", wipeInfo: "Löscht Fälle, Dokumente, Dateien, Einstellungen und Erinnerungen von diesem Gerät, außerdem Kalender-Abo und Push-Erinnerungen auf dem Server. Kopien in deinen Clouds, Kalendern oder Backups bleiben dort und müssen dort gelöscht werden.",
     wipeExportFirst: "Vorher alles exportieren", wipeScopeProfile: "Nur dieses Profil", wipeScopeAll: "Alle Profile und alle Daten auf diesem Gerät",
     wipeType: "Zur Bestätigung „{w}“ eingeben:", wipeWord: "LÖSCHEN", wipeBtn: "Endgültig löschen", wipeDone: "Die Daten wurden gelöscht.",
     backupAllProfiles: "Alle Profile in das Backup aufnehmen",
-    exportTitle: "Export (alle Briefe & Dateien)", exportAllCases: "Alle Fälle", exportFormatLabel: "Briefe speichern als",
+    exportTitle: "Export (alle Dokumente & Dateien)", exportAllCases: "Alle Fälle", exportFormatLabel: "Dokumente speichern als",
     fmtPdf: "PDF (empfohlen)", fmtTxt: "Textdatei", fmtBoth: "PDF und Textdatei",
     exportOriginals: "Original-Dateien mitexportieren (Fotos, PDFs, Anlagen, Umschlag)",
-    exportPdfNote: "Je Brief: Angaben, Originaltext, Übersetzung und Antwort. Die PDF zeigt jede Schrift korrekt, auch Arabisch oder Persisch. Wer den Text durchsuchen oder kopieren will, wählt zusätzlich die Textdatei. Dazu kommt eine Übersicht aller Briefe für Excel (CSV).",
+    exportPdfNote: "Je Dokument: Angaben, Text, Übersetzung und Antwort. Die PDF zeigt jede Schrift korrekt, auch Arabisch oder Persisch. Wer den Text durchsuchen oder kopieren will, wählt zusätzlich die Textdatei. Dazu kommt eine Übersicht aller Dokumente für Excel (CSV).",
     exportSize: "Geschätzte Größe: {s}", exportSizeWarn: "Geschätzte Größe: {s}. Das kann auf älteren Geräten dauern – bei Problemen Fälle einzeln exportieren.",
-    exportBuild: "Export erstellen", exportBusy: "Erstelle Export … {n} von {total} Briefen", exportReady: "Export fertig",
+    exportBuild: "Export erstellen", exportBusy: "Erstelle Export … {n} von {total} Dokumenten", exportReady: "Export fertig",
     exportDownload: "Herunterladen", exportShare: "Teilen", exportCloud: "In Cloud speichern", exportAgain: "Neu erstellen",
     exportFail: "Export fehlgeschlagen. Bitte erneut versuchen oder weniger Fälle wählen.", exportTooBig: "Der Export ist zu groß. Bitte weniger Fälle auf einmal exportieren.",
     exportNoCases: "Keine Fälle vorhanden.", exportCase: "Fall exportieren", caseWord: "Fall", filesWord: "Dateien",
-    secOriginal: "Originaltext (Deutsch)", secTranslation: "Übersetzung", secReply: "Antwort", secReplyTr: "Übersetzung der Antwort",
+    secOriginal: "Text des Dokuments", secTranslation: "Übersetzung", secReply: "Antwort", secReplyTr: "Übersetzung der Antwort",
     draftNotConfirmed: "Entwurf – noch nicht geprüft und bestätigt", exportedOn: "Exportiert am {d} mit der Briefe-App",
-    exLetterFile: "Brief", exOriginal: "Original", exEnvelope: "Umschlag", exAttachment: "Anlage", exOverview: "Übersicht", exNotes: "Hinweise", exFolder: "Ordner",
+    exLetterFile: "Dokument", exOriginal: "Original", exEnvelope: "Umschlag", exAttachment: "Anlage", exOverview: "Übersicht", exNotes: "Hinweise", exFolder: "Ordner",
     exMissing: "Diese Dateien waren auf dem Gerät nicht mehr vorhanden und fehlen im Export:",
     aiFail: "Die KI hat nicht geantwortet. Bitte erneut versuchen.",
     confirmedOn: "Bestätigt am {d}", confirmFirst: "Erst bestätigen, dann exportieren oder senden.",
     mailLong: "Der Text ist lang und liegt in der Zwischenablage. Füge ihn in die E-Mail ein.", popupBlocked: "Bitte Pop-ups erlauben, damit sich das PDF öffnen kann.",
     backupTitle: "Backup", backupSave: "Backup als Datei speichern", backupCloud: "Backup in Cloud sichern", backupRestore: "Backup einspielen",
-    backupInfo: "Enthält alle Fälle, Briefe und Originaldateien (ohne Beispieldaten, Konto und Käufe). Beim Einspielen wird alles zu deinen vorhandenen Daten hinzugefügt, nichts wird überschrieben.",
-    backupDone: "Backup gespeichert.", backupRestored: "{c} Fall/Fälle und {l} Brief(e) hinzugefügt.", backupBad: "Das ist keine gültige Backup-Datei.",
+    backupInfo: "Enthält alle Fälle, Dokumente und Originaldateien (ohne Beispieldaten, Konto und Käufe). Beim Einspielen wird alles zu deinen vorhandenen Daten hinzugefügt, nichts wird überschrieben.",
+    backupDone: "Backup gespeichert.", backupRestored: "{c} Fall/Fälle und {l} Dokument(e) hinzugefügt.", backupBad: "Das ist keine gültige Backup-Datei.",
     needPass: "Bitte zuerst ein Passwort eingeben oder die Verschlüsselung ausschalten.", wrongPass: "Entschlüsseln fehlgeschlagen (falsches Passwort?).",
     demoShow: "Beispieldaten anzeigen", demoRemove: "Beispieldaten entfernen",
-    remindersTitle: "Fristen & Erinnerungen", remindersNone: "Keine Fristen erkannt.", remindersOn: "Benachrichtigungen aktivieren", remindersOff: "Benachrichtigungen ausschalten",
+    remindersTitle: "Fristen & Erinnerungen", remindersNone: "Keine Fristen eingetragen.", remindersOn: "Benachrichtigungen aktivieren", remindersOff: "Benachrichtigungen ausschalten",
     remindersDenied: "Benachrichtigungen wurden nicht erlaubt.", remindersNoSupport: "Dein Browser unterstützt keine Benachrichtigungen. Nutze den Kalender-Export.",
     remindersHint: "Benachrichtigungen erscheinen nur, solange die App geöffnet ist. Für zuverlässige Erinnerungen trage die Fristen in deinen Kalender ein.",
     calSubLabel: "Kalender-Abo: Fristen bleiben ohne Rückfrage automatisch im Gerätekalender aktuell", calSubInfo: "Dein Kalender ruft die Fristen regelmäßig von unserem Server ab. Dafür werden Fristdaten (und nur auf Wunsch der Betreff) unter einer geheimen Adresse auf dem Server gespeichert. Beim Ausschalten werden sie gelöscht.",
@@ -264,7 +279,7 @@ const UI_STRINGS = {
     pushOn: "Hintergrund-Erinnerungen aktiv: Du wirst auch bei geschlossener App erinnert.", pushSending: "Erinnerungen werden an den Push-Server übertragen …", pushFail: "Hintergrund-Erinnerungen konnten nicht eingerichtet werden. Bitte nutze vorerst den Kalender-Export.",
     pushIos: "iPhone/iPad: Zuerst die App über „Teilen → Zum Home-Bildschirm“ installieren, sonst sind Hintergrund-Erinnerungen nicht möglich.",
     pushConsent: "Für Erinnerungen bei geschlossener App werden nur Erinnerungszeitpunkte und dein Gerätekennzeichen an den Push-Server übertragen (EU-Hosting). Beim Ausschalten werden sie gelöscht.",
-    pushSubjectLabel: "Betreff des Briefes in der Erinnerung anzeigen (wird dann mit übertragen)",
+    pushSubjectLabel: "Betreff des Dokuments in der Erinnerung anzeigen (wird dann mit übertragen)",
     remindDays: "Erinnern vor Ablauf (Tage)", remindTime: "Uhrzeit", toCalendar: "In Kalender eintragen", allToCalendar: "Alle Fristen in Kalender",
     overdue: "überfällig", todayWord: "heute", daysLeft: "noch {n} Tage", deadlinesStrip: "{n} Frist(en) in den nächsten 7 Tagen oder überfällig", showDeadlines: "Fristen ansehen",
     remindTitle: "Frist in {d} Tag(en)", remindToday: "Frist heute",
@@ -272,15 +287,15 @@ const UI_STRINGS = {
   en: {
     appName: "Letters", newCase: "New case", search: "Search…", myCases: "My cases",
     settings: "Settings", allCases: "All cases", open: "Open", done: "Done",
-    upload: "Upload letter", translate: "Translate", reply: "Draft reply",
-    deadline: "Deadline", noDeadline: "No deadline detected", original: "Original",
+    upload: "Upload document", translate: "Translate", reply: "Draft reply",
+    deadline: "Deadline", noDeadline: "No deadline detected", tabText: "Text", tabReply: "Reply",
     translation: "Translation", generateReply: "Generate AI reply", confirm: "Reviewed & confirm",
     edit: "Edit", copy: "Copy text", share: "Share", exportPdf: "Export as PDF",
     tileView: "Tiles", listView: "List", darkMode: "Dark mode", fontSize: "Font size",
     disclaimer: "This app does not replace a lawyer.",
     sortSection: "Sorting", accountSection: "Account", backup: "Backup", logout: "Log out",
     shopMenu: "Purchases & withdrawal", cancelMenu: "Cancel contracts here", legalMenu: "Legal",
-    appLanguage: "App language", tileSize: "Tile size", tileSizeAuto: "Adjusts automatically",
+    appLanguage: "App language",
     sortDate: "Date", sortName: "Alphabetical", sortCase: "Case number", sortDeadline: "Deadline urgency",
     replyPlaceholder: "What would you like to reply? (your own language is fine)",
     checkReplyIn: "Review reply in:", writeExpand: "Write larger", replyWriteTitle: "Write reply",
@@ -291,20 +306,35 @@ const UI_STRINGS = {
     replyLiability: "The app does not replace legal advice and accepts no liability for the content. You check the draft yourself and decide whether to send it.",
     checkTitle: "Translation cross-check", checkNone: "No dates, amounts or reference numbers were found in the original.",
     checkOk: "All {n} details from the original (date, amount, reference number, account number) appear with the same digits in the translation.",
-    checkMissing: "These details from the original were not found in the translation:", checkCompare: "Please compare these places with the German original. The original applies.",
-    checkAi: "Have the AI check the translation", checkAiLabel: "Check by AI – may itself contain errors. Only the German original is binding.",
-    letterWord: "letter", noCases: "No cases found. Upload a letter to get started.", searchHint: "(also in your language, e.g. “recovery”)", menu: "Menu",
+    checkMissing: "These details from the original were not found in the translation:", checkCompare: "Please compare these places with the original. The original applies.",
+    checkAi: "Have the AI check the translation", checkAiLabel: "Check by AI – may itself contain errors. Only the original is binding.",
+    letterWord: "document", noCases: "No cases found. Add a document to get started.", searchHint: "(also in your language, e.g. “recovery”)", menu: "Menu",
     layoutLabel: "Layout", layoutClassic: "Desktop", layoutNew: "Classic",
     tabHome: "Home", tabSearch: "Search", tabAdd: "Add", tabDeadlines: "Deadlines", tabProfile: "Profile",
+    docFrom: "Document of {d}", unsortedCase: "Unsorted", more: "More", viewLarge: "View large", fileOf: "File {n} of {total}", closeWord: "Close",
+    noFile: "No file is stored for this document.", previewNone: "There is no preview for this file.",
+    noTextAiOff: "The text was not read because the AI is turned off.", noTextFail: "The text could not be read.", noTextPlain: "No text is stored for this document.",
+    noTextNoBackend: "Text recognition is not set up here yet. The document is saved as a file.",
+    readNow: "Read text with AI now", readBusy: "Reading …", readDone: "The text has been read.",
+    aiSwitch: "Use AI", aiOffInfo: "Off: your documents do not leave the device. You name and sort them yourself.",
+    aiOnInfo: "On: the AI reads documents, fills in details, translates and drafts replies. For this, the content is sent to the AI service.",
+    aiNotSetUp: "The AI service is not set up yet (operator). The app works without AI.",
+    aiConsentTitle: "Turn AI on?", aiConsentText: "When the AI is on, the content of your documents is sent to the AI service for reading, translating and reply drafts. Documents can contain sensitive data, for example health data. The AI can make mistakes. You can turn it off again at any time.",
+    aiConsentYes: "Turn on", aiUseHere: "Read with AI and fill in details", aiIsOff: "The AI is off.", aiTurnOn: "Turn AI on",
+    detailsTitle: "Document details", detailsTitleN: "Details for {n} documents", detailsHint: "Everything is optional. You can fill in empty fields later.",
+    detailsAiHint: "Filled in by the AI – please check.", detailsAiFail: "The AI could not read anything. You can enter the details yourself.",
+    fName: "Name", moreFields: "More details", lessFields: "Fewer details", caseNewName: "Name of the new case", backWord: "Back",
+    grpLook: "Appearance", grpAi: "AI", grpRemind: "Reminders", grpSecurity: "Security & profiles", grpData: "Data", grpHelp: "Help & legal", grpOperator: "Operator switches",
+    toolsSection: "Deadlines & data", viewToggle: "Switch view",
+    replyOwnPh: "Write your reply here.", replyOwnStart: "Write your own reply", replyAiHead: "Have the AI draft a reply",
     home: "Overview", langSearch: "Search language…", noLangFound: "No language found", copied: "Copied!",
-    intakeTitle: "Add letters", takePhoto: "Take photo", addPage: "Photograph another page",
+    intakeTitle: "Add document", takePhoto: "Take photo", addPage: "Photograph another page",
     chooseFiles: "Choose files (photo, PDF, Word …)", fromCloud: "Get from cloud",
-    noFilesYet: "No files selected yet.", pagesOfOne: "These files are pages of a single letter",
-    intakeLocalNote: "The originals stay on your device. For reading, the content is sent to the AI service.",
-    intakeReading: "Reading … ({n} of {total})", startIntake: "Read and file automatically",
-    assignTitle: "Which case does this letter belong to?", assignWhySender: "Same sender as in these cases, but the file number does not match for sure.",
-    assignNew: "New case", assignOther: "Other case", assignDo: "File here",
-    filesTitle: "Originals (on your device)", view: "View", download: "Download", shareFile: "Share",
+    noFilesYet: "No files selected yet.", pagesOfOne: "These files are pages of a single document",
+    intakeLocalNote: "The files stay on your device. Nothing is transmitted.", intakeAiNote: "The files stay on your device. For reading, the content is sent to the AI service.",
+    intakeReading: "Reading … ({n} of {total})", startIntake: "Continue",
+    assignNew: "New case", sameSenderHint: "Same sender as in this case – please check.",
+    filesTitle: "Files (on your device)", view: "View", download: "Download", shareFile: "Share",
     toCloud: "Save to cloud", openNewTab: "Open in new tab",
     cloudsMenu: "Files & clouds", cloudTabImport: "Get from …", cloudTabExport: "Save to …", cloudTabConn: "Connections",
     systemPicker: "Choose files from your device or cloud apps", systemPickerHint: "Your device's picker shows every cloud set up there (iCloud, Google Drive, OneDrive, Dropbox …).",
@@ -325,49 +355,49 @@ const UI_STRINGS = {
     mailPending: "Confirmation pending: you will get an email with a link.", demoConfirm: "Open confirmation link (demo)",
     mailConfirmedNote: "Your email address is confirmed.", unlinkEmail: "Remove email link",
     linkUp: "Link Universal Profile", demoAuthNote: "Demo: without a server, emails are not sent and signatures are not verified server-side.",
-    noticeDone: "{n} letter(s) filed.", noticeFailed: "{n} could not be read – please check.",
+    noticeDone: "{n} document(s) saved.", noticeFailed: "{n} could not be read – please check.",
     noticeMissing: "File not found.", noticeAutoOff: "Automatic saving skipped: cloud not connected.",
     noticeAutoPass: "Automatic saving skipped: encryption password missing.",
     noticeSaved: "{n} file(s) saved to {name}.", noticeUploadFail: "Saving to the cloud failed.",
-    fSubject: "Subject", fSender: "Sender", fCaseNumber: "File number", fDate: "Letter date", fReceived: "Date received",
+    fSubject: "Subject", fSender: "Sender", fCaseNumber: "File number", fDate: "Date", fReceived: "Date received",
     fDeadline: "Deadline", fPages: "Pages", fNote: "Note", fUploaded: "Uploaded",
-    lettersWord: "letters", sortBy: "Sort by", ascending: "Ascending", descending: "Descending",
-    customizeTiles: "Customize tiles", customizeHint: "Choose what appears on the letter tile and change the order. This applies to all letters.",
-    resetDefault: "Default", previewWord: "Preview", noHits: "No matches in this case.", caseEmpty: "There are no letters in this case yet.",
-    editLetter: "Edit letter", deadlineNoteLabel: "Deadline as text (if no date is known)", moveToCase: "Case", save: "Save",
-    deleteLetter: "Delete letter", deleteConfirm: "Really delete? The original files will be deleted too.",
+    lettersWord: "documents", sortBy: "Sort by", ascending: "Ascending", descending: "Descending",
+    customizeTiles: "Customize tiles", customizeHint: "Choose what appears on the document tile and change the order. This applies to all documents.",
+    resetDefault: "Default", previewWord: "Preview", noHits: "No matches in this case.", caseEmpty: "There are no documents in this case yet.",
+    editLetter: "Edit document", deadlineNoteLabel: "Deadline as text (if no date is known)", moveToCase: "Case", save: "Save",
+    deleteLetter: "Delete document", deleteConfirm: "Really delete? The original files will be deleted too.",
     addAttachment: "Add attachment", addEnvelope: "Photograph envelope", envelope: "Envelope",
-    escTitle: "Important letter – advice recommended", escIntro: "A lot may depend on this letter. You can still create a reply. We recommend that you also get advice. Reasons:",
+    escTitle: "Important document – advice recommended", escIntro: "A lot may depend on this document. You can still create a reply. We recommend that you also get advice. Reasons:",
     escCourt: "Court or lawsuit", escCriminal: "Criminal proceedings, fine or summons", escEnforcement: "Payment order, enforcement or seizure", escHousing: "Termination or eviction from your home",
     escBenefits: "Reduction, stop or repayment of benefits", escResidence: "Residence (e.g. expulsion or deportation)", escDeadline: "The deadline ends in less than 7 days or has passed",
     escHelpTitle: "Where to get help:", escHelp1: "Legal aid: with a low income, the local court (Amtsgericht, Rechtsantragstelle) can give you a certificate (Beratungshilfeschein) for a lawyer.",
     escHelp2: "A lawyer specialised in the topic", escHelp3: "Social counselling (e.g. Caritas, Diakonie, AWO) for Jobcenter, social welfare office or debts",
     escHelp4: "Tenants' association for housing problems, consumer advice centre for debt collection and contracts", escHelp5: "Migration or refugee counselling for residence questions",
-    escDeadlineHint: "Important: do not let the deadline pass. Take this letter with you to the counselling (e.g. as case PDF).",
-    aiLabelTranslation: "Translated with AI – may contain errors. Only the German original is binding.", aiLabelReply: "Draft created with AI – please check it yourself before sending.",
-    freeNeedsLogin: "To use the free letters, please sign in (email link or Universal Profile).", serverFail: "The server cannot be reached right now. Please try again later.",
+    escDeadlineHint: "Important: do not let the deadline pass. Take this document with you to the counselling (e.g. as case PDF).",
+    aiLabelTranslation: "Translated with AI – may contain errors. Only the original is binding.", aiLabelReply: "Draft created with AI – please check it yourself before sending.",
+    freeNeedsLogin: "To use the free documents, please sign in (email link or Universal Profile).", serverFail: "The server cannot be reached right now. Please try again later.",
     loginDone: "You are signed in.", loginLinkBad: "The sign-in link is invalid or expired. Please request a new one.", mailSent: "We sent you a link. Please open it on this device.",
-    payDone: "Payment received – the letter is unlocked.", payPending: "The payment is still being processed. The letter will be unlocked once it is confirmed.",
+    payDone: "Payment received – the document is unlocked.", payPending: "The payment is still being processed. The document will be unlocked once it is confirmed.",
     payCancelled: "Payment cancelled. Nothing was charged.", payFail: "The payment could not be started. Please try again later.",
     logTitle: "Reply history", logGenerated: "AI draft created", logEdited: "edited", logConfirmed: "reviewed and confirmed", logPdf: "output as PDF",
     logMail: "email app opened", logShare: "shared", logTranslated: "translated for checking", logShow: "show text", logHide: "hide",
     logInfo: "The history is stored only on this device and is included in the export.",
     fbAsk: "How good was this?", fbGood: "Good", fbBad: "Not good", fbThanks: "Thanks!", fbComment: "What was wrong? (optional)", fbSave: "Save",
-    fbShareLabel: "Send ratings anonymously to the provider (without letter text) to improve translations",
-    obLangTitle: "Welcome! Which language do you speak?", obLangText: "The app shows everything in your language. Your letters stay in German and are translated for you.",
-    obAddTitle: "Add letters", obAddText: "Take a photo of a letter or upload a photo or PDF – also from your cloud. The app reads the letter and files it into the right case automatically. If it is unsure, it asks you.",
-    obReadTitle: "Understand and reply", obReadText: "Have every letter translated. If you wish, the app writes a reply draft in German. Always check it yourself – only after your confirmation can you use it as PDF, by email or to share. The app never sends anything on its own.",
-    obDeadTitle: "Never miss a deadline", obDeadText: "The app detects deadlines and adds them with a reminder to your calendar. You can change this anytime under “Deadlines & reminders”.",
-    obPrivTitle: "Your data", obPrivText: "Letters and files are stored on your device. To read, translate and reply, the letter text is sent to an AI service. The AI can make mistakes and does not replace legal advice. You can lock the app with a PIN and export or delete all data at any time.",
+    fbShareLabel: "Send ratings anonymously to the provider (without the document text) to improve translations",
+    obLangTitle: "Welcome! Which language do you speak?", obLangText: "The app shows everything in your language.",
+    obAddTitle: "Add documents", obAddText: "Take a photo of a document or upload a photo or PDF – also from your cloud. Several pages belong to one document. At the end you give it a name and put it into a case. All details are optional.",
+    obReadTitle: "AI – only if you want", obReadText: "The AI is off at the start. The app also works without it. If you turn the AI on in the settings, it reads your documents, fills in name, sender and deadline, translates and, if you wish, writes a reply draft. Check every draft yourself. The app never sends anything on its own.",
+    obDeadTitle: "Never miss a deadline", obDeadText: "Enter a deadline for a document – or let the AI detect it. The app reminds you and, if you wish, adds the deadline to your calendar. You can change this anytime under “Deadlines & reminders”.",
+    obPrivTitle: "Your data", obPrivText: "Documents and files are stored on your device. Without AI, nothing leaves your device. Only if you turn the AI on is the content sent to an AI service to read, translate and reply. The AI can make mistakes and does not replace legal advice. You can lock the app with a PIN and export or delete all data at any time.",
     obNext: "Next", obBack: "Back", obStart: "Let's go", obSkip: "Skip", obTranslating: "The app is being translated into your language …", obAgain: "Show introduction",
-    casePdf: "Case as PDF", casePdfInfo: "One PDF with a table of contents and all letters of this case – details, original text, translation, reply and history – e.g. for a lawyer, advice centre or authority.",
-    casePdfPhotos: "Include photos of the original letters", casePdfBuild: "Create PDF", casePdfBusy: "Creating PDF …", casePdfToc: "Contents",
+    casePdf: "Case as PDF", casePdfInfo: "One PDF with a table of contents and all documents of this case – details, text, translation, reply and history – e.g. for a lawyer, advice centre or authority.",
+    casePdfPhotos: "Include photos of the documents", casePdfBuild: "Create PDF", casePdfBusy: "Creating PDF …", casePdfToc: "Contents",
     casePdfImgFail: "Photo “{n}” could not be included (format not supported here). It is saved in the case as a separate file.",
     casePdfSeparate: "Attachment “{n}” is saved as a separate file (not in this PDF).", casePdfMissing: "File “{n}” is no longer on this device.",
     profilesTitle: "Profiles (several users)", profileWho: "Who is using the app?", profileAdd: "Add", profileName: "Name of the new profile",
     profileDefaultName: "Me", profileSwitch: "Switch profile", profileActive: "active", profileRename: "Rename", profileDelete: "Delete profile",
-    profileDeleteConfirm: "Permanently delete profile “{n}” with all letters, files and settings?",
-    profilesInfo: "Each profile has its own cases, letters, files, settings and lock. Other profiles cannot see this data. Purchases and credit apply to the whole device.",
+    profileDeleteConfirm: "Permanently delete profile “{n}” with all documents, files and settings?",
+    profilesInfo: "Each profile has its own cases, documents, files, settings and lock. Other profiles cannot see this data. Purchases and credit apply to the whole device.",
     lockTitle: "App lock (PIN / biometrics)", lockInfo: "Protects this profile with a PIN (4–8 digits) and optionally with fingerprint or face recognition. Only a check value is stored, not the PIN.",
     lockHonest: "The lock protects access through the app. Also use your phone's screen lock.",
     lockSet: "Set PIN", lockChange: "Save changes", lockRemove: "Remove lock", pinCurrent: "Current PIN", pinNew: "New PIN", pinRepeat: "Repeat new PIN",
@@ -376,32 +406,32 @@ const UI_STRINGS = {
     lockNoCrypto: "The lock requires a secure connection (https).", lockSaved: "Lock saved.", lockRemoved: "Lock removed.", lockNow: "Lock now",
     unlockTitle: "Unlock", pinEnter: "PIN", unlockBtn: "Unlock", pinWrong: "Wrong PIN.", pinWait: "Too many attempts. Please wait {n} seconds.", bioBtn: "With fingerprint / face",
     pinForgot: "Forgot PIN?", pinForgotInfo: "For security reasons the PIN cannot be recovered. You can delete this profile with all its data and start again. You can then restore an existing backup.",
-    wipeTitle: "Delete all data", wipeInfo: "Deletes cases, letters, files, settings and reminders from this device, as well as the calendar subscription and push reminders on the server. Copies in your clouds, calendars or backups remain there and must be deleted there.",
+    wipeTitle: "Delete all data", wipeInfo: "Deletes cases, documents, files, settings and reminders from this device, as well as the calendar subscription and push reminders on the server. Copies in your clouds, calendars or backups remain there and must be deleted there.",
     wipeExportFirst: "Export everything first", wipeScopeProfile: "Only this profile", wipeScopeAll: "All profiles and all data on this device",
     wipeType: "Type “{w}” to confirm:", wipeWord: "DELETE", wipeBtn: "Delete permanently", wipeDone: "The data has been deleted.",
     backupAllProfiles: "Include all profiles in the backup",
-    exportTitle: "Export (all letters & files)", exportAllCases: "All cases", exportFormatLabel: "Save letters as",
+    exportTitle: "Export (all documents & files)", exportAllCases: "All cases", exportFormatLabel: "Save documents as",
     fmtPdf: "PDF (recommended)", fmtTxt: "Text file", fmtBoth: "PDF and text file",
     exportOriginals: "Include original files (photos, PDFs, attachments, envelope)",
-    exportPdfNote: "Per letter: details, original text, translation and reply. The PDF shows every script correctly, including Arabic or Persian. To search or copy the text, also choose the text file. An overview of all letters for Excel (CSV) is included.",
+    exportPdfNote: "Per document: details, text, translation and reply. The PDF shows every script correctly, including Arabic or Persian. To search or copy the text, also choose the text file. An overview of all documents for Excel (CSV) is included.",
     exportSize: "Estimated size: {s}", exportSizeWarn: "Estimated size: {s}. This may take a while on older devices – if there are problems, export cases one by one.",
-    exportBuild: "Create export", exportBusy: "Creating export … {n} of {total} letters", exportReady: "Export ready",
+    exportBuild: "Create export", exportBusy: "Creating export … {n} of {total} documents", exportReady: "Export ready",
     exportDownload: "Download", exportShare: "Share", exportCloud: "Save to cloud", exportAgain: "Create again",
     exportFail: "Export failed. Please try again or select fewer cases.", exportTooBig: "The export is too large. Please export fewer cases at once.",
     exportNoCases: "No cases yet.", exportCase: "Export case", caseWord: "Case", filesWord: "Files",
-    secOriginal: "Original text (German)", secTranslation: "Translation", secReply: "Reply", secReplyTr: "Translation of the reply",
+    secOriginal: "Text of the document", secTranslation: "Translation", secReply: "Reply", secReplyTr: "Translation of the reply",
     draftNotConfirmed: "Draft – not yet reviewed and confirmed", exportedOn: "Exported on {d} with Briefe-App",
-    exLetterFile: "Letter", exOriginal: "Original", exEnvelope: "Envelope", exAttachment: "Attachment", exOverview: "Overview", exNotes: "Notes", exFolder: "Folder",
+    exLetterFile: "Document", exOriginal: "Original", exEnvelope: "Envelope", exAttachment: "Attachment", exOverview: "Overview", exNotes: "Notes", exFolder: "Folder",
     exMissing: "These files were no longer on the device and are missing from the export:",
     aiFail: "The AI did not respond. Please try again.",
     confirmedOn: "Confirmed on {d}", confirmFirst: "Confirm first, then export or send.",
     mailLong: "The text is long and is in your clipboard. Paste it into the email.", popupBlocked: "Please allow pop-ups so the PDF can open.",
     backupTitle: "Backup", backupSave: "Save backup as file", backupCloud: "Save backup to cloud", backupRestore: "Restore backup",
-    backupInfo: "Contains all cases, letters and original files (without sample data, account and purchases). Restoring adds everything to your existing data; nothing is overwritten.",
-    backupDone: "Backup saved.", backupRestored: "{c} case(s) and {l} letter(s) added.", backupBad: "This is not a valid backup file.",
+    backupInfo: "Contains all cases, documents and original files (without sample data, account and purchases). Restoring adds everything to your existing data; nothing is overwritten.",
+    backupDone: "Backup saved.", backupRestored: "{c} case(s) and {l} document(s) added.", backupBad: "This is not a valid backup file.",
     needPass: "Please enter a password first or turn encryption off.", wrongPass: "Decryption failed (wrong password?).",
     demoShow: "Show sample data", demoRemove: "Remove sample data",
-    remindersTitle: "Deadlines & reminders", remindersNone: "No deadlines detected.", remindersOn: "Enable notifications", remindersOff: "Turn notifications off",
+    remindersTitle: "Deadlines & reminders", remindersNone: "No deadlines entered.", remindersOn: "Enable notifications", remindersOff: "Turn notifications off",
     remindersDenied: "Notifications were not allowed.", remindersNoSupport: "Your browser does not support notifications. Use the calendar export.",
     remindersHint: "Notifications only appear while the app is open. For reliable reminders, add the deadlines to your calendar.",
     calSubLabel: "Calendar subscription: deadlines stay up to date in your device calendar without prompts", calSubInfo: "Your calendar fetches the deadlines regularly from our server. For this, deadline data (and the subject only if you wish) is stored at a secret address on the server. It is deleted when you turn this off.",
@@ -410,7 +440,7 @@ const UI_STRINGS = {
     pushOn: "Background reminders active: you will be reminded even when the app is closed.", pushSending: "Sending reminders to the push server …", pushFail: "Background reminders could not be set up. Please use the calendar export for now.",
     pushIos: "iPhone/iPad: first install the app via “Share → Add to Home Screen”, otherwise background reminders are not possible.",
     pushConsent: "For reminders while the app is closed, only reminder times and your device identifier are sent to the push server (EU hosting). They are deleted when you turn this off.",
-    pushSubjectLabel: "Show the letter subject in the reminder (it is then transmitted too)",
+    pushSubjectLabel: "Show the document subject in the reminder (it is then transmitted too)",
     remindDays: "Remind before deadline (days)", remindTime: "Time", toCalendar: "Add to calendar", allToCalendar: "All deadlines to calendar",
     overdue: "overdue", todayWord: "today", daysLeft: "{n} days left", deadlinesStrip: "{n} deadline(s) within 7 days or overdue", showDeadlines: "View deadlines",
     remindTitle: "Deadline in {d} day(s)", remindToday: "Deadline today",
@@ -499,6 +529,7 @@ function BriefeCore({ profileApi }) {
   // Bis zu 3 Versuche, bevor endgültig auf Deutsch zurückgefallen wird.
   useEffect(() => {
     if (UI_STRINGS[uiLang] || dynamicUiStrings[uiLang]) return;
+    if (!aiBackend() || flags.ai === false) return;   // ohne KI-Dienst bleibt die Oberfläche auf Deutsch
     let cancelled = false;
     setUiTranslating(true);
     (async () => {
@@ -549,11 +580,12 @@ function BriefeCore({ profileApi }) {
     (async () => {
       let saved = null;
       try { saved = (await window.storage?.get(PK("briefe-app-lang")))?.value || null; } catch (e) {}
-      if (saved && LANGS.some((l) => l.code === saved)) return setUiLang(saved, true);
+      const usable = (code) => !!UI_STRINGS[code] || aiBackend();   // weitere Sprachen übersetzt die KI; ohne KI-Dienst gibt es nur die fest hinterlegten
+      if (saved && LANGS.some((l) => l.code === saved) && usable(saved)) return setUiLang(saved, true);
       const dev = (navigator.languages || [navigator.language || ""]).map((x) => String(x).toLowerCase());
       for (const d of dev) {
         const hit = LANGS.find((l) => l.code === d) || LANGS.find((l) => l.code === d.split("-")[0]);
-        if (hit) { if (hit.code !== "de") setUiLang(hit.code, true); return; }
+        if (hit && usable(hit.code)) { if (hit.code !== "de") setUiLang(hit.code, true); return; }
       }
     })();
   }, []);
@@ -562,32 +594,8 @@ function BriefeCore({ profileApi }) {
   const [cases, setCases] = useState(seedCases);
   const [caseNameTranslations, setCaseNameTranslations] = useState({});
 
-  // Ordnernamen zweisprachig: übersetzt die Fallnamen in die gewählte App-Sprache
-  useEffect(() => {
-    if (uiLang === "de") return;
-    let cancelled = false;
-    (async () => {
-      for (const cs of cases) {
-        const key = cs.id + ":" + uiLang;
-        if (caseNameTranslations[key]) continue;
-        const langLabel = LANGS.find((l) => l.code === uiLang)?.label || uiLang;
-        let result = null;
-        // Ein Versuch + ein Wiederholungsversuch, bevor auf den Originaltext zurückgefallen wird
-        for (let attempt = 0; attempt < 2 && !result; attempt++) {
-          try {
-            const r = await aiTask("caseName", { name: cs.name, lang: langLabel });
-            if (r && r.trim()) result = r.trim();
-          } catch (e) {}
-        }
-        if (!cancelled) {
-          setCaseNameTranslations((prev) => ({ ...prev, [key]: result || cs.name }));
-        }
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [uiLang, cases]);
   const [view, setView] = useState("tiles"); // tiles | list
-  const [menuOpen, setMenuOpen] = useState({ cases: true, tools: false, account: false });
+  const [menuOpen, setMenuOpen] = useState({ cases: true, tools: false, data: false, account: false });
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date");
   const [query, setQuery] = useState("");
@@ -687,7 +695,6 @@ function BriefeCore({ profileApi }) {
   const [authOpen, setAuthOpen] = useState(false);
   const [intake, setIntake] = useState(null);                // { files, asPages }
   const [progress, setProgress] = useState(null);            // { done, total }
-  const [assignQueue, setAssignQueue] = useState([]);        // unsichere Zuordnungen, die der Nutzer entscheidet
   const [notice, setNotice] = useState("");
   const camInputRef = useRef(null);
   const pickInputRef = useRef(null);
@@ -706,6 +713,41 @@ function BriefeCore({ profileApi }) {
   const casesRef = useRef(cases); casesRef.current = cases;
   const prefsRef = useRef(prefs); prefsRef.current = prefs;
   const setPrefs = (patch) => setPrefsRaw((p) => ({ ...p, ...(typeof patch === "function" ? patch(p) : patch) }));
+  // KI: vom Betreiber angeboten + Dienst erreichbar = möglich; benutzt wird sie nur, wenn der Nutzer sie eingeschaltet hat
+  const aiPossible = flags.ai !== false && aiBackend();
+  const aiOn = aiPossible && !!prefs.ai;
+  const uiLangs = aiPossible ? LANGS : LANGS.filter((l) => UI_STRINGS[l.code]);
+  const [aiConsentOpen, setAiConsentOpen] = useState(false);
+  const [drafts, setDrafts] = useState(null);                // Angaben-Dialog nach dem Hinzufügen: { items, usedAi, failed }
+  const [savingDrafts, setSavingDrafts] = useState(false);
+  const [reading, setReading] = useState(false);
+  const [viewer, setViewer] = useState(false);               // Dokument groß ansehen
+  const [opOpen, setOpOpen] = useState(false);               // Betreiber-Schalter aufgeklappt
+
+  // Ordnernamen zweisprachig: übersetzt die Fallnamen in die gewählte App-Sprache
+  useEffect(() => {
+    if (uiLang === "de" || !aiOn) return;
+    let cancelled = false;
+    (async () => {
+      for (const cs of cases) {
+        const key = cs.id + ":" + uiLang;
+        if (caseNameTranslations[key]) continue;
+        const langLabel = LANGS.find((l) => l.code === uiLang)?.label || uiLang;
+        let result = null;
+        // Ein Versuch + ein Wiederholungsversuch, bevor auf den Originaltext zurückgefallen wird
+        for (let attempt = 0; attempt < 2 && !result; attempt++) {
+          try {
+            const r = await aiTask("caseName", { name: cs.name, lang: langLabel });
+            if (r && r.trim()) result = r.trim();
+          } catch (e) {}
+        }
+        if (!cancelled) {
+          setCaseNameTranslations((prev) => ({ ...prev, [key]: result || cs.name }));
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [uiLang, cases, aiOn]);
 
   useEffect(() => {
     (async () => {
@@ -724,7 +766,7 @@ function BriefeCore({ profileApi }) {
   // Sprachübergreifende Suche: die KI nennt deutsche Suchbegriffe (Übersetzung und Synonyme) zum eingegebenen Wort
   useEffect(() => {
     const q = query.trim().toLowerCase();
-    if (q.length < 3 || expansions[q]) return;
+    if (!aiOn || q.length < 3 || expansions[q]) return;
     const id = setTimeout(async () => {
       setExpanding(true);
       let terms = [];
@@ -737,7 +779,7 @@ function BriefeCore({ profileApi }) {
       setExpanding(false);
     }, 700);
     return () => clearTimeout(id);
-  }, [query]);
+  }, [query, aiOn]);
   const searchTerms = useMemo(() => {
     const q = query.trim().toLowerCase();
     return q ? [q, ...(expansions[q] || [])] : [];
@@ -918,6 +960,7 @@ function BriefeCore({ profileApi }) {
   }, [calKey]);
 
   const activeLetter = allLetters.find((l) => l.id === activeTab);
+  useEffect(() => { setViewer(false); }, [activeTab]);
   const activeCase = cases.find((cs) => cs.id === activeLetter?.caseId);
 
   // ---------- Shop / Recht: Logik ----------
@@ -1061,10 +1104,15 @@ function BriefeCore({ profileApi }) {
     persist(next);
   };
 
-  /* ---------- Hinzufügen: Kamera / Dateien / Clouds → auslesen → zuordnen ---------- */
+  /* ---------- Hinzufügen: Kamera / Dateien / Clouds → (auf Wunsch KI) → Angaben einmal eintragen → speichern ---------- */
   const addToIntake = (list) => {
     const picked = Array.from(list); // Kopie sofort, denn e.target.value = "" leert die FileList
-    setIntake((s) => ({ asPages: false, ...(s || {}), files: [...((s && s.files) || []), ...picked] }));
+    setIntake((s) => {
+      const files = [...((s && s.files) || []), ...picked];
+      const touched = !!(s && s.pagesTouched);
+      // Mehrere Fotos sind in der Regel die Seiten eines Dokuments; der Nutzer kann das im Dialog ändern
+      return { ...(s || {}), files, pagesTouched: touched, asPages: touched ? !!s.asPages : (files.length > 1 && files.every(isImage)) };
+    });
   };
   const onInputChange = (e) => { addToIntake(e.target.files || []); e.target.value = ""; };
 
@@ -1082,60 +1130,106 @@ function BriefeCore({ profileApi }) {
     } catch (e) { setNotice(t.noticeUploadFail); }
   };
 
+  // Vorschlag für die Angaben: mit KI aus dem Dokument, sonst leer. Fall: gleiches Aktenzeichen > geöffneter Fall > gleicher Absender > neu > „Unsortiert“
+  const makeDraft = (group, info) => {
+    const pool = casesRef.current.filter((cs) => !cs.demo && cs.id !== "unsorted");   // echte Dokumente nie in Beispielfälle einsortieren
+    const sender = cleanVal(info?.sender), subject = cleanVal(info?.subject);
+    const m = info ? matchCase(pool, info) : { type: "new" };
+    const ctxId = activeLetter ? null : openCaseId;   // in der Fall-Ansicht hinzugefügt = gehört in diesen Fall
+    let caseSel = "unsorted", hint = "";
+    if (m.type === "sure") caseSel = m.caseId;
+    else if (ctxId && pool.some((cs) => cs.id === ctxId)) caseSel = ctxId;
+    else if (m.type === "ask" && m.candidates.length) { caseSel = m.candidates[0]; hint = "sender"; }
+    else if (sender || subject) caseSel = "new";
+    return {
+      id: "d" + Date.now() + Math.random().toString(36).slice(2, 7), files: group, info, hint, suggest: caseSel,
+      f: { subject, sender, caseNumber: cleanVal(info?.caseNumber), date: okDate(info?.letterDate) || "", deadline: okDate(info?.deadline) || "", note: "",
+        caseSel, newCase: sender && subject ? `${sender} – ${subject}` : sender || subject },
+    };
+  };
   const startIntake = async () => {
     if (!intake?.files?.length || progress) return;
     const groups = intake.asPages ? [intake.files] : intake.files.map((f) => [f]);
-    const queue = []; const stored = []; const filed = []; const created = [];
-    let working = cases; let failed = 0;
-    setProgress({ done: 0, total: groups.length });
+    const useAi = aiOn && intake.ai !== false;
+    const items = []; let failed = 0;
+    if (useAi) setProgress({ done: 0, total: groups.length });
     for (let gi = 0; gi < groups.length; gi++) {
-      const group = groups[gi];
       let info = null;
-      try { info = await extractLetter(group); } catch (e) {}
-      if (!info) failed++;
-      const fileMeta = [];
-      for (const f of group) {
-        const id = "f" + Date.now() + Math.random().toString(36).slice(2, 7);
-        await fileSave(id, f);
-        fileMeta.push({ id, name: f.name, type: f.type || guessType(f.name), size: f.size });
-        stored.push({ name: f.name, blob: f });
+      if (useAi) {
+        try { info = await extractLetter(groups[gi]); } catch (e) {}
+        if (!info) failed++;
+        setProgress({ done: gi + 1, total: groups.length });
       }
-      const letter = buildLetter(group, info, fileMeta);
-      created.push(letter);
-      // Zuordnung: Aktenzeichen gleich = sicher; nur Absender gleich oder nichts gelesen = Nutzer fragen; sonst neuer Fall
-      const pool = working.filter((cs) => !cs.demo);   // echte Briefe nie in Beispielfälle einsortieren
-      const m = !info ? (pool.length ? { type: "ask", candidates: [] } : { type: "new" }) : matchCase(pool, info);
-      if (m.type === "sure") {
-        working = working.map((cs) => (cs.id === m.caseId ? { ...cs, letters: [letter, ...cs.letters] } : cs));
-        filed.push(letter.id);
-      } else if (m.type === "ask") {
-        queue.push({ letter, candidates: m.candidates });
-      } else {
-        working = [...working, newCaseFor(letter, working.length)];
-        filed.push(letter.id);
+      items.push(makeDraft(groups[gi], info));
+    }
+    setProgress(null);
+    setDrafts({ items, usedAi: useAi, failed, back: intake });
+    setIntake(null);
+  };
+  // Zurück aus dem Angaben-Dialog: die gewählten Dateien bleiben erhalten
+  const draftsBack = () => { if (savingDrafts) return; setIntake(drafts?.back || null); setDrafts(null); };
+  const saveDrafts = async (items) => {
+    if (savingDrafts) return;
+    setSavingDrafts(true);
+    let working = casesRef.current; const created = []; const stored = []; const newCases = {};
+    try {
+      for (const d of items) {
+        const fileMeta = [];
+        for (const f of d.files) {
+          const id = "f" + Date.now() + Math.random().toString(36).slice(2, 7);
+          await fileSave(id, f);
+          fileMeta.push({ id, name: f.name, type: f.type || guessType(f.name), size: f.size });
+          stored.push({ name: f.name, blob: f });
+        }
+        const letter = buildLetter(d.files, d.info, fileMeta, d.f, t, uiLang);
+        created.push(letter);
+        let target = d.f.caseSel;
+        if (target === "new") {
+          const known = letter.sender !== "Unbekannt" || !letter.autoTitle;
+          const name = cleanVal(d.f.newCase) || (known ? newCaseFor(letter, 0).name : "");
+          if (!name) target = "unsorted";
+          else if (newCases[name]) target = newCases[name];
+          else { const cs = { ...newCaseFor(letter, working.length), name, letters: [] }; working = [...working, cs]; newCases[name] = cs.id; target = cs.id; }
+        }
+        if (target !== "unsorted" && !working.some((cs) => cs.id === target)) target = "unsorted";
+        if (target === "unsorted" && !working.some((cs) => cs.id === "unsorted")) working = [...working, { id: "unsorted", name: t.unsortedCase, status: "open", color: "#726B5E", letters: [] }];
+        working = working.map((cs) => (cs.id === target ? { ...cs, letters: [letter, ...cs.letters] } : cs));
       }
       persist(working);
-      setProgress({ done: gi + 1, total: groups.length });
-    }
-    setProgress(null); setIntake(null);
-    if (queue.length) setAssignQueue(queue);
-    const msg = [t.noticeDone.replace("{n}", filed.length + queue.length)];
-    if (failed) msg.push(t.noticeFailed.replace("{n}", failed));
-    if (autoCalendar(created.filter((l) => filed.includes(l.id)), true)) msg.push(t.autoCalNotice);
-    setNotice(msg.join(" "));
-    if (groups.length === 1 && filed.length === 1) openLetter(filed[0]);
-    autoUpload(stored);
+      const msg = [t.noticeDone.replace("{n}", created.length)];
+      if (drafts?.usedAi && drafts.failed) msg.push(t.noticeFailed.replace("{n}", drafts.failed));
+      if (autoCalendar(created, true)) msg.push(t.autoCalNotice);
+      setNotice(msg.join(" "));
+      setDrafts(null);
+      if (created.length === 1) openLetter(created[0].id);
+      autoUpload(stored);
+    } catch (e) { console.error("save", e); setNotice(t.serverFail); }
+    setSavingDrafts(false);
   };
 
-  const resolveAssign = (choice) => {
-    const [item, ...rest] = assignQueue;
-    let working = cases;
-    if (choice === "new") working = [...working, newCaseFor(item.letter, working.length)];
-    else working = working.map((cs) => (cs.id === choice ? { ...cs, letters: [item.letter, ...cs.letters] } : cs));
-    persist(working);
-    autoCalendar([item.letter]);
-    setAssignQueue(rest);
-    if (!rest.length) openLetter(item.letter.id);
+  // Text eines schon gespeicherten Dokuments nachträglich mit KI lesen (z. B. wenn die KI beim Hinzufügen aus war)
+  const doReadText = async () => {
+    const l = activeLetter; if (!l || reading || !aiOn) return;
+    setReading(true);
+    try {
+      const files = [];
+      for (const m of (l.files || []).filter((x) => !x.kind)) { const b = await fileGet(m.id); if (b) files.push(new File([b], m.name, { type: m.type || b.type || "" })); }
+      const info = files.length ? await extractLetter(files) : null;
+      if (!info) setNotice(t.noTextFail);
+      else {
+        const patch = { original: cleanVal(info.text), extracted: true };
+        if (l.autoTitle && cleanVal(info.subject)) { patch.subject = cleanVal(info.subject); patch.autoTitle = false; }
+        if ((!l.sender || l.sender === "Unbekannt") && cleanVal(info.sender)) patch.sender = cleanVal(info.sender);
+        if ((!l.caseNumber || l.caseNumber === "—") && cleanVal(info.caseNumber)) patch.caseNumber = cleanVal(info.caseNumber);
+        if (l.date === l.receivedDate && okDate(info.letterDate)) patch.date = info.letterDate;
+        if (!l.deadline && okDate(info.deadline)) patch.deadline = info.deadline;
+        if (!l.deadline && !patch.deadline && !l.deadlineNote && cleanVal(info.deadlineNote)) patch.deadlineNote = cleanVal(info.deadlineNote);
+        updateLetter(l.caseId, l.id, patch);
+        setNotice(t.readDone);
+        if (patch.deadline) autoCalendar([{ ...l, ...patch }]);
+      }
+    } catch (e) { setNotice(t.noTextFail); }
+    setReading(false);
   };
 
   const downloadBlob = (blob, name) => {
@@ -1348,7 +1442,7 @@ function BriefeCore({ profileApi }) {
   };
 
   const doTranslate = async () => {
-    if (!activeLetter) return;
+    if (!activeLetter || !letterText(activeLetter)) return;
     setBusy(true);
     try {
       const langLabel = LANGS.find((l) => l.code === targetLang)?.label || targetLang;
@@ -1423,6 +1517,7 @@ function BriefeCore({ profileApi }) {
   const menuOver = ovl && sidebarOpen && sbFor === ovl;
   // Geöffnete Fenster/Dialoge (oberstes zuerst): Zurück schließt zuerst das Fenster
   const overlays = [
+    [viewer, () => setViewer(false)], [aiConsentOpen, () => setAiConsentOpen(false)], [drafts && !savingDrafts, () => draftsBack()],
     [showHomeConfirm, () => setShowHomeConfirm(false)], [legalTab, () => setLegalTab(null)], [modal, () => setModal(null)],
     [casePdfFor, () => setCasePdfFor(null)], [exportOpen, () => setExportOpen(null)], [wipeOpen, () => setWipeOpen(false)],
     [lockOpen, () => setLockOpen(false)], [profilesOpen, () => setProfilesOpen(false)], [backupOpen, () => setBackupOpen(false)],
@@ -1521,6 +1616,18 @@ function BriefeCore({ profileApi }) {
               ))}
             </MenuSection>
 
+            {/* Hauptpunkt: Fristen & Daten */}
+            <MenuSection
+              c={c} label={t.toolsSection} icon={Bell}
+              open={menuOpen.data}
+              onToggle={() => setMenuOpen((m) => ({ ...m, data: !m.data }))}
+            >
+              <MenuItem c={c} label={t.remindersTitle} icon={Bell} onClick={() => { setRemindersOpen(true); if (ovl) setSidebarOpen(false); }} />
+              <MenuItem c={c} label={t.exportTitle} icon={FileText} onClick={() => { openExport(null); if (ovl) setSidebarOpen(false); }} />
+              <MenuItem c={c} label={t.backup} icon={Download} onClick={() => { setBackupOpen(true); if (ovl) setSidebarOpen(false); }} />
+              <MenuItem c={c} label={t.cloudsMenu} icon={Cloud} onClick={() => { setCloudModal({ tab: "conn", files: [] }); if (ovl) setSidebarOpen(false); }} />
+            </MenuSection>
+
             {/* Hauptpunkt: Konto */}
             <MenuSection
               c={c} label={t.accountSection} icon={User}
@@ -1529,20 +1636,19 @@ function BriefeCore({ profileApi }) {
             >
               <MenuItem c={c} label={`${profileLabel(profileApi.active, t)} · ${t.profileSwitch}`} icon={Users} onClick={() => { setProfilesOpen(true); if (ovl) setSidebarOpen(false); }} />
               {profileApi.active.lock && <MenuItem c={c} label={t.lockNow} icon={Lock} onClick={() => profileApi.lockNow()} />}
-              <MenuItem c={c} label={t.settings} icon={Settings} onClick={() => setShowSettings(true)} />
-              <MenuItem c={c} label={t.exportTitle} icon={FileText} onClick={() => { openExport(null); if (ovl) setSidebarOpen(false); }} />
-              <MenuItem c={c} label={t.backup} icon={Download} onClick={() => { setBackupOpen(true); if (ovl) setSidebarOpen(false); }} />
-              <MenuItem c={c} label={t.remindersTitle} icon={Bell} onClick={() => { setRemindersOpen(true); if (ovl) setSidebarOpen(false); }} />
+              <MenuItem c={c} label={account ? t.accountTitle : t.signIn} icon={User} onClick={() => { setAuthOpen(true); if (ovl) setSidebarOpen(false); }} />
               <MenuItem c={c} label={t.shopMenu} icon={Receipt} onClick={() => openModal({ type: "orders" })} />
               {flags.subscription && <MenuItem c={c} label={t.cancelMenu} icon={Ban} onClick={() => openModal({ type: "cancel" })} />}
-              <MenuItem c={c} label={t.legalMenu} icon={Scale} onClick={() => { setLegalTab("impressum"); if (ovl) setSidebarOpen(false); }} />
-              <MenuItem c={c} label={t.cloudsMenu} icon={Cloud} onClick={() => { setCloudModal({ tab: "conn", files: [] }); if (ovl) setSidebarOpen(false); }} />
-              <MenuItem c={c} label={account ? t.accountTitle : t.signIn} icon={User} onClick={() => { setAuthOpen(true); if (ovl) setSidebarOpen(false); }} />
               {account && <MenuItem c={c} label={t.logout} icon={LogOut} onClick={async () => {
                 if (SERVER_URL) { try { await srv("/auth/logout", {}); } catch (e) {} SESSION = null; await sDel(PK("briefe-app-session")); }
                 setAccount(null);
               }} />}
             </MenuSection>
+
+            <div style={{ borderTop: `1px solid ${c.border}`, margin: "8px 0", paddingTop: 8 }}>
+              <MenuItem c={c} label={t.settings} icon={Settings} onClick={() => { setShowSettings(true); if (ovl) setSidebarOpen(false); }} />
+              <MenuItem c={c} label={t.legalMenu} icon={Scale} onClick={() => { setLegalTab("impressum"); if (ovl) setSidebarOpen(false); }} />
+            </div>
           </div>
 
           <div style={{ padding: 12, borderTop: `1px solid ${c.border}`, fontSize: 11 * fontScale, color: c.textMuted, lineHeight: 1.4 }}>
@@ -1581,13 +1687,19 @@ function BriefeCore({ profileApi }) {
             />
           </div>
           {!isMobile && <div style={{ flex: 1 }} />}
-          <IconBtn c={c} icon={Grid} active={view === "tiles"} onClick={() => setView("tiles")} label={t.tileView} />
-          <IconBtn c={c} icon={List} active={view === "list"} onClick={() => setView("list")} label={t.listView} />
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            {!isMobile && <Languages size={16} color={c.textMuted} style={uiTranslating ? { animation: "spin 1s linear infinite" } : undefined} />}
-            <LanguagePicker c={c} fontScale={fontScale} value={uiLang} onChange={setUiLang} options={LANGS} compact />
-            {uiTranslating && <span style={{ fontSize: 10.5 * fontScale, color: c.textMuted }}>…</span>}
-          </div>
+          {isMobile ? (
+            <IconBtn c={c} icon={view === "tiles" ? List : Grid} onClick={() => setView(view === "tiles" ? "list" : "tiles")} label={t.viewToggle} />
+          ) : (
+            <>
+              <IconBtn c={c} icon={Grid} active={view === "tiles"} onClick={() => setView("tiles")} label={t.tileView} />
+              <IconBtn c={c} icon={List} active={view === "list"} onClick={() => setView("list")} label={t.listView} />
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <Languages size={16} color={c.textMuted} style={uiTranslating ? { animation: "spin 1s linear infinite" } : undefined} />
+                <LanguagePicker c={c} fontScale={fontScale} value={uiLang} onChange={setUiLang} options={uiLangs} compact />
+                {uiTranslating && <span style={{ fontSize: 10.5 * fontScale, color: c.textMuted }}>…</span>}
+              </div>
+            </>
+          )}
           <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
           {!navNew && (
             <button
@@ -1636,7 +1748,7 @@ function BriefeCore({ profileApi }) {
         )}
 
         {/* Tabs für offene Briefe */}
-        {openTabs.length > 0 && (
+        {openTabs.length > 0 && !navNew && (
           <div style={{ display: "flex", gap: 4, padding: "8px 16px 0", borderBottom: `1px solid ${c.border}`, overflowX: "auto" }}>
             {openTabs.map((id) => {
               const l = allLetters.find((x) => x.id === id);
@@ -1663,11 +1775,12 @@ function BriefeCore({ profileApi }) {
         )}
 
         {/* Content */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 20 }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: isMobile ? 14 : 20 }}>
           {activeLetter ? (
             <LetterDetail
               c={c} t={t} fontScale={fontScale} letter={activeLetter} caseObj={activeCase}
               targetLang={targetLang} setTargetLang={setTargetLang}
+              key={activeLetter.id}
               busy={busy} onTranslate={() => gate(doTranslate)} onReply={() => gate(doReply)}
               userNote={userNote} setUserNote={setUserNote}
               copyText={copyText} saved={saved}
@@ -1680,6 +1793,8 @@ function BriefeCore({ profileApi }) {
               onReplyEdit={replyEdit} onConfirmReply={confirmReply}
               onPdf={replyPdf} onMail={replyMail} onShareReply={replyShare} onRate={rateLetter}
               uiLang={uiLang}
+              aiOn={aiOn} aiPossible={aiPossible} reading={reading} onReadText={doReadText} onTurnAiOn={() => setAiConsentOpen(true)}
+              viewer={viewer} setViewer={setViewer}
             />
           ) : openCase ? (
             <CaseView
@@ -1783,16 +1898,20 @@ function BriefeCore({ profileApi }) {
 
       {showSettings && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", display: "flex", justifyContent: "flex-end", zIndex: 50 }} onClick={() => setShowSettings(false)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 320, maxWidth: "100%", background: c.surface, height: "100%", padding: 20, borderLeft: `1px solid ${c.border}`, overflowY: "auto", boxSizing: "border-box" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: 340, maxWidth: "100%", background: c.surface, height: "100%", padding: 20, borderLeft: `1px solid ${c.border}`, overflowY: "auto", boxSizing: "border-box" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <h3 style={{ margin: 0, fontSize: 16 * fontScale }}>{t.settings}</h3>
               <X size={18} style={{ cursor: "pointer" }} onClick={() => setShowSettings(false)} />
             </div>
 
-            <SettingRow c={c} label={t.darkMode} fontScale={fontScale}>
-              <ToggleSwitch c={c} on={dark} onClick={() => setDark((d) => !d)} />
+            {/* ----- Darstellung ----- */}
+            <SettingGroup c={c} fontScale={fontScale} label={t.grpLook} />
+            <SettingRow c={c} label={t.appLanguage} fontScale={fontScale}>
+              <LanguagePicker c={c} fontScale={fontScale} value={uiLang} onChange={setUiLang} options={uiLangs} compact />
             </SettingRow>
-
+            <SettingRow c={c} label={t.darkMode} fontScale={fontScale}>
+              <ToggleSwitch c={c} on={dark} label={t.darkMode} onClick={() => setDark((d) => !d)} />
+            </SettingRow>
             <SettingRow c={c} label={t.fontSize} fontScale={fontScale}>
               <div style={{ display: "flex", gap: 6 }}>
                 {[0.9, 1, 1.15, 1.3].map((s) => (
@@ -1805,7 +1924,6 @@ function BriefeCore({ profileApi }) {
                 ))}
               </div>
             </SettingRow>
-
             <SettingRow c={c} label={t.layoutLabel} fontScale={fontScale}>
               <div style={{ display: "flex", gap: 6 }}>
                 {[["new", t.layoutNew], ["classic", t.layoutClassic]].map(([k, l]) => (
@@ -1814,46 +1932,71 @@ function BriefeCore({ profileApi }) {
                 ))}
               </div>
             </SettingRow>
-
-            <SettingRow c={c} label={t.appLanguage} fontScale={fontScale}>
-              <LanguagePicker c={c} fontScale={fontScale} value={uiLang} onChange={setUiLang} options={LANGS} compact />
-            </SettingRow>
-
-            <SettingRow c={c} label={t.tileSize} fontScale={fontScale}>
-              <span style={{ fontSize: 12 * fontScale, color: c.textMuted }}>{t.tileSizeAuto}</span>
-            </SettingRow>
-
             <SettingRow c={c} label={t.customizeTiles} fontScale={fontScale}>
               <button onClick={() => { setShowSettings(false); setTileModal(true); }} style={btnSmall(c)}><SlidersHorizontal size={13} /></button>
             </SettingRow>
+
+            {/* ----- KI: beim Start aus, der Nutzer entscheidet ----- */}
+            <SettingGroup c={c} fontScale={fontScale} label={t.grpAi} />
+            <SettingRow c={c} label={t.aiSwitch} fontScale={fontScale}>
+              <div style={aiPossible ? undefined : { opacity: 0.45, pointerEvents: "none" }}>
+                <ToggleSwitch c={c} on={aiOn} label={t.aiSwitch} onClick={() => (prefs.ai ? setPrefs({ ai: false }) : setAiConsentOpen(true))} />
+              </div>
+            </SettingRow>
+            <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, lineHeight: 1.45, padding: "6px 0 10px", borderBottom: `1px solid ${c.border}` }}>
+              {!aiPossible ? t.aiNotSetUp : aiOn ? t.aiOnInfo : t.aiOffInfo}
+            </div>
+            {FEEDBACK_ENDPOINT && aiOn && (
+              <div style={{ padding: "10px 0", borderBottom: `1px solid ${c.border}` }}>
+                <CheckRow checked={prefs.fbShare} onChange={(v) => setPrefs({ fbShare: v })}>{t.fbShareLabel}</CheckRow>
+              </div>
+            )}
+
+            {/* ----- Erinnerungen ----- */}
+            <SettingGroup c={c} fontScale={fontScale} label={t.grpRemind} />
             <SettingRow c={c} label={t.remindersTitle} fontScale={fontScale}>
               <button onClick={() => { setShowSettings(false); setRemindersOpen(true); }} style={btnSmall(c)}><Bell size={13} /></button>
+            </SettingRow>
+
+            {/* ----- Sicherheit & Profile ----- */}
+            <SettingGroup c={c} fontScale={fontScale} label={t.grpSecurity} />
+            <SettingRow c={c} label={t.lockTitle} fontScale={fontScale}>
+              <button onClick={() => { setShowSettings(false); setLockOpen(true); }} style={btnSmall(c)}><Lock size={13} /> {profileApi.active.lock ? "✓" : ""}</button>
             </SettingRow>
             <SettingRow c={c} label={t.profilesTitle} fontScale={fontScale}>
               <button onClick={() => { setShowSettings(false); setProfilesOpen(true); }} style={btnSmall(c)}><Users size={13} /></button>
             </SettingRow>
-            <SettingRow c={c} label={t.lockTitle} fontScale={fontScale}>
-              <button onClick={() => { setShowSettings(false); setLockOpen(true); }} style={btnSmall(c)}><Lock size={13} /> {profileApi.active.lock ? "✓" : ""}</button>
+
+            {/* ----- Daten ----- */}
+            <SettingGroup c={c} fontScale={fontScale} label={t.grpData} />
+            <SettingRow c={c} label={t.exportTitle} fontScale={fontScale}>
+              <button onClick={() => { setShowSettings(false); openExport(null); }} style={btnSmall(c)}><FileText size={13} /></button>
+            </SettingRow>
+            <SettingRow c={c} label={t.backup} fontScale={fontScale}>
+              <button onClick={() => { setShowSettings(false); setBackupOpen(true); }} style={btnSmall(c)}><Download size={13} /></button>
+            </SettingRow>
+            <SettingRow c={c} label={t.cloudsMenu} fontScale={fontScale}>
+              <button onClick={() => { setShowSettings(false); setCloudModal({ tab: "conn", files: [] }); }} style={btnSmall(c)}><Cloud size={13} /></button>
             </SettingRow>
             <SettingRow c={c} label={t.demoShow} fontScale={fontScale}>
-              <ToggleSwitch c={c} on={prefs.showDemo} onClick={() => setPrefs({ showDemo: !prefs.showDemo })} />
+              <ToggleSwitch c={c} on={prefs.showDemo} label={t.demoShow} onClick={() => setPrefs({ showDemo: !prefs.showDemo })} />
             </SettingRow>
             {hasDemo && (
               <SettingRow c={c} label={t.demoRemove} fontScale={fontScale}>
                 <button onClick={() => { persist(cases.filter((cs) => !cs.demo)); setOpenCaseId(null); setActiveTab(null); setOpenTabs([]); }} style={{ ...btnSmall(c), color: c.warn }}><Trash2 size={13} /></button>
               </SettingRow>
             )}
+            <SettingRow c={c} label={t.wipeTitle} fontScale={fontScale}>
+              <button onClick={() => { setShowSettings(false); setWipeOpen(true); }} style={{ ...btnSmall(c), color: c.warn }}><Trash2 size={13} /></button>
+            </SettingRow>
 
+            {/* ----- Hilfe & Rechtliches ----- */}
+            <SettingGroup c={c} fontScale={fontScale} label={t.grpHelp} />
             <SettingRow c={c} label={t.obAgain} fontScale={fontScale}>
               <button onClick={() => { setShowSettings(false); setObShow(true); }} style={btnSmall(c)}><BookOpen size={13} /></button>
             </SettingRow>
-            {FEEDBACK_ENDPOINT && (
-              <div style={{ padding: "10px 0", borderBottom: `1px solid ${c.border}` }}>
-                <CheckRow checked={prefs.fbShare} onChange={(v) => setPrefs({ fbShare: v })}>{t.fbShareLabel}</CheckRow>
-              </div>
-            )}
-            <SettingRow c={c} label={t.wipeTitle} fontScale={fontScale}>
-              <button onClick={() => { setShowSettings(false); setWipeOpen(true); }} style={{ ...btnSmall(c), color: c.warn }}><Trash2 size={13} /></button>
+            <SettingRow c={c} label={t.legalMenu} fontScale={fontScale}>
+              <button onClick={() => { setShowSettings(false); setLegalTab("impressum"); }} style={btnSmall(c)}><Scale size={13} /></button>
             </SettingRow>
 
             {/* Tracking-Einwilligung nachträglich änderbar (nur wenn Tracking aktiv ist) */}
@@ -1879,24 +2022,42 @@ function BriefeCore({ profileApi }) {
               />
             )}
 
-            {/* Betreiber-Schalter: hier aktivierst du später, was du brauchst */}
-            <div dir="ltr" style={{ marginTop: 22, paddingTop: 14, borderTop: `2px solid ${c.border}`, textAlign: "left" }}>
-              <div style={{ fontWeight: 700, fontSize: 13 * fontScale, marginBottom: 2 }}>Betreiber-Schalter</div>
-              <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, marginBottom: 6 }}>Nur für dich als Entwickler. Bausteine sind fertig eingebaut und werden hier aktiviert.</div>
-              {[
-                ["paymentRequired", "Bezahlpflicht ab Brief 3"],
-                ["subscription", "Abo-Modell (inkl. Kündigungsbutton)"],
-                ["tracking", "Tracking / Consent-Banner"],
-                ["newsletter", "Newsletter (Double-Opt-In)"],
-                ["usSales", "Verkauf in die USA"],
-              ].map(([k, label]) => (
-                <SettingRow key={k} c={c} label={label} fontScale={fontScale}>
-                  <ToggleSwitch c={c} on={!!flags[k]} onClick={() => setFlag(k, !flags[k])} />
-                </SettingRow>
-              ))}
+            {/* Betreiber-Schalter: eingeklappt, damit sie die Einstellungen nicht überladen */}
+            <div dir="ltr" style={{ marginTop: 22, paddingTop: 10, borderTop: `2px solid ${c.border}`, textAlign: "left" }}>
+              <button onClick={() => setOpOpen((o) => !o)} aria-expanded={opOpen} style={{ display: "flex", alignItems: "center", gap: 6, width: "100%", background: "transparent", border: "none", padding: "6px 0", cursor: "pointer", color: c.text, fontWeight: 700, fontSize: 13 * fontScale, fontFamily: "inherit" }}>
+                {opOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />} {t.grpOperator}
+              </button>
+              {opOpen && (
+                <>
+                  <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, marginBottom: 6 }}>Nur für dich als Entwickler. Bausteine sind fertig eingebaut und werden hier aktiviert.</div>
+                  {[
+                    ["ai", "KI-Funktionen anbieten (Nutzer schaltet sie selbst ein)"],
+                    ["paymentRequired", "Bezahlpflicht ab Dokument 3"],
+                    ["subscription", "Abo-Modell (inkl. Kündigungsbutton)"],
+                    ["tracking", "Tracking / Consent-Banner"],
+                    ["newsletter", "Newsletter (Double-Opt-In)"],
+                    ["usSales", "Verkauf in die USA"],
+                  ].map(([k, label]) => (
+                    <SettingRow key={k} c={c} label={label} fontScale={fontScale}>
+                      <ToggleSwitch c={c} on={!!flags[k]} label={label} onClick={() => setFlag(k, !flags[k])} />
+                    </SettingRow>
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </div>
+      )}
+
+      {/* ---------- KI einschalten: erst nach Hinweis und Zustimmung ---------- */}
+      {aiConsentOpen && (
+        <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={t.aiConsentTitle} onClose={() => setAiConsentOpen(false)} maxWidth={440} z={96}>
+          <div style={{ marginBottom: 14, lineHeight: 1.55 }}>{t.aiConsentText}</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => setAiConsentOpen(false)} style={btnSmall(c)}>{t.cancel}</button>
+            <button onClick={() => { setPrefs({ ai: true }); setAiConsentOpen(false); }} style={{ ...btnPrimary(c, false), flex: 1, width: "auto" }}><Sparkles size={14} /> {t.aiConsentYes}</button>
+          </div>
+        </AppModal>
       )}
 
       {/* ---------- Shop / Recht: Dialoge ---------- */}
@@ -1955,7 +2116,7 @@ function BriefeCore({ profileApi }) {
         <CasePdfModal c={c} t={t} fontScale={fontScale} rtl={isRTL} cs={visibleCases.find((x) => x.id === casePdfFor)}
           photos={prefs.casePdfPhotos} setPhotos={(v) => setPrefs({ casePdfPhotos: v })} busy={casePdfBusy} onBuild={runCasePdf} onClose={() => !casePdfBusy && setCasePdfFor(null)} />
       )}
-      {obShow && <Onboarding c={c} t={t} fontScale={fontScale} rtl={isRTL} uiLang={uiLang} setUiLang={setUiLang} translating={uiTranslating} onDone={finishOnboarding} />}
+      {obShow && <Onboarding c={c} t={t} fontScale={fontScale} rtl={isRTL} uiLang={uiLang} setUiLang={setUiLang} langs={uiLangs} translating={uiTranslating} onDone={finishOnboarding} />}
       {profilesOpen && <ProfilesModal c={c} t={t} fontScale={fontScale} rtl={isRTL} api={profileApi} onClose={() => setProfilesOpen(false)} />}
       {lockOpen && (
         <LockSettingsModal c={c} t={t} fontScale={fontScale} rtl={isRTL} profile={profileApi.active}
@@ -1989,7 +2150,9 @@ function BriefeCore({ profileApi }) {
         <IntakeModal
           c={c} t={t} fontScale={fontScale} rtl={isRTL}
           files={intake.files} asPages={intake.asPages}
-          setAsPages={(v) => setIntake((s) => ({ ...s, asPages: v }))}
+          setAsPages={(v) => setIntake((s) => ({ ...s, asPages: v, pagesTouched: true }))}
+          aiOn={aiOn} aiPossible={aiPossible} useAi={intake.ai !== false} setUseAi={(v) => setIntake((s) => ({ ...s, ai: v }))}
+          onTurnAiOn={() => setAiConsentOpen(true)}
           onCamera={() => camInputRef.current?.click()}
           onPick={() => pickInputRef.current?.click()} onFiles={addToIntake}
           onCloud={() => setCloudModal({ tab: "import", files: [] })}
@@ -2009,11 +2172,11 @@ function BriefeCore({ profileApi }) {
           onClose={() => setCloudModal(null)} notify={setNotice}
         />
       )}
-      {assignQueue.length > 0 && (
-        <AssignModal
-          key={assignQueue[0].letter.id}
-          c={c} t={t} fontScale={fontScale} rtl={isRTL}
-          item={assignQueue[0]} cases={visibleCases.filter((cs) => !cs.demo)} left={assignQueue.length - 1} onChoose={resolveAssign}
+      {drafts && (
+        <DetailsModal
+          key={drafts.items.map((d) => d.id).join(",")}
+          c={c} t={t} fontScale={fontScale} rtl={isRTL} drafts={drafts} uiLang={uiLang}
+          cases={visibleCases.filter((cs) => !cs.demo)} saving={savingDrafts} onSave={saveDrafts} onClose={draftsBack}
         />
       )}
       {authOpen && (
@@ -2022,7 +2185,7 @@ function BriefeCore({ profileApi }) {
       {legalTab && (
         <LegalModal c={c} fontScale={fontScale} flags={flags} tab={legalTab} setTab={setLegalTab} onClose={() => setLegalTab(null)} />
       )}
-      <NoticeToast c={c} fontScale={fontScale} text={notice} onClose={() => setNotice("")} />
+      <NoticeToast c={c} fontScale={fontScale} text={notice} onClose={() => setNotice("")} bottom={navNew ? 74 : 16} />
       {flags.tracking && shop.consent === null && (
         <ConsentBanner
           c={c} fontScale={fontScale} openLegal={setLegalTab}
@@ -2070,9 +2233,10 @@ function MenuItem({ c, label, onClick, active, count, icon: Icon }) {
   );
 }
 
-function ToggleSwitch({ c, on, onClick }) {
+function ToggleSwitch({ c, on, onClick, label }) {
   return (
-    <div onClick={onClick} style={{
+    <div onClick={onClick} role="switch" aria-checked={!!on} aria-label={label} tabIndex={0}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }} style={{
       width: 40, height: 22, borderRadius: 999, background: on ? c.accent : c.border,
       cursor: "pointer", position: "relative", transition: "background .15s",
     }}>
@@ -2084,6 +2248,9 @@ function ToggleSwitch({ c, on, onClick }) {
   );
 }
 
+function SettingGroup({ c, label, fontScale }) {
+  return <div style={{ fontWeight: 700, fontSize: 11 * fontScale, textTransform: "uppercase", letterSpacing: 0.6, color: c.textMuted, margin: "18px 0 0" }}>{label}</div>;
+}
 function SettingRow({ c, label, children, fontScale }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${c.border}`, fontSize: 13 * fontScale }}>
@@ -2113,9 +2280,9 @@ function CaseTile({ c, t, fontScale, cs, onOpen, onToggleStatus, daysUntil, tran
         )}
       </div>
       <div style={{ padding: 12 }}>
-        <div style={{ fontWeight: 700, fontSize: 13 * fontScale, marginBottom: 2, lineHeight: 1.3 }}>{cs.name}</div>
-        {uiLang !== "de" && (
-          <div style={{ fontSize: 11 * fontScale, color: c.accent, marginBottom: 4, lineHeight: 1.3 }}>{translatedName || "…"}</div>
+        <div style={{ fontWeight: 700, fontSize: 13 * fontScale, marginBottom: 2, lineHeight: 1.3, overflowWrap: "anywhere" }}>{cs.name}</div>
+        {translatedName && translatedName !== cs.name && (
+          <div style={{ fontSize: 11 * fontScale, color: c.accent, marginBottom: 4, lineHeight: 1.3, overflowWrap: "anywhere" }}>{translatedName}</div>
         )}
         <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted }}>{nLetters(cs.letters.length, t)}</div>
       </div>
@@ -2138,15 +2305,15 @@ function CaseRow({ c, t, fontScale, cs, onOpen, onToggleStatus, daysUntil, trans
       opacity: cs.status === "done" ? 0.6 : 1,
     }} onClick={onOpen}>
       <div style={{ width: 8, height: 34, borderRadius: 4, background: cs.color }} />
-      <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 600, fontSize: 13 * fontScale }}>
-          {cs.name}{uiLang !== "de" && <span style={{ color: c.accent, fontWeight: 500 }}> · {translatedName || "…"}</span>}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 600, fontSize: 13 * fontScale, overflowWrap: "anywhere" }}>
+          {cs.name}{translatedName && translatedName !== cs.name && <span style={{ color: c.accent, fontWeight: 500 }}> · {translatedName}</span>}
         </div>
         <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted }}>{caseNo(cs) || "—"} · {nLetters(cs.letters.length, t)}</div>
       </div>
       {d !== null && d >= 0 && (
         <div style={{ fontSize: 11.5 * fontScale, color: d <= 7 ? c.warn : c.textMuted, display: "flex", alignItems: "center", gap: 4 }}>
-          <Clock size={13} /> {d} Tage
+          <Clock size={13} /> {d === 0 ? t.todayWord : t.daysLeft.replace("{n}", d)}
         </div>
       )}
       <div onClick={(e) => { e.stopPropagation(); onToggleStatus(); }} style={{ cursor: "pointer", color: c.textMuted }}>
@@ -2156,146 +2323,215 @@ function CaseRow({ c, t, fontScale, cs, onOpen, onToggleStatus, daysUntil, trans
   );
 }
 
-/* ---------- Brief-Detailansicht ---------- */
-function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, targetLang, setTargetLang, busy, onTranslate, onReply, userNote, setUserNote, copyText, saved, daysUntil, isMobile, replyLang, setReplyLang, onTranslateReply, isRTL, fileActions, onBackToCase, onEdit, onReplyEdit, onConfirmReply, onPdf, onMail, onShareReply, uiLang, onRate }) {
+/* ---------- Dokument-Ansicht: Datei oben, darunter Reiter (Text · Übersetzung · Antwort) ---------- */
+// Text des Dokuments; ältere Einträge enthalten statt eines leeren Textes noch einen Platzhaltersatz
+const letterText = (l) => { const x = String(l?.original || ""); return x.startsWith("(Der Text konnte nicht gelesen werden") ? "" : x; };
+function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, targetLang, setTargetLang, busy, onTranslate, onReply, userNote, setUserNote, copyText, saved, daysUntil, isMobile, replyLang, setReplyLang, onTranslateReply, isRTL, fileActions, onBackToCase, onEdit, onReplyEdit, onConfirmReply, onPdf, onMail, onShareReply, uiLang, onRate, aiOn, aiPossible, reading, onReadText, onTurnAiOn, viewer, setViewer }) {
   const critical = criticalReasons(letter, daysUntil);
   const d = letter.deadline ? daysUntil(letter.deadline) : null;
   const confirmed = !!letter.replyConfirmedAt;
   const lockStyle = { ...btnSmall(c), opacity: confirmed ? 1 : 0.45, cursor: confirmed ? "pointer" : "not-allowed" };
+  const text = letterText(letter);
+  const files = letter.files || [];
+  const [tab, setTab] = useState("text");
+  const [own, setOwn] = useState(false);
+  const showTr = aiOn || !!letter.translation;
+  const tabs = [["text", t.tabText], ...(showTr ? [["tr", t.translation]] : []), ["reply", t.tabReply]];
+  const cur = tabs.some(([k]) => k === tab) ? tab : "text";
+  const v = (x) => (x && x !== "—" && x !== "Unbekannt" ? x : "");
+  const due = d === null ? "" : d < 0 ? t.overdue : d === 0 ? t.todayWord : t.daysLeft.replace("{n}", d);
+  const soon = d !== null && d <= 7;
+  const aiMade = (letter.replyLog || []).some((e) => e.a === "generated");
+  const showEditor = !!letter.reply || !!letter.replyEdited || own;
+  const meta = [v(letter.sender), v(letter.caseNumber), fmtD(letter.date, uiLang)].filter(Boolean);
+  const twoCols = !isMobile && files.length > 0;
   return (
-    <div style={{ maxWidth: 980, margin: "0 auto" }}>
-      {/* Kopfzeile */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <div onClick={onBackToCase} style={{ fontSize: 11.5 * fontScale, color: c.accent, marginBottom: 4, cursor: "pointer", textDecoration: "underline" }}>{caseObj?.name}</div>
-          <h2 style={{ margin: 0, fontSize: 19 * fontScale }}>{letter.subject}</h2>
-          <button onClick={onEdit} style={{ ...btnSmall(c), marginTop: 8 }}><Pencil size={13} /> {t.edit}</button>
-        </div>
-        {letter.deadline && (
-          <div style={{
-            display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10,
-            background: d !== null && d <= 7 ? c.warnSoft : c.accentSoft, color: d !== null && d <= 7 ? c.warn : c.accent,
-            fontSize: 12.5 * fontScale, fontWeight: 600,
-          }}>
-            {d !== null && d <= 7 ? <AlertTriangle size={15} /> : <Bell size={15} />}
-            {t.deadline}: {letter.deadline} {d !== null && `(${d} Tage)`}
-          </div>
-        )}
+    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      {/* Kopf: Fall, Name, Bearbeiten, wenige Angaben */}
+      <div onClick={onBackToCase} style={{ fontSize: 11.5 * fontScale, color: c.accent, marginBottom: 4, cursor: "pointer", textDecoration: "underline", overflowWrap: "anywhere" }}>{caseObj?.name}</div>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 6 }}>
+        <h2 style={{ margin: 0, fontSize: 19 * fontScale, flex: 1, minWidth: 0, overflowWrap: "anywhere", lineHeight: 1.25 }}>{letter.subject}</h2>
+        <button onClick={onEdit} style={{ ...btnSmall(c), flexShrink: 0 }}><Pencil size={13} /> {t.edit}</button>
       </div>
-
-      {/* Metadaten */}
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20, fontSize: 12 * fontScale, color: c.textMuted }}>
-        <Meta icon={User} label={letter.sender} />
-        <Meta icon={Hash} label={letter.caseNumber} />
-        <Meta icon={Calendar} label={"Brief: " + letter.date} />
-        <Meta icon={Calendar} label={"Zugang: " + letter.receivedDate} />
+      <div style={{ display: "flex", gap: "6px 12px", flexWrap: "wrap", alignItems: "center", marginBottom: 14, fontSize: 12 * fontScale, color: c.textMuted }}>
+        {meta.length > 0 && <span style={{ overflowWrap: "anywhere" }}>{meta.join(" · ")}</span>}
+        {letter.deadline && (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 999, background: soon ? c.warnSoft : c.accentSoft, color: soon ? c.warn : c.accent, fontWeight: 600 }}>
+            {soon ? <AlertTriangle size={13} /> : <Bell size={13} />} {t.deadline}: {fmtD(letter.deadline, uiLang)} ({due})
+          </span>
+        )}
         {letter.deadlineNote && !letter.deadline && <Meta icon={Clock} label={letter.deadlineNote} />}
         {letter.note && <Meta icon={FileText} label={letter.note} />}
       </div>
 
-      {/* Originaldateien (liegen auf dem Gerät), Anhänge, Umschlagfoto */}
-      <div style={{ marginBottom: 20 }}>
-        <FilesPanel c={c} t={t} fontScale={fontScale} letter={letter} files={letter.files || []} actions={fileActions} />
-      </div>
+      <div style={{ display: "grid", gridTemplateColumns: twoCols ? "minmax(0, 1fr) minmax(0, 1fr)" : "minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
+        {/* Das Dokument selbst (Foto, PDF, Anhänge) */}
+        <DocFiles c={c} t={t} fontScale={fontScale} letter={letter} files={files} actions={fileActions} isMobile={isMobile} viewer={viewer} setViewer={setViewer} />
 
-      {/* Original + Übersetzung: auf Mobile untereinander, sonst nebeneinander */}
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 20 }}>
-        <Panel c={c} title={t.original} fontScale={fontScale}>
-        <pre style={preStyle(c, fontScale)} dir="ltr">{letter.original}</pre>
-        </Panel>
-        <Panel c={c} title={t.translation} fontScale={fontScale} actions={
-          <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-            <LanguagePicker c={c} fontScale={fontScale} value={targetLang} onChange={setTargetLang} options={LANGS.filter(l=>l.code!=="de")} compact />
-            <button onClick={onTranslate} disabled={busy} style={btnSmall(c)}>
-              <Sparkles size={13} /> {t.translate}
-            </button>
+        {/* Reiter */}
+        <div style={{ border: `1px solid ${c.border}`, borderRadius: 14, background: c.surface, padding: 14, minWidth: 0 }}>
+          <div role="tablist" style={{ display: "flex", gap: 4, padding: 3, borderRadius: 10, background: c.bg, border: `1px solid ${c.border}`, marginBottom: 12 }}>
+            {tabs.map(([k, label]) => (
+              <button key={k} role="tab" aria-selected={cur === k} onClick={() => setTab(k)} style={{
+                flex: 1, minWidth: 0, padding: "8px 6px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: "inherit",
+                fontSize: 13 * fontScale, fontWeight: cur === k ? 700 : 500, background: cur === k ? c.surface : "transparent",
+                color: cur === k ? c.accent : c.textMuted, boxShadow: cur === k ? "0 1px 3px rgba(0,0,0,.12)" : "none",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>{label}</button>
+            ))}
           </div>
-        }>
-          <pre style={preStyle(c, fontScale)} dir={RTL_LANGS.includes(letter.translationLang || targetLang) ? "rtl" : "ltr"}>{letter.translation || t.noAttachmentsYet}</pre>
-          {letter.translation && <AiLabel c={c} t={t} fontScale={fontScale} text={t.aiLabelTranslation} />}
-          {letter.translation && <TranslationCheck c={c} t={t} fontScale={fontScale} letter={letter} busy={busy} onAiCheck={onCheckTranslation} />}
-          {letter.translation && <FeedbackBar key={letter.id + "tr"} c={c} t={t} fontScale={fontScale} value={letter.feedback?.translation} onRate={(fb) => onRate("translation", fb)} />}
-        </Panel>
-      </div>
 
-      {/* Antwort-Generator */}
-      <Panel c={c} title={t.reply} fontScale={fontScale}>
-        <AutoTextarea
-          c={c} fontScale={fontScale} value={userNote} onChange={setUserNote}
-          placeholder={t.replyPlaceholder}
-          minHeight={110}
-          expandLabel={t.writeExpand} writeTitle={t.replyWriteTitle} doneLabel={t.doneWriting}
-          dir={isRTL ? "rtl" : "ltr"}
-        />
-        {critical.length > 0 && <EscalationBox c={c} t={t} fontScale={fontScale} reasons={critical} />}
-        <div style={{ marginTop: 10, marginBottom: 12 }}>
-          <button onClick={onReply} disabled={busy} style={btnSmall(c)}>
-            <Sparkles size={13} /> {busy ? "…" : t.generateReply}
-          </button>
-          <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, marginTop: 6, lineHeight: 1.45 }}>{t.replyLiability}</div>
-        </div>
-        {(letter.reply || letter.replyEdited) && (
-          <>
-            <AutoTextarea
-              c={c} fontScale={fontScale} value={letter.reply} onChange={onReplyEdit}
-              minHeight={140} expandLabel={t.writeExpand} writeTitle={t.replyWriteTitle} doneLabel={t.doneWriting} dir="ltr"
-            />
-            {letter.reply && <AiLabel c={c} t={t} fontScale={fontScale} text={t.aiLabelReply} />}
-            {letter.reply && <FeedbackBar key={letter.id + "re"} c={c} t={t} fontScale={fontScale} value={letter.feedback?.reply} onRate={(fb) => onRate("reply", fb)} />}
+          {cur === "text" && (
+            text ? <pre style={{ ...preStyle(c, fontScale), maxHeight: "none" }} dir="auto">{text}</pre> : (
+              <div>
+                <div style={{ color: c.textMuted, lineHeight: 1.5 }}>
+                  {!files.length ? t.noTextPlain : !aiPossible ? t.noTextNoBackend : !aiOn ? t.noTextAiOff : t.noTextFail}
+                </div>
+                {files.length > 0 && aiOn && (
+                  <button onClick={onReadText} disabled={reading} style={{ ...btnSmall(c), marginTop: 10 }}><Sparkles size={13} /> {reading ? t.readBusy : t.readNow}</button>
+                )}
+                {files.length > 0 && !aiOn && aiPossible && (
+                  <button onClick={onTurnAiOn} style={{ ...btnSmall(c), marginTop: 10 }}><Sparkles size={13} /> {t.aiTurnOn}</button>
+                )}
+              </div>
+            )
+          )}
 
-            {/* Antwort in eigene Sprache übersetzen, um sie vor dem Absenden zu prüfen */}
-            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginTop: 12 }}>
-              <span style={{ fontSize: 11.5 * fontScale, color: c.textMuted }}>{t.checkReplyIn}</span>
-              <LanguagePicker c={c} fontScale={fontScale} value={replyLang} onChange={setReplyLang} options={LANGS.filter(l=>l.code!=="de")} compact langSearchLabel={t.langSearch} noLangFoundLabel={t.noLangFound} />
-              <button onClick={onTranslateReply} disabled={busy} style={btnSmall(c)}>
-                <Sparkles size={13} /> {t.translate}
-              </button>
+          {cur === "tr" && (
+            <div>
+              {aiOn && (
+                <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
+                  <LanguagePicker c={c} fontScale={fontScale} value={targetLang} onChange={setTargetLang} options={LANGS.filter((l) => l.code !== "de")} compact />
+                  <button onClick={onTranslate} disabled={busy || !text} style={{ ...btnSmall(c), opacity: text ? 1 : 0.5 }}>
+                    <Sparkles size={13} /> {busy ? "…" : t.translate}
+                  </button>
+                </div>
+              )}
+              {!text && !letter.translation
+                ? <div style={{ color: c.textMuted }}>{t.noTextPlain}</div>
+                : <pre style={{ ...preStyle(c, fontScale), maxHeight: "none" }} dir={RTL_LANGS.includes(letter.translationLang || targetLang) ? "rtl" : "ltr"}>{letter.translation || t.noAttachmentsYet}</pre>}
+              {letter.translation && <AiLabel c={c} t={t} fontScale={fontScale} text={t.aiLabelTranslation} />}
+              {letter.translation && <TranslationCheck c={c} t={t} fontScale={fontScale} letter={letter} busy={busy} onAiCheck={aiOn ? onCheckTranslation : null} />}
+              {letter.translation && <FeedbackBar key={letter.id + "tr"} c={c} t={t} fontScale={fontScale} value={letter.feedback?.translation} onRate={(fb) => onRate("translation", fb)} />}
             </div>
-            {letter.replyTranslation && (
-              <pre style={{ ...preStyle(c, fontScale), marginTop: 10, padding: 10, background: c.accentSoft, borderRadius: 8 }} dir={RTL_LANGS.includes(letter.replyTranslationLang || replyLang) ? "rtl" : "ltr"}>{letter.replyTranslation}</pre>
-            )}
+          )}
 
-            <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-              <button style={btnSmall(c)} onClick={() => copyText(letter.reply)}><Copy size={13} /> {saved ? t.copied : t.copy}</button>
-              <button style={lockStyle} disabled={!confirmed} title={confirmed ? "" : t.confirmFirst} onClick={onPdf}><Download size={13} /> {t.exportPdf}</button>
-              <button style={lockStyle} disabled={!confirmed} title={confirmed ? "" : t.confirmFirst} onClick={onMail}><Mail size={13} /> {t.sendEmail}</button>
-              <button style={lockStyle} disabled={!confirmed} title={confirmed ? "" : t.confirmFirst} onClick={onShareReply}><Share2 size={13} /> {t.share}</button>
-              {confirmed ? (
-                <span style={{ display: "flex", alignItems: "center", gap: 5, color: c.accent, fontWeight: 600, fontSize: 12.5 * fontScale }}>
-                  <Check size={14} /> {t.confirmedOn.replace("{d}", fmtD(letter.replyConfirmedAt.slice(0, 10), uiLang))}
-                </span>
-              ) : (
-                <button onClick={onConfirmReply} style={{ ...btnSmall(c), background: c.accent, color: "#fff", borderColor: c.accent }}>
-                  <Check size={13} /> {t.confirm}
-                </button>
+          {cur === "reply" && (
+            <div>
+              {critical.length > 0 && <EscalationBox c={c} t={t} fontScale={fontScale} reasons={critical} />}
+              {aiOn && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 6 }}>{t.replyAiHead}</div>
+                  <AutoTextarea
+                    c={c} fontScale={fontScale} value={userNote} onChange={setUserNote}
+                    placeholder={t.replyPlaceholder} minHeight={90}
+                    expandLabel={t.writeExpand} writeTitle={t.replyWriteTitle} doneLabel={t.doneWriting}
+                    dir={isRTL ? "rtl" : "ltr"}
+                  />
+                  <div style={{ marginTop: 10 }}>
+                    <button onClick={onReply} disabled={busy} style={btnSmall(c)}>
+                      <Sparkles size={13} /> {busy ? "…" : t.generateReply}
+                    </button>
+                    <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, marginTop: 6, lineHeight: 1.45 }}>{t.replyLiability}</div>
+                  </div>
+                </div>
+              )}
+              {!showEditor && (
+                <button onClick={() => setOwn(true)} style={btnSmall(c)}><Pencil size={13} /> {t.replyOwnStart}</button>
+              )}
+              {showEditor && (
+                <>
+                  <AutoTextarea
+                    c={c} fontScale={fontScale} value={letter.reply || ""} onChange={onReplyEdit} placeholder={t.replyOwnPh}
+                    minHeight={140} expandLabel={t.writeExpand} writeTitle={t.replyWriteTitle} doneLabel={t.doneWriting} dir="auto"
+                  />
+                  {letter.reply && aiMade && <AiLabel c={c} t={t} fontScale={fontScale} text={t.aiLabelReply} />}
+                  {letter.reply && aiMade && <FeedbackBar key={letter.id + "re"} c={c} t={t} fontScale={fontScale} value={letter.feedback?.reply} onRate={(fb) => onRate("reply", fb)} />}
+
+                  {/* Antwort in eigene Sprache übersetzen, um sie vor dem Absenden zu prüfen */}
+                  {aiOn && letter.reply && (
+                    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginTop: 12 }}>
+                      <span style={{ fontSize: 11.5 * fontScale, color: c.textMuted }}>{t.checkReplyIn}</span>
+                      <LanguagePicker c={c} fontScale={fontScale} value={replyLang} onChange={setReplyLang} options={LANGS.filter((l) => l.code !== "de")} compact langSearchLabel={t.langSearch} noLangFoundLabel={t.noLangFound} />
+                      <button onClick={onTranslateReply} disabled={busy} style={btnSmall(c)}>
+                        <Sparkles size={13} /> {t.translate}
+                      </button>
+                    </div>
+                  )}
+                  {letter.replyTranslation && (
+                    <pre style={{ ...preStyle(c, fontScale), marginTop: 10, padding: 10, background: c.accentSoft, borderRadius: 8 }} dir={RTL_LANGS.includes(letter.replyTranslationLang || replyLang) ? "rtl" : "ltr"}>{letter.replyTranslation}</pre>
+                  )}
+
+                  {letter.reply && (
+                    <>
+                      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+                        <button style={btnSmall(c)} onClick={() => copyText(letter.reply)}><Copy size={13} /> {saved ? t.copied : t.copy}</button>
+                        <button style={lockStyle} disabled={!confirmed} title={confirmed ? "" : t.confirmFirst} onClick={onPdf}><Download size={13} /> {t.exportPdf}</button>
+                        <button style={lockStyle} disabled={!confirmed} title={confirmed ? "" : t.confirmFirst} onClick={onMail}><Mail size={13} /> {t.sendEmail}</button>
+                        <button style={lockStyle} disabled={!confirmed} title={confirmed ? "" : t.confirmFirst} onClick={onShareReply}><Share2 size={13} /> {t.share}</button>
+                        {confirmed ? (
+                          <span style={{ display: "flex", alignItems: "center", gap: 5, color: c.accent, fontWeight: 600, fontSize: 12.5 * fontScale }}>
+                            <Check size={14} /> {t.confirmedOn.replace("{d}", fmtD(letter.replyConfirmedAt.slice(0, 10), uiLang))}
+                          </span>
+                        ) : (
+                          <button onClick={onConfirmReply} style={{ ...btnSmall(c), background: c.accent, color: "#fff", borderColor: c.accent }}>
+                            <Check size={13} /> {t.confirm}
+                          </button>
+                        )}
+                      </div>
+                      {!confirmed && <div style={{ fontSize: 11 * fontScale, color: c.textMuted, marginTop: 8 }}>{t.confirmFirst}</div>}
+                      <div style={{ fontSize: 11 * fontScale, color: c.textMuted, marginTop: 10 }}>{t.sendWarning}</div>
+                    </>
+                  )}
+                  <ReplyLog key={letter.id} c={c} t={t} fontScale={fontScale} log={letter.replyLog} uiLang={uiLang} />
+                </>
               )}
             </div>
-            {!confirmed && <div style={{ fontSize: 11 * fontScale, color: c.textMuted, marginTop: 8 }}>{t.confirmFirst}</div>}
-            <div style={{ fontSize: 11 * fontScale, color: c.textMuted, marginTop: 10 }}>
-              {t.sendWarning}
-            </div>
-            <ReplyLog key={letter.id} c={c} t={t} fontScale={fontScale} log={letter.replyLog} uiLang={uiLang} />
-          </>
-        )}
-      </Panel>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Aufklapp-Menü „Mehr“ für selten gebrauchte Aktionen ---------- */
+function MoreMenu({ c, fontScale, label, items, align = "end" }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("pointerdown", h);
+    return () => document.removeEventListener("pointerdown", h);
+  }, [open]);
+  const list = items.filter(Boolean);
+  return (
+    <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
+      <button onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} style={btnSmall(c)}>{label} <ChevronDown size={13} /></button>
+      {open && (
+        <div role="menu" style={{
+          position: "absolute", top: "calc(100% + 4px)", [align === "end" ? "insetInlineEnd" : "insetInlineStart"]: 0, zIndex: 30, minWidth: 220, maxWidth: "80vw",
+          background: c.surface, border: `1px solid ${c.border}`, borderRadius: 10, boxShadow: "0 8px 28px rgba(0,0,0,.22)", padding: 4,
+        }}>
+          {list.map((it) => {
+            const Ico = it.icon;
+            return (
+              <button key={it.label} role="menuitem" onClick={() => { setOpen(false); it.onClick(); }} style={{
+                display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "10px 10px", background: "transparent", border: "none",
+                color: it.warn ? c.warn : c.text, cursor: "pointer", textAlign: "start", fontSize: 13 * fontScale, borderRadius: 6, fontFamily: "inherit",
+              }}>
+                {Ico && <Ico size={14} style={{ flexShrink: 0 }} />} <span>{it.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 function Meta({ icon: Icon, label }) {
-  return <div style={{ display: "flex", alignItems: "center", gap: 5 }}><Icon size={13} /> {label}</div>;
-}
-
-function Panel({ c, title, children, actions, fontScale }) {
-  return (
-    <div style={{ border: `1px solid ${c.border}`, borderRadius: 14, background: c.surface, padding: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <div style={{ fontWeight: 700, fontSize: 12.5 * fontScale, textTransform: "uppercase", letterSpacing: 0.4, color: c.textMuted }}>{title}</div>
-        {actions}
-      </div>
-      {children}
-    </div>
-  );
+  return <div style={{ display: "flex", alignItems: "center", gap: 5, overflowWrap: "anywhere" }}><Icon size={13} style={{ flexShrink: 0 }} /> {label}</div>;
 }
 
 function preStyle(c, fontScale) {
@@ -2569,7 +2805,7 @@ function CheckoutModal({ c, fontScale, flags, item, onClose, onConfirm, onDone, 
   return (
     <ShopModal c={c} fontScale={fontScale} title="Bestellübersicht" onClose={onClose}>
       <InfoBox c={c}>
-        <div style={{ fontWeight: 700, marginBottom: 4 }}>{isSub ? SUB_PLAN.name : "KI-Übersetzung und Antwortentwurf für 1 Brief"}</div>
+        <div style={{ fontWeight: 700, marginBottom: 4 }}>{isSub ? SUB_PLAN.name : "KI-Übersetzung und Antwortentwurf für 1 Dokument"}</div>
         {!isSub && <div style={{ color: c.textMuted, marginBottom: 6 }}>{item.title} · {pages} Seite(n)</div>}
         {!isSub && (
           <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -2634,7 +2870,7 @@ function OrdersModal({ c, fontScale, shop, flags, onClose, onWithdraw, onSubscri
   const statusLabel = { active: "Aktiv", withdrawn: "Widerrufen", cancelled: "Gekündigt", processing: "Zahlung in Bearbeitung", failed: "Zahlung fehlgeschlagen", ended: "Beendet" };
   return (
     <ShopModal c={c} fontScale={fontScale} title="Käufe & Widerruf" onClose={onClose}>
-      <InfoBox c={c}>Freie Briefe: {Math.min(freeUsed, FREE_LETTERS)} von {FREE_LETTERS} genutzt</InfoBox>
+      <InfoBox c={c}>Freie Dokumente: {Math.min(freeUsed, FREE_LETTERS)} von {FREE_LETTERS} genutzt</InfoBox>
 
       {flags.subscription && !hasActiveSub && (
         <InfoBox c={c}>
@@ -2869,21 +3105,21 @@ function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
           <P><Ph>{OPERATOR.name}</Ph>, <Ph>{OPERATOR.street}</Ph>, <Ph>{OPERATOR.city}</Ph>, E-Mail: <Ph>{OPERATOR.email}</Ph></P>
           <H>Welche Daten wir verarbeiten und wofür</H>
           <P>Kontodaten (Vorname, Nachname, Geburtsdatum, Adresse, E-Mail-Adresse, Benutzername) zur Bereitstellung Ihres Kontos (Art. 6 Abs. 1 lit. b DSGVO).</P>
-          <P>Hochgeladene Briefe, Fotos und Anhänge sowie die daraus erzeugten Übersetzungen und Antwortentwürfe zur Erbringung der Leistung (Art. 6 Abs. 1 lit. b DSGVO). Briefe können besonders schützenswerte Daten enthalten, zum Beispiel Gesundheitsdaten. Diese verarbeiten wir nur auf Grundlage Ihrer ausdrücklichen Einwilligung (Art. 9 Abs. 2 lit. a DSGVO).</P>
+          <P>Hochgeladene Dokumente, Fotos und Anhänge sowie die daraus erzeugten Übersetzungen und Antwortentwürfe zur Erbringung der Leistung (Art. 6 Abs. 1 lit. b DSGVO). Dokumente werden auf Ihrem Gerät gespeichert. Die KI-Funktionen sind beim Start ausgeschaltet; nur wenn Sie sie selbst einschalten, wird der Inhalt Ihrer Dokumente zum Lesen, Übersetzen und für Antwortentwürfe an den KI-Dienst übertragen. Dokumente können besonders schützenswerte Daten enthalten, zum Beispiel Gesundheitsdaten. Diese verarbeiten wir nur auf Grundlage Ihrer ausdrücklichen Einwilligung (Art. 9 Abs. 2 lit. a DSGVO).</P>
           <P>Bestell- und Zahlungsdaten zur Vertragsabwicklung und zur Erfüllung gesetzlicher Aufbewahrungspflichten (Art. 6 Abs. 1 lit. b und c DSGVO).</P>
           <H>Empfänger und Dienstleister</H>
           <P>
             Hosting unseres Servers: <Ph>[Anbieter, Serverstandort in der EU]</Ph>. KI-gestützte Texterkennung, Übersetzung und Antwortentwurf: {SERVER_CFG?.aiProvider === "bedrock"
               ? <>Amazon Web Services EMEA SARL (Luxemburg) mit dem KI-Modell Claude von Anthropic über Amazon Bedrock; die Verarbeitung erfolgt in Rechenzentren in der EU <Ph>[mit AWS-Vertrag abgleichen]</Ph>.</>
               : <>Anthropic <Ph>[Vertragspartner und Serverstandort laut Vertrag eintragen; bei Verarbeitung in den USA: Rechtsgrundlage der Übermittlung angeben]</Ph>.</>}
-            {" "}Briefinhalte werden dafür nur übertragen und nicht auf unserem Server gespeichert. Zahlungsabwicklung: Stripe Payments Europe, Ltd. (Irland); die Zahlungsdaten gibst du direkt bei Stripe ein, wir erhalten sie nicht.
+            {" "}Inhalte Ihrer Dokumente werden dafür nur übertragen, wenn Sie die KI eingeschaltet haben, und nicht auf unserem Server gespeichert. Zahlungsabwicklung: Stripe Payments Europe, Ltd. (Irland); die Zahlungsdaten gibst du direkt bei Stripe ein, wir erhalten sie nicht.
             E-Mail-Versand (Anmeldelinks, Bestellbestätigungen, Newsletter): <Ph>[Anbieter]</Ph>. Cloud-Backup nur auf Ihre ausdrückliche Veranlassung: <Ph>[Anbieter]</Ph>.
             Mit allen Dienstleistern bestehen Auftragsverarbeitungsverträge nach Art. 28 DSGVO <Ph>[vor Livegang abschließen]</Ph>.
           </P>
           <H>Übermittlung in Drittländer</H>
           <P><Ph>[Falls zutreffend: Drittland, Rechtsgrundlage bzw. Garantien]</Ph></P>
           <H>Speicherdauer und Löschung</H>
-          <P>Ihre Briefe und Fälle bleiben gespeichert, bis Sie sie löschen. Sie können in der App jederzeit alle Ihre Daten selbst vollständig löschen. Bestelldaten bewahren wir so lange auf, wie gesetzliche Aufbewahrungspflichten bestehen <Ph>[Fristen eintragen]</Ph>.</P>
+          <P>Ihre Dokumente und Fälle bleiben gespeichert, bis Sie sie löschen. Sie können in der App jederzeit alle Ihre Daten selbst vollständig löschen. Bestelldaten bewahren wir so lange auf, wie gesetzliche Aufbewahrungspflichten bestehen <Ph>[Fristen eintragen]</Ph>.</P>
           <H>Ihre Rechte</H>
           <P>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch. Erteilte Einwilligungen können Sie jederzeit mit Wirkung für die Zukunft widerrufen. Sie können sich außerdem bei einer Datenschutz-Aufsichtsbehörde beschweren <Ph>[zuständige Behörde eintragen]</Ph>.</P>
           <H>Dateiablage auf dem Gerät</H>
@@ -2891,9 +3127,9 @@ function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
           <H>Cloud-Anbindung (freiwillig)</H>
           <P>Du kannst Google Drive, Microsoft OneDrive und Dropbox mit der App verbinden, um Dateien zu holen oder zu sichern; iCloud nutzt du über das Teilen-Menü deines Geräts. Das ist standardmäßig ausgeschaltet. Rechtsgrundlage ist deine ausdrückliche Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die du jederzeit durch Trennen der Verbindung widerrufen kannst. Die Dateien gehen direkt von deinem Gerät in dein Konto beim jeweiligen Anbieter, nicht über unseren Server. Die Anbieter können Daten in Drittländer außerhalb der EU übertragen (z. B. USA); es gelten deren Datenschutzbestimmungen. Beim Verbinden wird ein Skript des Anbieters nachgeladen. Zugangsdaten für die Clouds werden nicht gespeichert und gelten nur für die laufende Sitzung. Vor dem Speichern in eine Cloud kannst du die Dateien mit einem eigenen Passwort verschlüsseln. <Ph>[Angaben zu Auftragsverarbeitung und Drittlandübermittlung vor Livegang prüfen]</Ph></P>
           <H>Unser Server: Konto, Erinnerungen, Bestellungen</H>
-          <P>Auf unserem Server speichern wir nur: eine zufällige Gerätekennung für die Sitzung, deine E-Mail-Adresse bzw. Profil-Adresse (wenn du dich anmeldest), welche Briefe freigeschaltet sind (nur eine zufällige Brief-Kennung, kein Inhalt), Bestellungen sowie – nur wenn du sie einschaltest – Zeitpunkte für Push-Erinnerungen und dein Kalender-Abo. Über „Alle Daten löschen“ wird dein Konto auf dem Server gelöscht; Bestellungen bewahren wir ohne Kontobezug nur so lange auf, wie es gesetzlich vorgeschrieben ist.</P>
+          <P>Auf unserem Server speichern wir nur: eine zufällige Gerätekennung für die Sitzung, deine E-Mail-Adresse bzw. Profil-Adresse (wenn du dich anmeldest), welche Dokumente freigeschaltet sind (nur eine zufällige Dokument-Kennung, kein Inhalt), Bestellungen sowie – nur wenn du sie einschaltest – Zeitpunkte für Push-Erinnerungen und dein Kalender-Abo. Über „Alle Daten löschen“ wird dein Konto auf dem Server gelöscht; Bestellungen bewahren wir ohne Kontobezug nur so lange auf, wie es gesetzlich vorgeschrieben ist.</P>
           <H>Anmeldung mit Universal Profile (LUKSO)</H>
-          <P>Bei der Anmeldung mit einem Universal Profile signierst du eine Anmeldenachricht mit deiner Wallet-Erweiterung. Wir speichern die Adresse deines Universal Profile. Diese Adresse ist auf der Blockchain öffentlich einsehbar und kann Personen zugeordnet werden. Deine Briefe und Dateien werden nicht mit dieser Adresse veröffentlicht. Rechtsgrundlage: Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) bzw. Vertragserfüllung (lit. b). Die Signatur wird auf unserem Server <Ph>[Server eintragen]</Ph> geprüft. Optional kannst du eine E-Mail-Adresse verknüpfen (Fristerinnerungen, Kontowiederherstellung); die Verknüpfung wird erst nach Bestätigung per Link wirksam und kann jederzeit entfernt werden.</P>
+          <P>Bei der Anmeldung mit einem Universal Profile signierst du eine Anmeldenachricht mit deiner Wallet-Erweiterung. Wir speichern die Adresse deines Universal Profile. Diese Adresse ist auf der Blockchain öffentlich einsehbar und kann Personen zugeordnet werden. Deine Dokumente und Dateien werden nicht mit dieser Adresse veröffentlicht. Rechtsgrundlage: Einwilligung (Art. 6 Abs. 1 lit. a DSGVO) bzw. Vertragserfüllung (lit. b). Die Signatur wird auf unserem Server <Ph>[Server eintragen]</Ph> geprüft. Optional kannst du eine E-Mail-Adresse verknüpfen (Fristerinnerungen, Kontowiederherstellung); die Verknüpfung wird erst nach Bestätigung per Link wirksam und kann jederzeit entfernt werden.</P>
           <H>Tracking und Analyse</H>
           {flags.tracking ? (
             <P>Mit Ihrer Einwilligung verwenden wir <Ph>[Dienste und Zwecke eintragen]</Ph>. Ohne Einwilligung werden keine Skripte geladen. Sie können Ihre Entscheidung jederzeit in den Einstellungen ändern.</P>
@@ -2916,9 +3152,9 @@ function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
           <H>Geltungsbereich und Vertragssprache</H>
           <P>Diese AGB gelten für die Nutzung der App durch Verbraucher. Vertragssprache ist Deutsch.</P>
           <H>Leistung</H>
-          <P>Die App bietet KI-gestützte Texterkennung, Übersetzung, Ordnung von Behördenpost, Fristenerkennung und Entwürfe für Antwortschreiben. Die Ergebnisse können Fehler enthalten. Die App erbringt keine Rechtsdienstleistung im Sinne des Rechtsdienstleistungsgesetzes und ersetzt keine Rechtsberatung. Antwortentwürfe werden nie automatisch versendet; Sie prüfen jeden Entwurf und bestätigen den Versand selbst.</P>
+          <P>Die App bietet die Ablage und Ordnung von Dokumenten und die Erinnerung an Fristen. Auf Wunsch des Nutzers zuschaltbar sind KI-gestützte Texterkennung, Übersetzung, Fristenerkennung und Entwürfe für Antwortschreiben. Die Ergebnisse der KI können Fehler enthalten. Die App erbringt keine Rechtsdienstleistung im Sinne des Rechtsdienstleistungsgesetzes und ersetzt keine Rechtsberatung. Antwortentwürfe werden nie automatisch versendet; Sie prüfen jeden Entwurf und bestätigen den Versand selbst.</P>
           <H>Preise</H>
-          <P>Die ersten {FREE_LETTERS} Briefe sind kostenlos; kostenlose Briefe dürfen höchstens 10 Seiten haben. Danach kostet jeder Brief bis 10 Seiten {fmtEUR(BASE_PRICE)}, jede weitere Seite {fmtEUR(EXTRA_PAGE_PRICE)}. Alle Preise sind Gesamtpreise einschließlich aller Steuern.</P>
+          <P>Die ersten {FREE_LETTERS} Dokumente sind kostenlos; kostenlose Dokumente dürfen höchstens 10 Seiten haben. Danach kostet jedes Dokument bis 10 Seiten {fmtEUR(BASE_PRICE)}, jede weitere Seite {fmtEUR(EXTRA_PAGE_PRICE)}. Alle Preise sind Gesamtpreise einschließlich aller Steuern.</P>
           <H>Zahlung</H>
           <P>Zahlung per PayPal, Visa, Mastercard oder Debitkarte/Girocard. Der Betrag wird mit der Bestellung fällig.</P>
           {flags.subscription && (
@@ -3041,6 +3277,8 @@ const CLOUD_CONFIG = {
   dropbox: { appKey: "" },                // Dropbox App Console (Zugriffsart je nach Wunsch "App folder" oder "Full Dropbox")
 };
 const SERVER_URL = "";                    // Dein Briefe-Server (Ordner briefe-server/), z. B. "https://api.deine-domain.de". Leer = Demo bzw. Claude-Umgebung
+// Ist ein KI-Dienst erreichbar? Mit eigenem Server ja; ohne Server nur in der Claude-Vorschau (dort stellt die Umgebung die KI bereit).
+const aiBackend = () => { try { return !!SERVER_URL || !!window.__briefeAI || !!window.__briefeAIDirect || /(^|\.)claude\.ai$|claudeusercontent\.com$/.test(window.location.hostname); } catch (e) { return false; } };
 const FEEDBACK_ENDPOINT = SERVER_URL ? SERVER_URL + "/feedback" : "";   // anonyme Bewertungen (nur mit Zustimmung)
 const PUSH_ENDPOINT = SERVER_URL;                 // Dein Push-Server (siehe push-server/): POST /subscribe, POST /unsubscribe. Leer = Push nicht eingerichtet
 let PUSH_VAPID_KEY = "";  // wird bei eingerichtetem Server automatisch von dort übernommen                // Öffentlicher VAPID-Schlüssel des Push-Servers
@@ -3239,22 +3477,26 @@ async function extractLetter(files) {
   return null;
 }
 
-function buildLetter(files, info, fileMeta) {
+const okDate = (d) => (/^\d{4}-\d{2}-\d{2}$/.test(d || "") ? d : null);
+const cleanVal = (v) => (v && String(v).toLowerCase() !== "null" ? String(v).trim() : "");
+// f = Angaben aus dem Dialog „Angaben zum Dokument“ (von Hand eingetragen oder von der KI vorausgefüllt und geprüft).
+// Der Dateiname wird nie als Name verwendet: ohne Angabe heißt das Dokument „Dokument vom <Datum>“.
+function buildLetter(files, info, fileMeta, f, t, lang) {
   const today = localIso();
-  const okDate = (d) => (/^\d{4}-\d{2}-\d{2}$/.test(d || "") ? d : null);
-  const clean = (v) => (v && String(v).toLowerCase() !== "null" ? String(v) : null);
+  const subject = cleanVal(f?.subject);
   return {
     id: "l" + Date.now() + Math.random().toString(36).slice(2, 6),
-    subject: clean(info?.subject) || files[0].name.replace(/\.[^.]+$/, ""),
-    sender: clean(info?.sender) || "Unbekannt",
-    caseNumber: clean(info?.caseNumber) || "—",
-    date: okDate(info?.letterDate) || today,
+    subject: subject || t.docFrom.replace("{d}", fmtD(today, lang)),
+    ...(subject ? {} : { autoTitle: true }),
+    sender: cleanVal(f?.sender) || "Unbekannt",
+    caseNumber: cleanVal(f?.caseNumber) || "—",
+    date: okDate(f?.date) || today,
     receivedDate: today,
     uploadedAt: new Date().toISOString(),
-    deadline: okDate(info?.deadline),
-    deadlineNote: clean(info?.deadlineNote),
-    original: clean(info?.text) || "(Der Text konnte nicht gelesen werden. Das Original ist als Datei gespeichert.)",
-    translation: "", reply: "", note: "",
+    deadline: okDate(f?.deadline),
+    deadlineNote: okDate(f?.deadline) ? null : (cleanVal(info?.deadlineNote) || null),
+    original: cleanVal(info?.text),
+    translation: "", reply: "", note: cleanVal(f?.note),
     pages: Math.max(1, Number(info?.pages) || files.filter(isImage).length || 1),
     files: fileMeta,
     extracted: !!info,
@@ -3496,9 +3738,9 @@ const shortAddr = (a) => (a ? a.slice(0, 6) + "…" + a.slice(-4) : "");
    DIALOGE: Hinzufügen · Zuordnen · Originale · Clouds · Konto
    ===================================================================== */
 
-function AppModal({ c, fontScale, title, onClose, children, maxWidth = 520, z = 95, rtl }) {
+function AppModal({ c, fontScale, title, onClose, children, maxWidth = 520, z = 95, rtl, noBackdropClose }) {
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: z, display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
+    <div onClick={noBackdropClose ? undefined : onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: z, display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
       <div
         dir={rtl ? "rtl" : "ltr"} onClick={(e) => e.stopPropagation()}
         style={{
@@ -3516,7 +3758,7 @@ function AppModal({ c, fontScale, title, onClose, children, maxWidth = 520, z = 
   );
 }
 
-function NoticeToast({ c, fontScale, text, onClose }) {
+function NoticeToast({ c, fontScale, text, onClose, bottom = 16 }) {
   useEffect(() => {
     if (!text) return;
     const id = setTimeout(onClose, 7000);
@@ -3527,7 +3769,7 @@ function NoticeToast({ c, fontScale, text, onClose }) {
     <div
       onClick={onClose}
       style={{
-        position: "fixed", left: 12, right: 12, bottom: 16, margin: "0 auto", maxWidth: 460, zIndex: 98, cursor: "pointer",
+        position: "fixed", left: 12, right: 12, bottom, margin: "0 auto", maxWidth: 460, zIndex: 98, cursor: "pointer",
         background: c.text, color: c.bg, padding: "11px 14px", borderRadius: 12, fontSize: 13 * fontScale, boxShadow: "0 6px 24px rgba(0,0,0,.3)",
       }}
     >
@@ -3536,15 +3778,15 @@ function NoticeToast({ c, fontScale, text, onClose }) {
   );
 }
 
-/* ---------- Briefe hinzufügen (Kamera / Dateien / Cloud) ---------- */
-function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamera, onPick, onFiles, onCloud, onRemove, onStart, onClose, progress }) {
+/* ---------- Dokument hinzufügen (Kamera / Dateien / Cloud) ---------- */
+function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamera, onPick, onFiles, onCloud, onRemove, onStart, onClose, progress, aiOn, aiPossible, useAi, setUseAi, onTurnAiOn }) {
   // Das Datei-Feld liegt direkt unter dem Finger (nicht per Programm ausgelöst): so lassen es auch App-Ansichten zu
   const hiddenInput = { position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" };
   const pick = (e) => { const fl = Array.from(e.target.files || []); e.target.value = ""; if (fl.length) onFiles(fl); };
   const busy = !!progress;
   const big = { ...btnSmall(c), flex: "1 1 140px", justifyContent: "center", padding: "12px 10px", opacity: busy ? 0.5 : 1 };
   return (
-    <AppModal c={c} fontScale={fontScale} rtl={rtl} title={t.intakeTitle} onClose={busy ? () => {} : onClose}>
+    <AppModal c={c} fontScale={fontScale} rtl={rtl} title={t.intakeTitle} onClose={busy ? () => {} : onClose} noBackdropClose={files.length > 0}>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
         <label style={{ ...big, position: "relative", overflow: "hidden" }}>
           <Camera size={15} /> {files.length ? t.addPage : t.takePhoto}
@@ -3561,8 +3803,8 @@ function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamer
       ) : (
         <div style={{ marginBottom: 10 }}>
           {files.map((f, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", border: `1px solid ${c.border}`, borderRadius: 8, marginBottom: 6 }}>
-              <FileText size={15} color={c.textMuted} style={{ flexShrink: 0 }} />
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", border: `1px solid ${c.border}`, borderRadius: 8, marginBottom: 6 }}>
+              <FileThumb c={c} file={f} />
               <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} dir="ltr">{f.name}</span>
               <span style={{ color: c.textMuted, fontSize: 11.5 * fontScale, flexShrink: 0 }}>{fmtSize(f.size)}</span>
               {!busy && <X size={15} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => onRemove(i)} />}
@@ -3571,7 +3813,11 @@ function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamer
         </div>
       )}
       {files.length > 1 && <CheckRow checked={asPages} onChange={setAsPages}>{t.pagesOfOne}</CheckRow>}
-      <InfoBox c={c}>{t.intakeLocalNote}</InfoBox>
+      {aiOn && <CheckRow checked={useAi} onChange={setUseAi}>{t.aiUseHere}</CheckRow>}
+      <InfoBox c={c}>
+        {aiOn && useAi ? t.intakeAiNote : t.intakeLocalNote}
+        {!aiOn && aiPossible && <> {t.aiIsOff} <LinkBtn c={c} onClick={onTurnAiOn}>{t.aiTurnOn}</LinkBtn></>}
+      </InfoBox>
       <button disabled={busy || !files.length} onClick={onStart} style={btnPrimary(c, busy || !files.length)}>
         {busy
           ? t.intakeReading.replace("{n}", Math.min(progress.done + 1, progress.total)).replace("{total}", progress.total)
@@ -3581,93 +3827,179 @@ function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamer
   );
 }
 
-/* ---------- Nachfrage bei unsicherer Zuordnung ---------- */
-function AssignModal({ c, t, fontScale, rtl, item, cases, left, onChoose }) {
-  const [choice, setChoice] = useState("");
-  const l = item.letter;
-  const cand = cases.filter((cs) => item.candidates.includes(cs.id));
-  const others = cases.filter((cs) => !item.candidates.includes(cs.id));
-  const newName = l.sender && l.sender !== "Unbekannt" ? `${l.sender} – ${l.subject}` : l.subject;
-  const Radio = ({ value, children }) => (
-    <label style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 8, marginBottom: 6, cursor: "pointer", border: `1px solid ${choice === value ? c.accent : c.border}`, background: choice === value ? c.accentSoft : "transparent" }}>
-      <input type="radio" name="assign" checked={choice === value} onChange={() => setChoice(value)} />
-      <span style={{ flex: 1, minWidth: 0 }}>{children}</span>
+// Kleine Vorschau einer gewählten Datei (Foto), sonst ein Datei-Symbol
+function FileThumb({ c, file }) {
+  const [url, setUrl] = useState(null);
+  useEffect(() => {
+    if (!file || !isImage(file)) return;
+    let u = null;
+    try { u = URL.createObjectURL(file); setUrl(u); } catch (e) {}
+    return () => { if (u) URL.revokeObjectURL(u); };
+  }, [file]);
+  if (!url) return <FileText size={15} color={c.textMuted} style={{ flexShrink: 0 }} />;
+  return <img src={url} alt="" style={{ width: 34, height: 44, objectFit: "cover", borderRadius: 5, border: `1px solid ${c.border}`, flexShrink: 0 }} />;
+}
+
+function FieldRow({ c, fontScale, label, children }) {
+  return (
+    <label style={{ display: "block", marginBottom: 10 }}>
+      <div style={{ fontSize: 12 * fontScale, color: c.textMuted, marginBottom: 3 }}>{label}</div>
+      {children}
     </label>
   );
+}
+const fieldStyle = (c, fontScale) => ({ width: "100%", padding: "9px 10px", borderRadius: 8, border: `1px solid ${c.border}`, background: c.bg, color: c.text, boxSizing: "border-box", fontFamily: "inherit", fontSize: 13 * fontScale });
+
+/* ---------- Angaben zum Dokument: einmal nach der letzten Seite, alles freiwillig ---------- */
+function DetailsModal({ c, t, fontScale, rtl, drafts, cases, uiLang, saving, onSave, onClose }) {
+  const [items, setItems] = useState(drafts.items);
+  const one = items.length === 1;
+  const [more, setMore] = useState(() => (one && drafts.usedAi ? { 0: true } : {}));
+  const set = (i, k) => (e) => { const val = e.target.value; setItems((arr) => arr.map((d, j) => (j === i ? { ...d, f: { ...d.f, [k]: val } } : d))); };
+  const inp = fieldStyle(c, fontScale);
+  const autoName = t.docFrom.replace("{d}", fmtD(localIso(), uiLang));
+  const listed = cases.filter((cs) => cs.id !== "unsorted");
   return (
-    <AppModal c={c} fontScale={fontScale} rtl={rtl} title={t.assignTitle} onClose={() => {}} z={96}>
-      <InfoBox c={c}>
-        <div style={{ fontWeight: 700 }}>{l.subject}</div>
-        <div style={{ color: c.textMuted, fontSize: 12 * fontScale }} dir="ltr">{l.sender} · {l.caseNumber} · {l.date}</div>
-        {left > 0 && <div style={{ color: c.textMuted, fontSize: 11.5 * fontScale, marginTop: 4 }}>+ {left}</div>}
-      </InfoBox>
-      {cand.length > 0 && <div style={{ color: c.textMuted, marginBottom: 8 }}>{t.assignWhySender}</div>}
-      {cand.map((cs) => <Radio key={cs.id} value={cs.id}>{cs.name}</Radio>)}
-      <Radio value="new">{t.assignNew}: <span style={{ color: c.textMuted }}>{newName}</span></Radio>
-      {others.length > 0 && (
-        <div style={{ margin: "8px 0 12px" }}>
-          <div style={{ color: c.textMuted, fontSize: 12 * fontScale, marginBottom: 4 }}>{t.assignOther}</div>
-          <select
-            value={others.some((o) => o.id === choice) ? choice : ""}
-            onChange={(e) => e.target.value && setChoice(e.target.value)}
-            style={{ width: "100%", padding: 9, borderRadius: 8, border: `1px solid ${c.border}`, background: c.bg, color: c.text }}
-          >
-            <option value="">—</option>
-            {others.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
-          </select>
+    <AppModal c={c} fontScale={fontScale} rtl={rtl} title={one ? t.detailsTitle : t.detailsTitleN.replace("{n}", items.length)} onClose={saving ? () => {} : onClose} maxWidth={520} noBackdropClose>
+      <div style={{ color: c.textMuted, marginBottom: 12 }}>
+        {drafts.usedAi ? (drafts.failed >= items.length ? t.detailsAiFail : t.detailsAiHint) : t.detailsHint}
+      </div>
+      {items.map((d, i) => (
+        <div key={d.id} style={one ? { marginBottom: 4 } : { border: `1px solid ${c.border}`, borderRadius: 10, padding: 10, marginBottom: 10 }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <FileThumb c={c} file={d.files[0]} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <FieldRow c={c} fontScale={fontScale} label={t.fName}><input style={inp} value={d.f.subject} onChange={set(i, "subject")} placeholder={autoName} /></FieldRow>
+            </div>
+          </div>
+          <FieldRow c={c} fontScale={fontScale} label={t.moveToCase}>
+            <select style={inp} value={d.f.caseSel} onChange={set(i, "caseSel")}>
+              <option value="unsorted">{t.unsortedCase}</option>
+              {listed.map((cs) => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
+              <option value="new">{t.assignNew} …</option>
+            </select>
+          </FieldRow>
+          {d.hint === "sender" && d.f.caseSel === d.suggest && <div style={{ fontSize: 11.5 * fontScale, color: c.warn, margin: "-4px 0 10px" }}>{t.sameSenderHint}</div>}
+          {d.f.caseSel === "new" && (
+            <FieldRow c={c} fontScale={fontScale} label={t.caseNewName}><input style={inp} value={d.f.newCase} onChange={set(i, "newCase")} /></FieldRow>
+          )}
+          {more[i] && (
+            <>
+              <FieldRow c={c} fontScale={fontScale} label={t.fSender}><input style={inp} value={d.f.sender} onChange={set(i, "sender")} /></FieldRow>
+              <FieldRow c={c} fontScale={fontScale} label={t.fCaseNumber}><input style={inp} value={d.f.caseNumber} onChange={set(i, "caseNumber")} dir="ltr" /></FieldRow>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <FieldRow c={c} fontScale={fontScale} label={t.fDate}><input type="date" style={inp} value={d.f.date} onChange={set(i, "date")} /></FieldRow>
+                <FieldRow c={c} fontScale={fontScale} label={t.fDeadline}><input type="date" style={inp} value={d.f.deadline} onChange={set(i, "deadline")} /></FieldRow>
+              </div>
+              <FieldRow c={c} fontScale={fontScale} label={t.fNote}><textarea style={{ ...inp, minHeight: 56, resize: "vertical" }} value={d.f.note} onChange={set(i, "note")} /></FieldRow>
+            </>
+          )}
+          <LinkBtn c={c} onClick={() => setMore((m) => ({ ...m, [i]: !m[i] }))}>{more[i] ? t.lessFields : t.moreFields}</LinkBtn>
         </div>
-      )}
-      <button disabled={!choice} onClick={() => onChoose(choice)} style={btnPrimary(c, !choice)}>{t.assignDo}</button>
+      ))}
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <button onClick={onClose} disabled={saving} style={btnSmall(c)}>{t.backWord}</button>
+        <button onClick={() => onSave(items)} disabled={saving} style={{ ...btnPrimary(c, saving), flex: 1, width: "auto" }}>{t.save}</button>
+      </div>
     </AppModal>
   );
 }
 
-/* ---------- Originaldateien eines Briefs ---------- */
-function FilesPanel({ c, t, fontScale, letter, files, actions }) {
-  const [prev, setPrev] = useState(null);
+/* ---------- Dateien eines Dokuments: große Vorschau, Blättern, wenige Knöpfe, Rest unter „Mehr“ ---------- */
+function DocFiles({ c, t, fontScale, letter, files, actions, isMobile, viewer, setViewer }) {
+  const [idx, setIdx] = useState(0);
+  const [prev, setPrev] = useState(null);       // { id, url } | { id, missing: true }
+  const [zoom, setZoom] = useState(false);
   const attRef = useRef(null);
   const envRef = useRef(null);
-  useEffect(() => () => { if (prev?.url) URL.revokeObjectURL(prev.url); }, [prev]);
-  const view = async (f) => {
-    const blob = await actions.get(f);
-    if (!blob) return actions.notify(t.noticeMissing);
-    setPrev({ url: URL.createObjectURL(blob.type ? blob : new Blob([blob], { type: f.type })), f });
-  };
-  return (
-    <Panel c={c} title={t.filesTitle} fontScale={fontScale} actions={
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-        <input ref={attRef} type="file" multiple style={{ display: "none" }} onChange={(e) => { actions.add(letter, Array.from(e.target.files || []), "attachment"); e.target.value = ""; }} />
-        <input ref={envRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={(e) => { actions.add(letter, Array.from(e.target.files || []), "envelope"); e.target.value = ""; }} />
-        <button style={btnSmall(c)} onClick={() => attRef.current?.click()}><Paperclip size={13} /> {t.addAttachment}</button>
-        <button style={btnSmall(c)} onClick={() => envRef.current?.click()}><Camera size={13} /> {t.addEnvelope}</button>
+  const cur = files.length ? files[Math.min(idx, files.length - 1)] : null;
+  const curId = cur ? cur.id : null;
+  useEffect(() => {
+    let dead = false; let made = null;
+    setPrev(null);
+    if (!cur) return;
+    (async () => {
+      const blob = await actions.get(cur);
+      if (dead) return;
+      if (!blob) return setPrev({ id: cur.id, missing: true });
+      made = URL.createObjectURL(blob.type ? blob : new Blob([blob], { type: cur.type }));
+      setPrev({ id: cur.id, url: made });
+    })();
+    return () => { dead = true; if (made) URL.revokeObjectURL(made); };
+  }, [curId]);
+  useEffect(() => { if (!viewer) setZoom(false); }, [viewer]);
+  const url = prev && prev.id === curId ? prev.url : null;
+  const missing = prev && prev.id === curId && prev.missing;
+  const img = cur && isImage(cur);
+  const pdf = cur && isPdf(cur);
+  const canShare = typeof navigator !== "undefined" && !!navigator.share;
+  const openTab = () => { if (url) window.open(url, "_blank", "noopener"); };
+  const inputs = (
+    <>
+      <input ref={attRef} type="file" multiple style={{ display: "none" }} onChange={(e) => { actions.add(letter, Array.from(e.target.files || []), "attachment"); e.target.value = ""; }} />
+      <input ref={envRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={(e) => { actions.add(letter, Array.from(e.target.files || []), "envelope"); e.target.value = ""; }} />
+    </>
+  );
+  const addItems = [
+    { label: t.addAttachment, icon: Paperclip, onClick: () => attRef.current?.click() },
+    { label: t.addEnvelope, icon: Camera, onClick: () => envRef.current?.click() },
+  ];
+  if (!cur) {
+    return (
+      <div style={{ border: `1px solid ${c.border}`, borderRadius: 14, background: c.surface, padding: 14, minWidth: 0 }}>
+        {inputs}
+        <div style={{ color: c.textMuted, marginBottom: 10 }}>{t.noFile}</div>
+        <MoreMenu c={c} fontScale={fontScale} label={t.more} items={addItems} align="start" />
       </div>
-    }>
-      {files.length === 0 && <div style={{ color: c.textMuted }}>—</div>}
-      {files.map((f) => (
-        <div key={f.id} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-          <FileText size={15} color={c.textMuted} />
-          <span style={{ flex: "1 1 160px", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} dir="ltr">{f.name}</span>
-          {f.kind === "envelope" && <span style={{ background: c.accentSoft, color: c.accent, borderRadius: 999, padding: "1px 8px", fontSize: 11 * fontScale }}>{t.envelope}</span>}
-          <span style={{ color: c.textMuted, fontSize: 11.5 * fontScale }}>{fmtSize(f.size)}</span>
-          <button style={btnSmall(c)} onClick={() => view(f)}>{t.view}</button>
-          <button style={btnSmall(c)} onClick={() => actions.download(f)}><Download size={13} /> {t.download}</button>
-          {typeof navigator !== "undefined" && navigator.share && <button style={btnSmall(c)} onClick={() => actions.share(f)}><Share2 size={13} /> {t.shareFile}</button>}
-          <button style={btnSmall(c)} onClick={() => actions.cloud(f)}><Cloud size={13} /> {t.toCloud}</button>
-        </div>
-      ))}
-      {prev && (
-        <div style={{ marginTop: 8 }}>
-          {isImage(prev.f) ? (
-            <img src={prev.url} alt={prev.f.name} style={{ maxWidth: "100%", borderRadius: 8, border: `1px solid ${c.border}` }} />
-          ) : isPdf(prev.f) ? (
-            <iframe title={prev.f.name} src={prev.url} style={{ width: "100%", height: 480, border: `1px solid ${c.border}`, borderRadius: 8 }} />
-          ) : null}
-          <div style={{ marginTop: 6 }}>
-            <a href={prev.url} target="_blank" rel="noopener noreferrer" style={{ color: c.accent }}>{t.openNewTab}</a>
+    );
+  }
+  return (
+    <div style={{ border: `1px solid ${c.border}`, borderRadius: 14, background: c.surface, minWidth: 0 }}>
+      {inputs}
+      <div style={{ background: c.bg, borderRadius: "13px 13px 0 0", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", minHeight: 140 }}>
+        {img && url ? (
+          <img src={url} alt={letter.subject} onClick={() => setViewer(true)} style={{ display: "block", maxWidth: "100%", maxHeight: isMobile ? "62vh" : "72vh", objectFit: "contain", cursor: "zoom-in" }} />
+        ) : pdf && url && !isMobile ? (
+          <iframe title={letter.subject} src={url} style={{ width: "100%", height: 560, border: "none", display: "block" }} />
+        ) : (
+          <div style={{ padding: "28px 14px", textAlign: "center", color: c.textMuted }}>
+            <FileText size={34} style={{ opacity: 0.6 }} />
+            <div style={{ marginTop: 8, fontSize: 12.5 * fontScale }}>{missing ? t.noticeMissing : !prev ? "…" : pdf ? "PDF" : t.previewNone}</div>
           </div>
+        )}
+      </div>
+      {files.length > 1 && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "8px 10px 0" }}>
+          <button aria-label="‹" disabled={idx <= 0} onClick={() => setIdx((i) => Math.max(0, i - 1))} style={{ ...btnSmall(c), padding: "5px 9px", opacity: idx <= 0 ? 0.35 : 1 }}><ChevronRight size={15} style={{ transform: "rotate(180deg)" }} /></button>
+          <span style={{ fontSize: 12 * fontScale, color: c.textMuted }}>{t.fileOf.replace("{n}", Math.min(idx, files.length - 1) + 1).replace("{total}", files.length)}</span>
+          <button aria-label="›" disabled={idx >= files.length - 1} onClick={() => setIdx((i) => Math.min(files.length - 1, i + 1))} style={{ ...btnSmall(c), padding: "5px 9px", opacity: idx >= files.length - 1 ? 0.35 : 1 }}><ChevronRight size={15} /></button>
         </div>
       )}
-    </Panel>
+      <div style={{ padding: "8px 12px 12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5 * fontScale, color: c.textMuted, marginBottom: 8 }}>
+          <span dir="ltr" style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cur.name}</span>
+          {cur.kind === "envelope" && <span style={{ background: c.accentSoft, color: c.accent, borderRadius: 999, padding: "1px 8px", flexShrink: 0 }}>{t.envelope}</span>}
+          {cur.kind === "attachment" && <span style={{ background: c.accentSoft, color: c.accent, borderRadius: 999, padding: "1px 8px", flexShrink: 0 }}>{t.exAttachment}</span>}
+          <span style={{ flexShrink: 0 }}>{fmtSize(cur.size)}</span>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button style={btnSmall(c)} disabled={!url} onClick={() => (img ? setViewer(true) : openTab())}><Maximize2 size={13} /> {img ? t.viewLarge : t.view}</button>
+          {canShare && <button style={btnSmall(c)} onClick={() => actions.share(cur)}><Share2 size={13} /> {t.shareFile}</button>}
+          <MoreMenu c={c} fontScale={fontScale} label={t.more} align="start" items={[
+            { label: t.download, icon: Download, onClick: () => actions.download(cur) },
+            { label: t.toCloud, icon: Cloud, onClick: () => actions.cloud(cur) },
+            img && url ? { label: t.openNewTab, icon: FileText, onClick: openTab } : null,
+            ...addItems,
+          ]} />
+        </div>
+      </div>
+      {viewer && img && url && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 97, background: "rgba(0,0,0,.94)", overflow: "auto", WebkitOverflowScrolling: "touch" }}>
+          <img src={url} alt={letter.subject} onClick={() => setZoom((z) => !z)} style={{ display: "block", width: zoom ? "240%" : "100%", maxWidth: "none", minHeight: zoom ? 0 : "100%", objectFit: "contain", cursor: zoom ? "zoom-out" : "zoom-in", margin: "0 auto" }} />
+          <button aria-label={t.closeWord} onClick={() => setViewer(false)} style={{ position: "fixed", top: 12, insetInlineEnd: 12, width: 42, height: 42, borderRadius: 21, border: "none", background: "rgba(255,255,255,.92)", color: "#111", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><X size={20} /></button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -3894,7 +4226,7 @@ function CloudModal({ c, t, fontScale, rtl, tab, setTab, cloud, setCloud, tokens
                     <div style={{ fontWeight: 700, marginBottom: 4 }}>Einwilligung zur Verbindung mit {m.label}</div>
                     <div style={{ marginBottom: 4 }}><b>Anbieter:</b> {m.company}. Der Anbieter kann Daten in Länder außerhalb der EU übertragen (z. B. USA).</div>
                     <div style={{ marginBottom: 4 }}><b>Was passiert:</b> Dateien werden direkt zwischen deinem Gerät und deinem Konto beim Anbieter übertragen, nicht über unseren Server. Beim Verbinden wird ein Skript des Anbieters nachgeladen. {m.scope}</div>
-                    <div style={{ marginBottom: 4 }}>Briefe können sensible Daten enthalten (z. B. Gesundheitsdaten). Verschlüssele sie deshalb vor dem Speichern in einer Cloud.</div>
+                    <div style={{ marginBottom: 4 }}>Dokumente können sensible Daten enthalten (z. B. Gesundheitsdaten). Verschlüssele sie deshalb vor dem Speichern in einer Cloud.</div>
                     <div style={{ marginBottom: 8 }}><a href={m.privacy} target="_blank" rel="noopener noreferrer" style={{ color: c.accent }}>Datenschutzerklärung von {m.label}</a></div>
                     <CheckRow checked={draft.ok} onChange={(v) => setDraft({ provider: p, ok: v })}>{t.consentLabel} (Art. 6 Abs. 1 lit. a DSGVO)</CheckRow>
                     <div style={{ display: "flex", gap: 8 }}>
@@ -4061,6 +4393,7 @@ const DEFAULT_TILE_FIELDS = [
 const DEFAULT_PREFS = {
   tileFields: DEFAULT_TILE_FIELDS,
   layout: null,                 // null = automatisch (Handy neu, Desktop klassisch) · "classic" · "new"
+  ai: false,                    // KI ist beim Start aus; der Nutzer schaltet sie nach einem Hinweis selbst ein
   letterSort: { key: "date", dir: "desc" },
   showDemo: true,
   exportFormat: "pdf",
@@ -4304,11 +4637,11 @@ function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, se
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
         <div style={{ width: 10, alignSelf: "stretch", minHeight: 38, borderRadius: 5, background: cs.color }} />
         <div style={{ flex: "1 1 200px", minWidth: 0 }}>
-          <h2 style={{ margin: 0, fontSize: 19 * fontScale }}>{cs.name}</h2>
-          {uiLang !== "de" && <div style={{ fontSize: 12.5 * fontScale, color: c.accent }}>{translatedName || "…"}</div>}
+          <h2 style={{ margin: 0, fontSize: 19 * fontScale, overflowWrap: "anywhere", lineHeight: 1.25 }}>{cs.name}</h2>
+          {translatedName && translatedName !== cs.name && <div style={{ fontSize: 12.5 * fontScale, color: c.accent, overflowWrap: "anywhere" }}>{translatedName}</div>}
           <div style={{ fontSize: 12 * fontScale, color: c.textMuted }}>{nLetters(cs.letters.length, t)}</div>
         </div>
-        <button onClick={onToggleStatus} style={btnSmall(c)}>
+        <button onClick={onToggleStatus} style={{ ...btnSmall(c), flexShrink: 0 }}>
           {cs.status === "done" ? <FolderCheck size={14} /> : <Check size={14} />} {cs.status === "done" ? t.done : t.open}
         </button>
       </div>
@@ -4318,13 +4651,15 @@ function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, se
         <select value={sort.key} onChange={(e) => setSort({ ...sort, key: e.target.value })} style={{ ...selectStyle(c), fontSize: 12.5 * fontScale }}>
           {sortOpts.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
         </select>
-        <button onClick={() => setSort({ ...sort, dir: sort.dir === "asc" ? "desc" : "asc" })} title={sort.dir === "asc" ? t.ascending : t.descending} style={btnSmall(c)}>
-          {sort.dir === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />} {sort.dir === "asc" ? t.ascending : t.descending}
+        <button onClick={() => setSort({ ...sort, dir: sort.dir === "asc" ? "desc" : "asc" })} title={sort.dir === "asc" ? t.ascending : t.descending} aria-label={sort.dir === "asc" ? t.ascending : t.descending} style={{ ...btnSmall(c), padding: "7px 9px" }}>
+          {sort.dir === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
         </button>
         <div style={{ flex: 1 }} />
-        <button onClick={onCustomize} style={btnSmall(c)}><SlidersHorizontal size={14} /> {t.customizeTiles}</button>
-        <button onClick={onCasePdf} style={btnSmall(c)}><FileText size={14} /> {t.casePdf}</button>
-        <button onClick={onExport} style={btnSmall(c)}><Download size={14} /> {t.exportCase}</button>
+        <MoreMenu c={c} fontScale={fontScale} label={t.more} items={[
+          { label: t.customizeTiles, icon: SlidersHorizontal, onClick: onCustomize },
+          { label: t.casePdf, icon: FileText, onClick: onCasePdf },
+          { label: t.exportCase, icon: Download, onClick: onExport },
+        ]} />
         <button onClick={onAdd} style={{ ...btnSmall(c), background: c.accent, color: "#fff", borderColor: c.accent }}><Upload size={14} /> {t.upload}</button>
       </div>
 
@@ -4380,38 +4715,33 @@ function TileFieldsModal({ c, t, fontScale, rtl, fields, setFields, sampleLetter
 /* ---------- Brief bearbeiten (Zugangsdatum, Frist, Notiz, Fall wechseln, löschen) ---------- */
 function LetterEditModal({ c, t, fontScale, rtl, letter, cases, onSave, onDelete, onClose }) {
   const [f, setF] = useState({
-    subject: letter.subject || "", sender: letter.sender || "", caseNumber: letter.caseNumber === "—" ? "" : letter.caseNumber || "",
+    subject: letter.subject || "", sender: letter.sender === "Unbekannt" ? "" : letter.sender || "", caseNumber: letter.caseNumber === "—" ? "" : letter.caseNumber || "",
     date: letter.date || "", receivedDate: letter.receivedDate || "", deadline: letter.deadline || "", deadlineNote: letter.deadlineNote || "",
     pages: letter.pages || 1, note: letter.note || "", caseId: letter.caseId,
   });
   const [confirmDel, setConfirmDel] = useState(false);
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
-  const inp = { width: "100%", padding: "9px 10px", borderRadius: 8, border: `1px solid ${c.border}`, background: c.bg, color: c.text, boxSizing: "border-box", fontFamily: "inherit", fontSize: 13 * fontScale };
-  const Row = ({ label, children }) => (
-    <label style={{ display: "block", marginBottom: 10 }}>
-      <div style={{ fontSize: 12 * fontScale, color: c.textMuted, marginBottom: 3 }}>{label}</div>
-      {children}
-    </label>
-  );
+  const inp = fieldStyle(c, fontScale);
+  const Row = FieldRow;
   const save = () => onSave(letter, {
-    subject: f.subject.trim() || letter.subject, sender: f.sender.trim() || "Unbekannt", caseNumber: f.caseNumber.trim() || "—",
+    subject: f.subject.trim() || letter.subject, autoTitle: f.subject.trim() && f.subject.trim() !== letter.subject ? false : letter.autoTitle, sender: f.sender.trim() || "Unbekannt", caseNumber: f.caseNumber.trim() || "—",
     date: f.date || letter.date, receivedDate: f.receivedDate || letter.receivedDate, deadline: f.deadline || null,
     deadlineNote: f.deadline ? null : (f.deadlineNote.trim() || null), pages: Math.max(1, Number(f.pages) || 1), note: f.note.trim(),
   }, f.caseId);
   return (
     <AppModal c={c} fontScale={fontScale} rtl={rtl} title={t.editLetter} onClose={onClose} maxWidth={500}>
-      <Row label={t.fSubject}><input style={inp} value={f.subject} onChange={set("subject")} /></Row>
-      <Row label={t.fSender}><input style={inp} value={f.sender} onChange={set("sender")} /></Row>
-      <Row label={t.fCaseNumber}><input style={inp} value={f.caseNumber} onChange={set("caseNumber")} dir="ltr" /></Row>
+      <Row c={c} fontScale={fontScale} label={t.fName}><input style={inp} value={f.subject} onChange={set("subject")} /></Row>
+      <Row c={c} fontScale={fontScale} label={t.fSender}><input style={inp} value={f.sender} onChange={set("sender")} /></Row>
+      <Row c={c} fontScale={fontScale} label={t.fCaseNumber}><input style={inp} value={f.caseNumber} onChange={set("caseNumber")} dir="ltr" /></Row>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <Row label={t.fDate}><input type="date" style={inp} value={f.date} onChange={set("date")} /></Row>
-        <Row label={t.fReceived}><input type="date" style={inp} value={f.receivedDate} onChange={set("receivedDate")} /></Row>
-        <Row label={t.fDeadline}><input type="date" style={inp} value={f.deadline} onChange={set("deadline")} /></Row>
-        <Row label={t.fPages}><input type="number" min="1" style={inp} value={f.pages} onChange={set("pages")} /></Row>
+        <Row c={c} fontScale={fontScale} label={t.fDate}><input type="date" style={inp} value={f.date} onChange={set("date")} /></Row>
+        <Row c={c} fontScale={fontScale} label={t.fReceived}><input type="date" style={inp} value={f.receivedDate} onChange={set("receivedDate")} /></Row>
+        <Row c={c} fontScale={fontScale} label={t.fDeadline}><input type="date" style={inp} value={f.deadline} onChange={set("deadline")} /></Row>
+        <Row c={c} fontScale={fontScale} label={t.fPages}><input type="number" min="1" style={inp} value={f.pages} onChange={set("pages")} /></Row>
       </div>
-      {!f.deadline && <Row label={t.deadlineNoteLabel}><input style={inp} value={f.deadlineNote} onChange={set("deadlineNote")} /></Row>}
-      <Row label={t.fNote}><textarea style={{ ...inp, minHeight: 70, resize: "vertical" }} value={f.note} onChange={set("note")} /></Row>
-      <Row label={t.moveToCase}>
+      {!f.deadline && <Row c={c} fontScale={fontScale} label={t.deadlineNoteLabel}><input style={inp} value={f.deadlineNote} onChange={set("deadlineNote")} /></Row>}
+      <Row c={c} fontScale={fontScale} label={t.fNote}><textarea style={{ ...inp, minHeight: 70, resize: "vertical" }} value={f.note} onChange={set("note")} /></Row>
+      <Row c={c} fontScale={fontScale} label={t.moveToCase}>
         <select style={inp} value={f.caseId} onChange={set("caseId")}>
           {cases.map((cs) => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
         </select>
@@ -4811,7 +5141,7 @@ function letterDocBlocks(l, cs, t, lang) {
     [t.fPages, l.pages ? String(l.pages) : ""], [t.filesWord, (l.files || []).map((f) => f.name).join(", ")], [t.fNote, l.note],
   ].filter(([, x]) => x);
   const out = [{ type: "h1", text: l.subject || "—" }, ...meta.map(([k, x]) => ({ type: "meta", text: `${k}: ${x}` }))];
-  out.push({ type: "h2", text: t.secOriginal }, { type: "p", text: l.original || "" });
+  if (letterText(l)) out.push({ type: "h2", text: t.secOriginal }, { type: "p", text: letterText(l) });
   if (l.translation) out.push({ type: "h2", text: t.secTranslation + (l.translationLang ? ` (${langName(l.translationLang)})` : "") }, { type: "small", text: t.aiLabelTranslation }, { type: "p", text: l.translation });
   if (l.reply) out.push(
     { type: "h2", text: t.secReply },
@@ -5364,7 +5694,7 @@ function FeedbackBar({ c, t, fontScale, value, onRate }) {
     </div>
   );
 }
-function Onboarding({ c, t, fontScale, rtl, uiLang, setUiLang, translating, onDone }) {
+function Onboarding({ c, t, fontScale, rtl, uiLang, setUiLang, langs, translating, onDone }) {
   const [step, setStep] = useState(0);
   const steps = [
     { icon: Languages, title: t.obLangTitle, text: t.obLangText, lang: true },
@@ -5385,7 +5715,7 @@ function Onboarding({ c, t, fontScale, rtl, uiLang, setUiLang, translating, onDo
         <div>{s0.text}</div>
         {s0.lang && (
           <div style={{ marginTop: 14 }}>
-            <LanguagePicker c={c} fontScale={fontScale} value={uiLang} onChange={setUiLang} options={LANGS} />
+            <LanguagePicker c={c} fontScale={fontScale} value={uiLang} onChange={setUiLang} options={langs || LANGS} />
             {translating && <div style={{ color: c.textMuted, marginTop: 8 }}>{t.obTranslating}</div>}
           </div>
         )}
@@ -5519,9 +5849,11 @@ function TranslationCheck({ c, t, fontScale, letter, busy, onAiCheck }) {
           <div style={{ fontWeight: 600 }}>{t.checkCompare}</div>
         </>
       )}
-      <div style={{ marginTop: 8 }}>
-        <button onClick={onAiCheck} disabled={busy} style={btnSmall(c)}><Sparkles size={13} /> {busy ? "…" : t.checkAi}</button>
-      </div>
+      {onAiCheck && (
+        <div style={{ marginTop: 8 }}>
+          <button onClick={onAiCheck} disabled={busy} style={btnSmall(c)}><Sparkles size={13} /> {busy ? "…" : t.checkAi}</button>
+        </div>
+      )}
       {chk && (
         <div style={{ marginTop: 8 }}>
           <pre style={{ ...preStyle(c, fontScale), margin: 0 }} dir={RTL_LANGS.includes(chk.lang) ? "rtl" : "ltr"}>{chk.text}</pre>
