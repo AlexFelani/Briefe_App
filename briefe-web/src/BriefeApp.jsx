@@ -234,6 +234,9 @@ const UI_STRINGS = {
     obReadTitle: "KI – nur wenn du willst", obReadText: "Die KI ist beim Start aus. Die App funktioniert auch ohne sie. Schaltest du die KI in den Einstellungen ein, liest sie deine Dokumente, füllt Name, Absender und Frist aus, übersetzt und schreibt auf Wunsch einen Antwort-Entwurf. Prüfe jeden Entwurf selbst. Die App sendet nie etwas von allein.",
     obDeadTitle: "Fristen nicht verpassen", obDeadText: "Trage zu einem Dokument eine Frist ein – oder lass sie von der KI erkennen. Die App erinnert dich und trägt die Frist auf Wunsch in deinen Kalender ein. Das kannst du jederzeit unter „Fristen & Erinnerungen“ ändern.",
     obPrivTitle: "Deine Daten", obPrivText: "Dokumente und Dateien werden auf deinem Gerät gespeichert. Ohne KI verlässt nichts dein Gerät. Nur wenn du die KI einschaltest, wird der Inhalt zum Lesen, Übersetzen und Antworten an einen KI-Dienst übertragen. Die KI kann Fehler machen und ersetzt keine Rechtsberatung. Du kannst die App mit einer PIN sperren und alle Daten jederzeit exportieren oder löschen.",
+    obPayTitle: "Was kostet es?", obPayText: "Bezahlt wird nur für die KI-Funktionen Übersetzung und Antwort-Entwurf. Die ersten {free} Dokumente sind kostenlos. Danach kostet jedes Dokument {price} (bis 10 Seiten), jede weitere Seite {extra}. Vor dem Kauf siehst du eine Übersicht, und es wird erst bezahlt, wenn du selbst bestellst.",
+    coHelpTitle: "Kurz erklärt – in deiner Sprache", coHelpOne: "Du zahlst {price} einmal für dieses Dokument (Übersetzung und Antwort-Entwurf). Kein Abo, keine automatische Verlängerung.", coHelpSub: "Du zahlst {price} pro Monat. Der Vertrag läuft weiter, bis du kündigst (Frist: {term}). Kündigen kannst du unter „Käufe & Widerruf“.",
+    coHelpBoxes: "Zwei Kästchen musst du ankreuzen: Das erste erlaubt, dass sofort begonnen wird – danach kannst du nicht mehr widerrufen. Das zweite bestätigt, dass du AGB, Widerrufsbelehrung und Datenschutz gelesen hast.", coHelpButton: "Erst der Knopf „{btn}“ kauft verbindlich. Davor wird nichts abgebucht.", coHelpGerman: "Verbindlich sind die deutschen Texte (AGB, Widerrufsbelehrung, Datenschutz, Bestellübersicht). Sie bleiben immer auf Deutsch.", coHelpLive: "Die Zahlungsart wählst du auf der nächsten Seite beim Zahlungsdienst.", coHelpDemo: "Demo-Modus: Es wird nichts abgebucht.",
     obNext: "Weiter", obBack: "Zurück", obStart: "Los geht's", obSkip: "Überspringen", obTranslating: "Die App wird in deine Sprache übersetzt …", obAgain: "Einführung ansehen",
     casePdf: "Fall als PDF", casePdfInfo: "Eine PDF mit Inhaltsverzeichnis und allen Dokumenten dieses Falls – Angaben, Text, Übersetzung, Antwort und Verlauf –, z. B. für Anwalt, Beratungsstelle oder Amt.",
     casePdfPhotos: "Fotos der Dokumente einfügen", casePdfBuild: "PDF erstellen", casePdfBusy: "Erstelle PDF …", casePdfToc: "Inhalt",
@@ -401,6 +404,9 @@ const UI_STRINGS = {
     obReadTitle: "AI – only if you want", obReadText: "The AI is off at the start. The app also works without it. If you turn the AI on in the settings, it reads your documents, fills in name, sender and deadline, translates and, if you wish, writes a reply draft. Check every draft yourself. The app never sends anything on its own.",
     obDeadTitle: "Never miss a deadline", obDeadText: "Enter a deadline for a document – or let the AI detect it. The app reminds you and, if you wish, adds the deadline to your calendar. You can change this anytime under “Deadlines & reminders”.",
     obPrivTitle: "Your data", obPrivText: "Documents and files are stored on your device. Without AI, nothing leaves your device. Only if you turn the AI on is the content sent to an AI service to read, translate and reply. The AI can make mistakes and does not replace legal advice. You can lock the app with a PIN and export or delete all data at any time.",
+    obPayTitle: "What does it cost?", obPayText: "You only pay for the AI functions translation and reply draft. The first {free} documents are free. After that each document costs {price} (up to 10 pages), each additional page {extra}. Before buying you see a summary, and nothing is paid until you order yourself.",
+    coHelpTitle: "In short – in your language", coHelpOne: "You pay {price} once for this document (translation and reply draft). No subscription, no automatic renewal.", coHelpSub: "You pay {price} per month. The contract continues until you cancel (notice period: {term}). You can cancel under “Purchases & withdrawal”.",
+    coHelpBoxes: "You must tick two boxes: the first allows us to start immediately – afterwards you can no longer withdraw. The second confirms that you have read the terms, the withdrawal policy and the privacy policy.", coHelpButton: "Only the button “{btn}” buys with binding effect. Nothing is charged before that.", coHelpGerman: "The German texts are binding (terms, withdrawal policy, privacy policy, order summary). They always stay in German.", coHelpLive: "You choose the payment method on the next page at the payment provider.", coHelpDemo: "Demo mode: nothing is charged.",
     obNext: "Next", obBack: "Back", obStart: "Let's go", obSkip: "Skip", obTranslating: "The app is being translated into your language …", obAgain: "Show introduction",
     casePdf: "Case as PDF", casePdfInfo: "One PDF with a table of contents and all documents of this case – details, text, translation, reply and history – e.g. for a lawyer, advice centre or authority.",
     casePdfPhotos: "Include photos of the documents", casePdfBuild: "Create PDF", casePdfBusy: "Creating PDF …", casePdfToc: "Contents",
@@ -2177,7 +2183,7 @@ function BriefeCore({ profileApi }) {
       {/* ---------- Shop / Recht: Dialoge ---------- */}
       {modal?.type === "checkout" && (
         <CheckoutModal
-          c={c} fontScale={fontScale} flags={flags} item={modal.item}
+          c={c} t={t} fontScale={fontScale} flags={flags} item={modal.item}
           onClose={() => setModal(null)}
           onConfirm={confirmPurchase}
           onDone={() => { const then = modal.then; setModal(null); if (then) then(); }}
@@ -2230,7 +2236,7 @@ function BriefeCore({ profileApi }) {
         <CasePdfModal c={c} t={t} fontScale={fontScale} rtl={isRTL} cs={visibleCases.find((x) => x.id === casePdfFor)}
           photos={prefs.casePdfPhotos} setPhotos={(v) => setPrefs({ casePdfPhotos: v })} busy={casePdfBusy} onBuild={runCasePdf} onClose={() => !casePdfBusy && setCasePdfFor(null)} />
       )}
-      {obShow && <Onboarding c={c} t={t} fontScale={fontScale} rtl={isRTL} uiLang={uiLang} setUiLang={setUiLang} langs={uiLangs} translating={uiTranslating} onDone={finishOnboarding} />}
+      {obShow && <Onboarding c={c} t={t} fontScale={fontScale} rtl={isRTL} uiLang={uiLang} setUiLang={setUiLang} langs={uiLangs} translating={uiTranslating} flags={flags} onDone={finishOnboarding} />}
       {profilesOpen && <ProfilesModal c={c} t={t} fontScale={fontScale} rtl={isRTL} api={profileApi} onClose={() => setProfilesOpen(false)} />}
       {lockOpen && (
         <LockSettingsModal c={c} t={t} fontScale={fontScale} rtl={isRTL} profile={profileApi.active}
@@ -2895,7 +2901,7 @@ const PAY_METHODS = [["paypal", "PayPal"], ["visa", "Visa"], ["mastercard", "Mas
 const payLabel = (k) => (PAY_METHODS.find((m) => m[0] === k) || [])[1] || k;
 
 /* ---------- Kauf (§ 312j BGB: Preis, Laufzeit, Verlängerung direkt über dem Kaufbutton) ---------- */
-function CheckoutModal({ c, fontScale, flags, item, onClose, onConfirm, onDone, openLegal }) {
+function CheckoutModal({ c, t, fontScale, flags, item, onClose, onConfirm, onDone, openLegal }) {
   const [method, setMethod] = useState("");
   const [waiver, setWaiver] = useState(false);
   const [terms, setTerms] = useState(false);
@@ -2947,6 +2953,17 @@ function CheckoutModal({ c, fontScale, flags, item, onClose, onConfirm, onDone, 
           <span>Gesamtpreis (inkl. aller Steuern)</span><span>{fmtEUR(amount)}{isSub ? " / Monat" : ""}</span>
         </div>
       </InfoBox>
+
+      {t && t.coHelpTitle && (
+        <div data-checkout-help="1" style={{ border: `1px solid ${c.border}`, background: c.accentSoft, borderRadius: 10, padding: "10px 12px", marginBottom: 12, fontSize: 13 * fontScale, lineHeight: 1.5 }}>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>{t.coHelpTitle}</div>
+          <div style={{ marginBottom: 4 }}>{(isSub ? t.coHelpSub : t.coHelpOne).replace("{price}", fmtEUR(amount)).replace("{term}", SUB_PLAN.termText)}</div>
+          <div style={{ marginBottom: 4 }}>{t.coHelpBoxes}</div>
+          <div style={{ marginBottom: 4 }}>{t.coHelpButton.replace("{btn}", isSub ? "Jetzt kostenpflichtig abonnieren" : "zahlungspflichtig bestellen")}</div>
+          <div style={{ marginBottom: 4 }}>{live ? t.coHelpLive : t.coHelpDemo}</div>
+          <div style={{ color: c.textMuted }}>{t.coHelpGerman}</div>
+        </div>
+      )}
 
       {!live && <div style={{ fontWeight: 700, marginBottom: 6 }}>Zahlungsart</div>}
       {!live && PAY_METHODS.map(([k, label]) => (
@@ -5881,23 +5898,86 @@ function FeedbackBar({ c, t, fontScale, value, onRate }) {
     </div>
   );
 }
-function Onboarding({ c, t, fontScale, rtl, uiLang, setUiLang, langs, translating, onDone }) {
+/* Einfache, selbst gezeichnete Bilder für die Einführung (nur Formen, keine Schrift, daher in jeder Sprache lesbar) */
+function ObArt({ kind, c }) {
+  const a = c.accent, soft = c.accentSoft, line = c.border, ink = c.text, mut = c.textMuted, bg = c.surface;
+  const W = (children) => <svg viewBox="0 0 200 120" role="img" aria-hidden="true" style={{ width: "100%", height: "auto", display: "block" }}>{children}</svg>;
+  if (kind === "lang") return W(<g>
+    <rect x="22" y="22" width="72" height="48" rx="12" fill={soft} stroke={a} strokeWidth="2.5" />
+    <path d="M42 70 L40 86 L58 70 Z" fill={soft} stroke={a} strokeWidth="2.5" strokeLinejoin="round" />
+    <rect x="106" y="46" width="72" height="48" rx="12" fill={bg} stroke={a} strokeWidth="2.5" />
+    <path d="M158 94 L162 108 L144 94 Z" fill={bg} stroke={a} strokeWidth="2.5" strokeLinejoin="round" />
+    {[34, 44, 54].map((y, k) => <rect key={k} x="34" y={y} width={k === 2 ? 28 : 48} height="5" rx="2.5" fill={a} />)}
+    {[58, 68, 78].map((y, k) => <rect key={k} x="118" y={y} width={k === 2 ? 28 : 48} height="5" rx="2.5" fill={mut} />)}
+  </g>);
+  if (kind === "add") return W(<g>
+    <rect x="30" y="30" width="62" height="78" rx="6" fill={bg} stroke={line} strokeWidth="2.5" />
+    <rect x="40" y="22" width="62" height="78" rx="6" fill={bg} stroke={line} strokeWidth="2.5" />
+    <rect x="50" y="14" width="62" height="78" rx="6" fill={bg} stroke={ink} strokeWidth="2.5" />
+    {[28, 38, 48, 58].map((y, k) => <rect key={k} x="60" y={y} width={k === 3 ? 24 : 42} height="5" rx="2.5" fill={mut} />)}
+    <rect x="124" y="46" width="52" height="58" rx="10" fill={soft} stroke={a} strokeWidth="2.5" />
+    <rect x="132" y="56" width="36" height="30" rx="4" fill={bg} stroke={a} strokeWidth="2" />
+    <circle cx="150" cy="71" r="8" fill="none" stroke={a} strokeWidth="2.5" />
+    <circle cx="150" cy="95" r="3" fill={a} />
+    <path d="M114 66 L122 66 M119 61 L124 66 L119 71" fill="none" stroke={a} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+  </g>);
+  if (kind === "ai") return W(<g>
+    <rect x="18" y="28" width="68" height="34" rx="17" fill={bg} stroke={line} strokeWidth="2.5" />
+    <circle cx="35" cy="45" r="11" fill={line} />
+    <rect x="18" y="72" width="68" height="34" rx="17" fill={a} stroke={a} strokeWidth="2.5" />
+    <circle cx="69" cy="89" r="11" fill={bg} />
+    <path d="M116 30 l6 14 l14 6 l-14 6 l-6 14 l-6 -14 l-14 -6 l14 -6 Z" fill={soft} stroke={a} strokeWidth="2.5" strokeLinejoin="round" />
+    <path d="M160 66 l4 9 l9 4 l-9 4 l-4 9 l-4 -9 l-9 -4 l9 -4 Z" fill={a} />
+    <rect x="104" y="92" width="40" height="5" rx="2.5" fill={mut} />
+    <rect x="104" y="102" width="26" height="5" rx="2.5" fill={mut} />
+  </g>);
+  if (kind === "deadline") return W(<g>
+    <rect x="30" y="26" width="86" height="80" rx="10" fill={bg} stroke={ink} strokeWidth="2.5" />
+    <path d="M30 48 H116" stroke={ink} strokeWidth="2.5" />
+    <rect x="48" y="16" width="8" height="18" rx="4" fill={ink} /><rect x="90" y="16" width="8" height="18" rx="4" fill={ink} />
+    {[0, 1, 2, 3, 4, 5].map((k) => <rect key={k} x={42 + (k % 3) * 24} y={58 + Math.floor(k / 3) * 22} width="14" height="12" rx="3" fill={k === 4 ? a : line} />)}
+    <path d="M150 50 c-14 0 -20 10 -20 24 v8 l-6 8 h52 l-6 -8 v-8 c0 -14 -6 -24 -20 -24 Z" fill={soft} stroke={a} strokeWidth="2.5" strokeLinejoin="round" />
+    <path d="M143 98 a7 7 0 0 0 14 0" fill="none" stroke={a} strokeWidth="2.5" />
+    <circle cx="150" cy="44" r="4" fill={a} />
+  </g>);
+  if (kind === "pay") return W(<g>
+    <rect x="22" y="34" width="84" height="56" rx="10" fill={bg} stroke={ink} strokeWidth="2.5" />
+    <path d="M22 52 H106" stroke={ink} strokeWidth="6" />
+    <rect x="32" y="68" width="30" height="8" rx="4" fill={mut} />
+    <circle cx="146" cy="52" r="22" fill={soft} stroke={a} strokeWidth="2.5" />
+    <path d="M155 44 a11 11 0 1 0 0 16 M134 49 H152 M134 56 H152" fill="none" stroke={a} strokeWidth="3" strokeLinecap="round" />
+    <path d="M128 90 l9 9 l17 -19" fill="none" stroke={a} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+  </g>);
+  return W(<g>
+    <rect x="62" y="12" width="76" height="96" rx="14" fill={bg} stroke={ink} strokeWidth="2.5" />
+    <rect x="72" y="26" width="56" height="62" rx="4" fill={soft} />
+    <rect x="86" y="54" width="28" height="22" rx="5" fill={a} />
+    <path d="M91 54 v-7 a9 9 0 0 1 18 0 v7" fill="none" stroke={a} strokeWidth="3" strokeLinecap="round" />
+    <circle cx="100" cy="65" r="3" fill={bg} />
+    <circle cx="100" cy="98" r="3.5" fill={mut} />
+    <path d="M150 42 l16 6 v14 c0 12 -7 20 -16 24 c-9 -4 -16 -12 -16 -24 v-14 Z" fill={bg} stroke={a} strokeWidth="2.5" strokeLinejoin="round" />
+    <path d="M143 63 l5 5 l9 -11" fill="none" stroke={a} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+  </g>);
+}
+function Onboarding({ c, t, fontScale, rtl, uiLang, setUiLang, langs, translating, flags, onDone }) {
   const [step, setStep] = useState(0);
+  const fill = (x) => String(x || "").replace("{free}", String(FREE_LETTERS)).replace("{price}", fmtEUR(BASE_PRICE)).replace("{extra}", fmtEUR(EXTRA_PAGE_PRICE));
   const steps = [
-    { icon: Languages, title: t.obLangTitle, text: t.obLangText, lang: true },
-    { icon: Camera, title: t.obAddTitle, text: t.obAddText },
-    { icon: Sparkles, title: t.obReadTitle, text: t.obReadText },
-    { icon: Bell, title: t.obDeadTitle, text: t.obDeadText },
-    { icon: Lock, title: t.obPrivTitle, text: t.obPrivText },
+    { art: "lang", icon: Languages, title: t.obLangTitle, text: t.obLangText, lang: true },
+    { art: "add", icon: Camera, title: t.obAddTitle, text: t.obAddText },
+    { art: "ai", icon: Sparkles, title: t.obReadTitle, text: t.obReadText },
+    { art: "deadline", icon: Bell, title: t.obDeadTitle, text: t.obDeadText },
+    ...(flags?.paymentRequired ? [{ art: "pay", icon: CreditCard, title: t.obPayTitle, text: fill(t.obPayText) }] : []),
+    { art: "privacy", icon: Lock, title: t.obPrivTitle, text: t.obPrivText },
   ];
-  const s0 = steps[step]; const Icon = s0.icon; const last = step === steps.length - 1;
+  const s0 = steps[step]; const last = step === steps.length - 1;
   return (
     <div dir={rtl ? "rtl" : "ltr"} style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(0,0,0,.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 14 }}>
-      <div style={{ background: c.surface, color: c.text, borderRadius: 16, width: "100%", maxWidth: 440, padding: 22, boxSizing: "border-box", fontSize: 14 * fontScale, lineHeight: 1.55 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: c.accentSoft, color: c.accent, display: "flex", alignItems: "center", justifyContent: "center" }}><Icon size={22} /></div>
+      <div style={{ background: c.surface, color: c.text, borderRadius: 16, width: "100%", maxWidth: 440, maxHeight: "100%", overflowY: "auto", padding: 22, boxSizing: "border-box", fontSize: 14 * fontScale, lineHeight: 1.55 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 6 }}>
           <button onClick={onDone} style={{ background: "none", border: "none", color: c.textMuted, cursor: "pointer", textDecoration: "underline" }}>{t.obSkip}</button>
         </div>
+        <div data-ob-art={s0.art} style={{ background: c.accentSoft, borderRadius: 14, padding: "10px 24px", maxWidth: 300, margin: "0 auto 10px" }}><ObArt kind={s0.art} c={c} /></div>
         <h2 style={{ margin: "6px 0 8px", fontSize: 19 * fontScale }}>{s0.title}</h2>
         <div>{s0.text}</div>
         {s0.lang && (
