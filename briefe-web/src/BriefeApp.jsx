@@ -2413,8 +2413,8 @@ function CaseMenu({ c, t, fontScale, cs, onRename, onDelete }) {
   return (
     <div ref={ref} onClick={(e) => e.stopPropagation()} style={{ display: "inline-block" }}>
       <button onClick={toggle} aria-haspopup="menu" aria-expanded={!!pos} aria-label={`${t.more}: ${cs.name}`} title={t.more} style={{
-        width: 36, height: 36, borderRadius: 18, border: "none", background: "transparent", color: c.textMuted, cursor: "pointer",
-        fontSize: 20, lineHeight: 1, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit",
+        width: 40, height: 40, borderRadius: 20, border: "none", background: "transparent", color: c.text, cursor: "pointer",
+        fontSize: 22, lineHeight: 1, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit",
       }}>⋮</button>
       {pos && (
         <div role="menu" style={{ position: "fixed", left: pos.left, top: pos.top, width: pos.w, zIndex: 60, background: c.surface, border: `1px solid ${c.border}`, borderRadius: 10, boxShadow: "0 8px 28px rgba(0,0,0,.22)", padding: 4, boxSizing: "border-box" }}>
@@ -2434,9 +2434,8 @@ function CaseTile({ c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDel
     <div style={{
       border: `1px solid ${c.border}`, borderRadius: 16, background: c.surface, overflow: "hidden",
       display: "flex", flexDirection: "column", cursor: "pointer",
-      opacity: cs.status === "done" ? 0.6 : 1,
     }} onClick={onOpen}>
-      <div style={{ height: 70, background: cs.color, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+      <div style={{ height: 70, background: cs.color, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", opacity: cs.status === "done" ? 0.55 : 1 }}>
         <Folder size={26} color="#fff" style={{ opacity: 0.9 }} />
         {urgent && (
           <div style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 999, padding: "2px 8px", fontSize: 10.5, color: c.warn, fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
@@ -2444,7 +2443,7 @@ function CaseTile({ c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDel
           </div>
         )}
       </div>
-      <div style={{ padding: 12 }}>
+      <div style={{ padding: 12, opacity: cs.status === "done" ? 0.6 : 1 }}>
         <div style={{ fontWeight: 700, fontSize: 13 * fontScale, marginBottom: 2, lineHeight: 1.3, overflowWrap: "anywhere" }}>{cs.name}</div>
         {translatedName && translatedName !== cs.name && (
           <div style={{ fontSize: 11 * fontScale, color: c.accent, marginBottom: 4, lineHeight: 1.3, overflowWrap: "anywhere" }}>{translatedName}</div>
@@ -2468,10 +2467,9 @@ function CaseRow({ c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDele
     <div style={{
       display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12,
       border: `1px solid ${c.border}`, background: c.surface, cursor: "pointer",
-      opacity: cs.status === "done" ? 0.6 : 1,
     }} onClick={onOpen}>
-      <div style={{ width: 8, height: 34, borderRadius: 4, background: cs.color }} />
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ width: 8, height: 34, borderRadius: 4, background: cs.color, opacity: cs.status === "done" ? 0.55 : 1 }} />
+      <div style={{ flex: 1, minWidth: 0, opacity: cs.status === "done" ? 0.6 : 1 }}>
         <div style={{ fontWeight: 600, fontSize: 13 * fontScale, overflowWrap: "anywhere" }}>
           {cs.name}{translatedName && translatedName !== cs.name && <span style={{ color: c.accent, fontWeight: 500 }}> · {translatedName}</span>}
         </div>
