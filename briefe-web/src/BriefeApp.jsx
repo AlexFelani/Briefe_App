@@ -60,7 +60,7 @@ const OPERATOR = {               // Betreiberangaben für Impressum/Datenschutz 
   phone: "[Telefonnummer oder zweiter schneller Kontaktweg]",
 };
 const DEFAULT_SHOP = {
-  flags: { paymentRequired: false, subscription: false, tracking: false, newsletter: false, usSales: false, ai: true, moreClouds: true },   // ai = KI-Funktionen anbieten (Nutzer schaltet sie selbst zu)
+  flags: { paymentRequired: false, subscription: false, tracking: false, newsletter: false, usSales: false, ai: true, moreClouds: true, folderTools: true },   // ai = KI-Funktionen anbieten (Nutzer schaltet sie selbst zu)
   orders: [],
   unlocked: {},     // letterId -> "free" | "paid"
   consent: null,    // { status: "accepted" | "declined", at }
@@ -175,6 +175,7 @@ const UI_STRINGS = {
     home: "Übersicht", langSearch: "Sprache suchen…", noLangFound: "Keine Sprache gefunden", copied: "Kopiert!",
     intakeTitle: "Dokument hinzufügen", takePhoto: "Foto aufnehmen", addPage: "Weitere Seite fotografieren",
     chooseFiles: "Dateien auswählen (Foto, PDF, Word …)", fromCloud: "Aus Cloud holen",
+    newFolder: "Neuer Ordner", folderName: "Name des Ordners", folderColor: "Farbe (kann leer bleiben)", folderColorAuto: "Automatisch", folderCreate: "Ordner anlegen", sortManual: "Eigene Reihenfolge",
     noFilesYet: "Noch keine Dateien ausgewählt.", pagesOfOne: "Diese Dateien sind Seiten eines einzigen Dokuments",
     intakeLocalNote: "Die Dateien bleiben auf deinem Gerät. Es wird nichts übertragen.", intakeAiNote: "Die Dateien bleiben auf deinem Gerät. Zum Lesen wird der Inhalt an den KI-Dienst gesendet.",
     intakeReading: "Wird gelesen … ({n} von {total})", startIntake: "Weiter",
@@ -346,6 +347,7 @@ const UI_STRINGS = {
     home: "Overview", langSearch: "Search language…", noLangFound: "No language found", copied: "Copied!",
     intakeTitle: "Add document", takePhoto: "Take photo", addPage: "Photograph another page",
     chooseFiles: "Choose files (photo, PDF, Word …)", fromCloud: "Get from cloud",
+    newFolder: "New folder", folderName: "Folder name", folderColor: "Color (optional)", folderColorAuto: "Automatic", folderCreate: "Create folder", sortManual: "My own order",
     noFilesYet: "No files selected yet.", pagesOfOne: "These files are pages of a single document",
     intakeLocalNote: "The files stay on your device. Nothing is transmitted.", intakeAiNote: "The files stay on your device. For reading, the content is sent to the AI service.",
     intakeReading: "Reading … ({n} of {total})", startIntake: "Continue",
@@ -617,7 +619,6 @@ function BriefeCore({ profileApi }) {
   const [view, setView] = useState("tiles"); // tiles | list
   const [menuOpen, setMenuOpen] = useState({ cases: true, tools: false, data: false, account: false });
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("date");
   const [query, setQuery] = useState("");
   const [openTabs, setOpenTabs] = useState([]); // letter ids
   const [activeTab, setActiveTab] = useState(null);
@@ -733,6 +734,9 @@ function BriefeCore({ profileApi }) {
   const casesRef = useRef(cases); casesRef.current = cases;
   const prefsRef = useRef(prefs); prefsRef.current = prefs;
   const setPrefs = (patch) => setPrefsRaw((p) => ({ ...p, ...(typeof patch === "function" ? patch(p) : patch) }));
+  const sortBy = prefs.caseSort || "date";                    // "manual" = eigene Reihenfolge (Ziehen)
+  const setSortBy = (v) => setPrefs({ caseSort: v });
+  const [folderNew, setFolderNew] = useState(null);           // Neuer Ordner: { name, color }
   // KI: vom Betreiber angeboten + Dienst erreichbar = möglich; benutzt wird sie nur, wenn der Nutzer sie eingeschaltet hat
   const aiPossible = flags.ai !== false && aiBackend();
   const aiOn = aiPossible && !!prefs.ai;
@@ -1092,19 +1096,24 @@ function BriefeCore({ profileApi }) {
         searchTerms.some((tm) => cs.name.toLowerCase().includes(tm)) || cs.letters.some((l) => letterMatches(l, searchTerms))
       );
     }
-    const sorted = [...list];
-    // Fälle werden nach allen ihren Briefen sortiert (nicht nur nach dem ersten); leere Werte stehen unten
-    const byText = (get, dir = 1) => (a, b) => {
-      const x = get(a), y = get(b);
-      if (!x && !y) return 0; if (!x) return 1; if (!y) return -1;
-      return String(x).localeCompare(String(y), "de", { numeric: true }) * dir;
-    };
-    if (sortBy === "name") sorted.sort(byText((cs) => cs.name.toLowerCase()));
-    if (sortBy === "date") sorted.sort(byText(caseDate, -1));
-    if (sortBy === "case") sorted.sort(byText((cs) => caseNo(cs).toLowerCase()));
-    if (sortBy === "deadline") sorted.sort(byText(caseDeadline));
-    return sorted;
+    return sortCasesBy(list, sortBy);
   }, [visibleCases, statusFilter, searchTerms, sortBy]);
+
+  // Neuer Ordner: leer anlegen, ganz nach vorn; die bisher sichtbare Reihenfolge bleibt erhalten
+  const createFolder = (name, color) => {
+    const nm = String(name || "").trim(); if (!nm) return;
+    const cs = { id: "c" + Date.now() + Math.random().toString(36).slice(2, 5), name: nm, status: "open", color: color || FALLBACK_COLORS[cases.length % FALLBACK_COLORS.length], letters: [] };
+    persist([cs, ...sortCasesBy(cases, sortBy)]);
+    setSortBy("manual"); setFolderNew(null); setIntake((s) => (s && s.files && s.files.length ? s : null)); setOpenCaseId(null);
+  };
+  // Kacheln per Ziehen umordnen: die gezeigten Fälle tauschen untereinander ihre Plätze, alle anderen bleiben stehen
+  const reorderCases = (ids) => {
+    const base = sortCasesBy(cases, sortBy);
+    const slots = []; base.forEach((cs, i) => { if (ids.includes(cs.id)) slots.push(i); });
+    const out = [...base]; const byId = Object.fromEntries(base.map((cs) => [cs.id, cs]));
+    slots.forEach((pos, k) => { out[pos] = byId[ids[k]]; });
+    persist(out); setSortBy("manual");
+  };
 
   const openLetter = (letterId) => {
     if (!openTabs.includes(letterId)) setOpenTabs([...openTabs, letterId]);
@@ -1124,9 +1133,9 @@ function BriefeCore({ profileApi }) {
     persist(next);
   };
 
-  const renameCase = (caseId, name) => {
+  const renameCase = (caseId, name, color) => {
     const nm = String(name || "").trim(); if (!nm) return;
-    persist(cases.map((cs) => (cs.id !== caseId ? cs : { ...cs, name: nm })));
+    persist(cases.map((cs) => (cs.id !== caseId ? cs : { ...cs, name: nm, ...(color ? { color } : {}) })));
     setCaseNameTranslations((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith(caseId + ":"))));
   };
   const toggleCaseStatus = (caseId) => {
@@ -1592,7 +1601,7 @@ function BriefeCore({ profileApi }) {
   const menuOver = ovl && sidebarOpen && sbFor === ovl;
   // Geöffnete Fenster/Dialoge (oberstes zuerst): Zurück schließt zuerst das Fenster
   const overlays = [
-    [confirmDel, () => setConfirmDel(null)], [moveFor, () => setMoveFor(null)], [caseEdit, () => setCaseEdit(null)], [viewer, () => setViewer(false)], [aiConsentOpen, () => setAiConsentOpen(false)], [drafts && !savingDrafts, () => draftsBack()],
+    [folderNew, () => setFolderNew(null)], [confirmDel, () => setConfirmDel(null)], [moveFor, () => setMoveFor(null)], [caseEdit, () => setCaseEdit(null)], [viewer, () => setViewer(false)], [aiConsentOpen, () => setAiConsentOpen(false)], [drafts && !savingDrafts, () => draftsBack()],
     [showHomeConfirm, () => setShowHomeConfirm(false)], [legalTab, () => setLegalTab(null)], [modal, () => setModal(null)],
     [casePdfFor, () => setCasePdfFor(null)], [exportOpen, () => setExportOpen(null)], [wipeOpen, () => setWipeOpen(false)],
     [lockOpen, () => setLockOpen(false)], [profilesOpen, () => setProfilesOpen(false)], [backupOpen, () => setBackupOpen(false)],
@@ -1686,7 +1695,7 @@ function BriefeCore({ profileApi }) {
               open={menuOpen.tools}
               onToggle={() => setMenuOpen((m) => ({ ...m, tools: !m.tools }))}
             >
-              {[["date",t.sortDate],["name",t.sortName],["case",t.sortCase],["deadline",t.sortDeadline]].map(([k,l]) => (
+              {[["date",t.sortDate],["name",t.sortName],["case",t.sortCase],["deadline",t.sortDeadline],...(flags.folderTools !== false ? [["manual",t.sortManual]] : [])].map(([k,l]) => (
                 <MenuItem key={k} c={c} active={sortBy===k} label={l} onClick={() => setSortBy(k)} />
               ))}
             </MenuSection>
@@ -1880,25 +1889,24 @@ function BriefeCore({ profileApi }) {
               onBack={() => setOpenCaseId(null)} onOpenLetter={openLetter}
               onCustomize={() => setTileModal(true)} onToggleStatus={() => toggleCaseStatus(openCase.id)}
               onAdd={() => setIntake((s) => s || { files: [], asPages: false })} onExport={() => openExport([openCase.id])} onCasePdf={() => setCasePdfFor(openCase.id)}
-              onRename={() => setCaseEdit({ id: openCase.id, name: openCase.name })} onDelete={() => setConfirmDel({ kind: "case", id: openCase.id })}
+              onRename={() => setCaseEdit({ id: openCase.id, name: openCase.name, color: openCase.color })} onDelete={() => setConfirmDel({ kind: "case", id: openCase.id })}
               sel={sel} setSel={setSel} onMoveSel={() => sel && sel.length && setMoveFor({ ids: sel })} onDeleteSel={() => sel && sel.length && setConfirmDel({ kind: "docs", ids: sel })}
               daysUntil={daysUntil} uiLang={uiLang} isMobile={isMobile} isRTL={isRTL} searching={searchTerms.length > 0}
             />
           ) : (
             <>
-              {view === "tiles" ? (
-                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(auto-fill, minmax(140px,1fr))" : "repeat(auto-fill, minmax(220px,1fr))", gap: isMobile ? 10 : 16 }}>
-                  {filteredCases.map((cs) => (
-                    <CaseTile key={cs.id} c={c} t={t} fontScale={fontScale} cs={cs} onOpen={() => setOpenCaseId(cs.id)} onToggleStatus={() => toggleCaseStatus(cs.id)} onRename={() => setCaseEdit({ id: cs.id, name: cs.name })} onDelete={() => setConfirmDel({ kind: "case", id: cs.id })} daysUntil={daysUntil} translatedName={caseNameTranslations[cs.id + ":" + uiLang]} uiLang={uiLang} />
-                  ))}
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {filteredCases.map((cs) => (
-                    <CaseRow key={cs.id} c={c} t={t} fontScale={fontScale} cs={cs} onOpen={() => setOpenCaseId(cs.id)} onToggleStatus={() => toggleCaseStatus(cs.id)} onRename={() => setCaseEdit({ id: cs.id, name: cs.name })} onDelete={() => setConfirmDel({ kind: "case", id: cs.id })} daysUntil={daysUntil} translatedName={caseNameTranslations[cs.id + ":" + uiLang]} uiLang={uiLang} />
-                  ))}
-                </div>
-              )}
+              <SortableBox
+                c={c} enabled={flags.folderTools !== false} ids={filteredCases.map((cs) => cs.id)} onReorder={reorderCases}
+                labelOf={(id) => filteredCases.find((cs) => cs.id === id)?.name || ""}
+                style={view === "tiles"
+                  ? { display: "grid", gridTemplateColumns: isMobile ? "repeat(auto-fill, minmax(140px,1fr))" : "repeat(auto-fill, minmax(220px,1fr))", gap: isMobile ? 10 : 16 }
+                  : { display: "flex", flexDirection: "column", gap: 8 }}
+                renderItem={(id, sortProps) => {
+                  const cs = filteredCases.find((x) => x.id === id); if (!cs) return null;
+                  const Item = view === "tiles" ? CaseTile : CaseRow;
+                  return <Item key={cs.id} {...sortProps} c={c} t={t} fontScale={fontScale} cs={cs} onOpen={() => setOpenCaseId(cs.id)} onToggleStatus={() => toggleCaseStatus(cs.id)} onRename={() => setCaseEdit({ id: cs.id, name: cs.name, color: cs.color })} onDelete={() => setConfirmDel({ kind: "case", id: cs.id })} daysUntil={daysUntil} translatedName={caseNameTranslations[cs.id + ":" + uiLang]} uiLang={uiLang} />;
+                }}
+              />
               {filteredCases.length === 0 && (
                 <div style={{ textAlign: "center", padding: 60, color: c.textMuted }}>
                   {t.noCases}
@@ -2116,6 +2124,7 @@ function BriefeCore({ profileApi }) {
                     ["newsletter", "Newsletter (Double-Opt-In)"],
                     ["usSales", "Verkauf in die USA"],
                     ["moreClouds", "Weitere Clouds anbieten (Box, pCloud, MagentaCLOUD, GMX, WEB.DE, HiDrive, Nextcloud)"],
+                    ["folderTools", "Neue Ordner anlegen und Kacheln per Ziehen verschieben"],
                   ].map(([k, label]) => (
                     <SettingRow key={k} c={c} label={label} fontScale={fontScale}>
                       <ToggleSwitch c={c} on={!!flags[k]} label={label} onClick={() => setFlag(k, !flags[k])} />
@@ -2132,11 +2141,12 @@ function BriefeCore({ profileApi }) {
         <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={t.caseRename} onClose={() => setCaseEdit(null)} maxWidth={440}>
           <FieldRow c={c} fontScale={fontScale} label={t.caseName}>
             <input autoFocus style={fieldStyle(c, fontScale)} value={caseEdit.name} onChange={(e) => setCaseEdit({ ...caseEdit, name: e.target.value })}
-              onKeyDown={(e) => { if (e.key === "Enter" && caseEdit.name.trim()) { renameCase(caseEdit.id, caseEdit.name); setCaseEdit(null); } }} />
+              onKeyDown={(e) => { if (e.key === "Enter" && caseEdit.name.trim()) { renameCase(caseEdit.id, caseEdit.name, caseEdit.color); setCaseEdit(null); } }} />
           </FieldRow>
+          {flags.folderTools !== false && <ColorPick c={c} t={t} fontScale={fontScale} value={caseEdit.color} onChange={(col) => setCaseEdit({ ...caseEdit, color: col })} />}
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => setCaseEdit(null)} style={btnSmall(c)}>{t.cancel}</button>
-            <button disabled={!caseEdit.name.trim()} onClick={() => { renameCase(caseEdit.id, caseEdit.name); setCaseEdit(null); }} style={{ ...btnPrimary(c, !caseEdit.name.trim()), flex: 1, width: "auto" }}>{t.save}</button>
+            <button disabled={!caseEdit.name.trim()} onClick={() => { renameCase(caseEdit.id, caseEdit.name, caseEdit.color); setCaseEdit(null); }} style={{ ...btnPrimary(c, !caseEdit.name.trim()), flex: 1, width: "auto" }}>{t.save}</button>
           </div>
         </AppModal>
       )}
@@ -2279,10 +2289,25 @@ function BriefeCore({ profileApi }) {
           onCamera={() => camInputRef.current?.click()}
           onPick={() => pickInputRef.current?.click()} onFiles={addToIntake}
           onCloud={() => setCloudModal({ tab: "import", files: [] })}
+          onNewFolder={flags.folderTools !== false && !progress ? () => setFolderNew({ name: "", color: null }) : null}
           onRemove={(i) => setIntake((s) => ({ ...s, files: s.files.filter((_, k) => k !== i) }))}
           onStart={startIntake} onClose={() => setIntake(null)} progress={progress}
         />
       )}
+      {folderNew && (
+        <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={t.newFolder} onClose={() => setFolderNew(null)} maxWidth={440}>
+          <FieldRow c={c} fontScale={fontScale} label={t.folderName}>
+            <input autoFocus data-folder-name style={fieldStyle(c, fontScale)} value={folderNew.name} onChange={(e) => setFolderNew({ ...folderNew, name: e.target.value })}
+              onKeyDown={(e) => { if (e.key === "Enter" && folderNew.name.trim()) createFolder(folderNew.name, folderNew.color); }} />
+          </FieldRow>
+          <ColorPick c={c} t={t} fontScale={fontScale} value={folderNew.color} auto onChange={(col) => setFolderNew({ ...folderNew, color: col })} />
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => setFolderNew(null)} style={btnSmall(c)}>{t.cancel}</button>
+            <button data-folder-create disabled={!folderNew.name.trim()} onClick={() => createFolder(folderNew.name, folderNew.color)} style={{ ...btnPrimary(c, !folderNew.name.trim()), flex: 1, width: "auto" }}>{t.folderCreate}</button>
+          </div>
+        </AppModal>
+      )}
+
       {cloudModal && (
         <CloudModal
           key={(cloudModal.files || []).map((f) => f.id).join(",")}
@@ -2426,15 +2451,122 @@ function CaseMenu({ c, t, fontScale, cs, onRename, onDelete }) {
   );
 }
 
-function CaseTile({ c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDelete, daysUntil, translatedName, uiLang }) {
+const FOLDER_COLORS = ["#1E5B4F", "#B5502A", "#3E5C8A", "#7A4E8C", "#8A6D1E", "#2F7D5B", "#A23B5A", "#2B7A9B", "#5B5B5B", "#C08A1A"];
+// Farbauswahl für Ordner; auto = Feld darf leer bleiben (dann wählt die App eine Farbe)
+function ColorPick({ c, t, fontScale, value, onChange, auto }) {
+  const dot = (sel) => ({ width: 36, height: 36, borderRadius: 18, cursor: "pointer", padding: 0, boxSizing: "border-box", border: sel ? `3px solid ${c.text}` : `1px solid ${c.border}`, boxShadow: sel ? `0 0 0 2px ${c.surface} inset` : "none" });
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 12 * fontScale, color: c.textMuted, marginBottom: 6 }}>{t.folderColor}</div>
+      <div role="radiogroup" aria-label={t.folderColor} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {auto && <button type="button" role="radio" aria-checked={!value} data-color="auto" title={t.folderColorAuto} aria-label={t.folderColorAuto} onClick={() => onChange(null)}
+          style={{ ...dot(!value), background: c.bg, color: c.textMuted, fontSize: 11 * fontScale, fontFamily: "inherit" }}>A</button>}
+        {FOLDER_COLORS.map((col) => (
+          <button type="button" key={col} role="radio" aria-checked={value === col} data-color={col} aria-label={col} onClick={() => onChange(col)} style={{ ...dot(value === col), background: col }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* Kacheln/Zeilen per Halten und Ziehen umordnen. Auf dem Handy: ca. 0,45 s halten, dann ziehen (normales Scrollen bleibt möglich).
+   Am Mauszeiger genügt Anklicken und Ziehen. Die Elemente bleiben beim Ziehen an ihrem Platz (stabil für Touch);
+   das Ziel wird markiert und beim Loslassen übernimmt der gezogene Fall dessen Platz. */
+function SortableBox({ c, enabled, ids, onReorder, labelOf, renderItem, style }) {
+  const boxRef = useRef(null);
+  const run = useRef(null);
+  const swallow = useRef(false);
+  const cb = useRef({}); cb.current = { ids, onReorder };
+  const [drag, setDrag] = useState(null);
+
+  const scrollParent = (el) => {
+    for (let p = el.parentElement; p; p = p.parentElement) { const o = getComputedStyle(p).overflowY; if ((o === "auto" || o === "scroll") && p.scrollHeight > p.clientHeight) return p; }
+    return null;
+  };
+  const refresh = (r) => {
+    const el = document.elementFromPoint(r.x, r.y);
+    const it = el && el.closest ? el.closest("[data-sid]") : null;
+    r.over = it && boxRef.current && boxRef.current.contains(it) ? it.getAttribute("data-sid") : null;
+    setDrag({ id: r.id, over: r.over, x: r.x, y: r.y });
+  };
+  const finish = (apply) => {
+    const r = run.current; if (!r) return;
+    clearTimeout(r.timer); cancelAnimationFrame(r.raf);
+    window.removeEventListener("pointermove", r.onMove); window.removeEventListener("pointerup", r.onUp); window.removeEventListener("pointercancel", r.onCancel);
+    window.removeEventListener("touchmove", r.onTouch, { passive: false });
+    run.current = null;
+    if (!r.active) return;
+    swallow.current = true; setTimeout(() => { swallow.current = false; }, 400);
+    const { ids: cur, onReorder: fn } = cb.current;
+    if (apply && r.over && r.over !== r.id) {
+      const to = cur.indexOf(r.over); const next = cur.filter((x) => x !== r.id);
+      if (to >= 0 && cur.includes(r.id)) { next.splice(to, 0, r.id); fn(next); }
+    }
+    setDrag(null);
+  };
+  useEffect(() => () => finish(false), []);
+
+  const activate = (r) => {
+    r.active = true; try { navigator.vibrate && navigator.vibrate(15); } catch (e) {}
+    refresh(r);
+    const tick = () => {
+      if (!run.current || !r.active) return;
+      const sp = scrollParent(boxRef.current);
+      const top = sp ? sp.getBoundingClientRect().top : 0, bottom = sp ? sp.getBoundingClientRect().bottom : window.innerHeight;
+      if (sp && r.y < top + 70) sp.scrollTop -= 12; else if (sp && r.y > bottom - 70) sp.scrollTop += 12;
+      refresh(r); r.raf = requestAnimationFrame(tick);
+    };
+    r.raf = requestAnimationFrame(tick);
+  };
+  const down = (e) => {
+    if (!enabled || run.current) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (e.target.closest && e.target.closest("button,a,input,select,textarea,[role=menuitem],[data-nodrag]")) return;
+    const item = e.target.closest && e.target.closest("[data-sid]");
+    if (!item || !boxRef.current || !boxRef.current.contains(item)) return;
+    const mouse = e.pointerType === "mouse";
+    const r = { id: item.getAttribute("data-sid"), x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, active: false, over: null, pid: e.pointerId };
+    r.onMove = (ev) => {
+      if (ev.pointerId !== r.pid) return;
+      r.x = ev.clientX; r.y = ev.clientY;
+      if (!r.active) { const d = Math.hypot(r.x - r.x0, r.y - r.y0); if (mouse ? d > 6 : d > 9) { if (mouse) activate(r); else finish(false); } return; }
+      refresh(r);
+    };
+    r.onUp = (ev) => { if (ev.pointerId === r.pid) finish(true); };
+    r.onCancel = (ev) => { if (ev.pointerId === r.pid) finish(false); };
+    r.onTouch = (ev) => { if (r.active && ev.cancelable) ev.preventDefault(); };   // beim Ziehen nicht scrollen
+    if (!mouse) r.timer = setTimeout(() => { if (run.current === r) activate(r); }, 450);
+    window.addEventListener("pointermove", r.onMove); window.addEventListener("pointerup", r.onUp); window.addEventListener("pointercancel", r.onCancel);
+    window.addEventListener("touchmove", r.onTouch, { passive: false });
+    run.current = r;
+  };
+  const extra = (id) => ({
+    sid: id,
+    dragStyle: !drag ? null : drag.id === id ? { opacity: 0.45, transform: "scale(0.97)" } : drag.over === id ? { outline: `3px solid ${c.accent}`, outlineOffset: -3 } : null,
+  });
+  return (
+    <div ref={boxRef} onPointerDown={down} style={{ ...style, ...(drag ? { userSelect: "none", WebkitUserSelect: "none" } : {}), WebkitTouchCallout: "none" }}
+      onContextMenu={(e) => { if (enabled) e.preventDefault(); }}
+      onClickCapture={(e) => { if (swallow.current) { e.stopPropagation(); e.preventDefault(); } }}>
+      {ids.map((id) => renderItem(id, extra(id)))}
+      {drag && (
+        <div style={{ position: "fixed", left: drag.x, top: drag.y, transform: "translate(-50%, -130%)", pointerEvents: "none", zIndex: 80, maxWidth: 220, padding: "8px 12px", borderRadius: 10, background: c.accent, color: "#fff", fontSize: 13, fontWeight: 700, boxShadow: "0 8px 24px rgba(0,0,0,.3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {labelOf(drag.id)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CaseTile({ sid, dragStyle, c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDelete, daysUntil, translatedName, uiLang }) {
   const dl = caseDeadline(cs);
   const d = dl ? daysUntil(dl) : null;
   const urgent = d !== null && d <= 7 && d >= 0;
   return (
     <div style={{
       border: `1px solid ${c.border}`, borderRadius: 16, background: c.surface, overflow: "hidden",
-      display: "flex", flexDirection: "column", cursor: "pointer",
-    }} onClick={onOpen}>
+      display: "flex", flexDirection: "column", cursor: "pointer", ...(dragStyle || {}),
+    }} data-sid={sid} onClick={onOpen}>
       <div style={{ height: 70, background: cs.color, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", opacity: cs.status === "done" ? 0.55 : 1 }}>
         <Folder size={26} color="#fff" style={{ opacity: 0.9 }} />
         {urgent && (
@@ -2460,14 +2592,14 @@ function CaseTile({ c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDel
   );
 }
 
-function CaseRow({ c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDelete, daysUntil, translatedName, uiLang }) {
+function CaseRow({ sid, dragStyle, c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDelete, daysUntil, translatedName, uiLang }) {
   const dl = caseDeadline(cs);
   const d = dl ? daysUntil(dl) : null;
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12,
-      border: `1px solid ${c.border}`, background: c.surface, cursor: "pointer",
-    }} onClick={onOpen}>
+      border: `1px solid ${c.border}`, background: c.surface, cursor: "pointer", ...(dragStyle || {}),
+    }} data-sid={sid} onClick={onOpen}>
       <div style={{ width: 8, height: 34, borderRadius: 4, background: cs.color, opacity: cs.status === "done" ? 0.55 : 1 }} />
       <div style={{ flex: 1, minWidth: 0, opacity: cs.status === "done" ? 0.6 : 1 }}>
         <div style={{ fontWeight: 600, fontSize: 13 * fontScale, overflowWrap: "anywhere" }}>
@@ -4086,7 +4218,7 @@ function NoticeToast({ c, fontScale, text, onClose, bottom = 16 }) {
 }
 
 /* ---------- Dokument hinzufügen (Kamera / Dateien / Cloud) ---------- */
-function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamera, onPick, onFiles, onCloud, onRemove, onStart, onClose, progress, aiOn, aiPossible, useAi, setUseAi, onTurnAiOn }) {
+function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamera, onPick, onFiles, onCloud, onNewFolder, onRemove, onStart, onClose, progress, aiOn, aiPossible, useAi, setUseAi, onTurnAiOn }) {
   // Das Datei-Feld liegt direkt unter dem Finger (nicht per Programm ausgelöst): so lassen es auch App-Ansichten zu
   const hiddenInput = { position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" };
   const pick = (e) => { const fl = Array.from(e.target.files || []); e.target.value = ""; if (fl.length) onFiles(fl); };
@@ -4104,6 +4236,7 @@ function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamer
           {!busy && <input type="file" multiple onChange={pick} style={hiddenInput} aria-label={t.chooseFiles} />}
         </label>
         <button disabled={busy} onClick={onCloud} style={big}><Cloud size={15} /> {t.fromCloud}</button>
+        {onNewFolder && <button data-new-folder onClick={onNewFolder} style={big}><Folder size={15} /> {t.newFolder}</button>}
       </div>
       {files.length === 0 ? (
         <div style={{ color: c.textMuted, marginBottom: 12 }}>{t.noFilesYet}</div>
@@ -4772,6 +4905,7 @@ const DEFAULT_TILE_FIELDS = [
 ];
 const DEFAULT_PREFS = {
   tileFields: DEFAULT_TILE_FIELDS,
+  caseSort: "date",             // Sortierung der Übersicht · "manual" = eigene Reihenfolge
   layout: null,                 // null = automatisch (Handy neu, Desktop klassisch) · "classic" · "new"
   ai: false,                    // KI ist beim Start aus; der Nutzer schaltet sie nach einem Hinweis selbst ein
   letterSort: { key: "date", dir: "desc" },
@@ -4841,6 +4975,20 @@ function sortLetters(list, key, dir) {
     if (!vb) return -1;
     return va.localeCompare(vb, "de", { numeric: true }) * mul;
   });
+}
+// Fälle werden nach allen ihren Briefen sortiert (nicht nur nach dem ersten); leere Werte stehen unten. "manual" = Reihenfolge der Liste.
+function sortCasesBy(list, key) {
+  const byText = (get, dir = 1) => (a, b) => {
+    const x = get(a), y = get(b);
+    if (!x && !y) return 0; if (!x) return 1; if (!y) return -1;
+    return String(x).localeCompare(String(y), "de", { numeric: true }) * dir;
+  };
+  const sorted = [...list];
+  if (key === "name") sorted.sort(byText((cs) => cs.name.toLowerCase()));
+  if (key === "date") sorted.sort(byText(caseDate, -1));
+  if (key === "case") sorted.sort(byText((cs) => caseNo(cs).toLowerCase()));
+  if (key === "deadline") sorted.sort(byText(caseDeadline));
+  return sorted;
 }
 const caseDate = (cs) => cs.letters.reduce((m, l) => ((l.date || "") > m ? l.date : m), "");
 const caseNo = (cs) => cs.letters.map((l) => l.caseNumber).find((n) => n && n !== "—") || "";
