@@ -1889,13 +1889,13 @@ function BriefeCore({ profileApi }) {
               {view === "tiles" ? (
                 <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(auto-fill, minmax(140px,1fr))" : "repeat(auto-fill, minmax(220px,1fr))", gap: isMobile ? 10 : 16 }}>
                   {filteredCases.map((cs) => (
-                    <CaseTile key={cs.id} c={c} t={t} fontScale={fontScale} cs={cs} onOpen={() => setOpenCaseId(cs.id)} onToggleStatus={() => toggleCaseStatus(cs.id)} daysUntil={daysUntil} translatedName={caseNameTranslations[cs.id + ":" + uiLang]} uiLang={uiLang} />
+                    <CaseTile key={cs.id} c={c} t={t} fontScale={fontScale} cs={cs} onOpen={() => setOpenCaseId(cs.id)} onToggleStatus={() => toggleCaseStatus(cs.id)} onRename={() => setCaseEdit({ id: cs.id, name: cs.name })} onDelete={() => setConfirmDel({ kind: "case", id: cs.id })} daysUntil={daysUntil} translatedName={caseNameTranslations[cs.id + ":" + uiLang]} uiLang={uiLang} />
                   ))}
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {filteredCases.map((cs) => (
-                    <CaseRow key={cs.id} c={c} t={t} fontScale={fontScale} cs={cs} onOpen={() => setOpenCaseId(cs.id)} onToggleStatus={() => toggleCaseStatus(cs.id)} daysUntil={daysUntil} translatedName={caseNameTranslations[cs.id + ":" + uiLang]} uiLang={uiLang} />
+                    <CaseRow key={cs.id} c={c} t={t} fontScale={fontScale} cs={cs} onOpen={() => setOpenCaseId(cs.id)} onToggleStatus={() => toggleCaseStatus(cs.id)} onRename={() => setCaseEdit({ id: cs.id, name: cs.name })} onDelete={() => setConfirmDel({ kind: "case", id: cs.id })} daysUntil={daysUntil} translatedName={caseNameTranslations[cs.id + ":" + uiLang]} uiLang={uiLang} />
                   ))}
                 </div>
               )}
@@ -2384,7 +2384,49 @@ function SettingRow({ c, label, children, fontScale }) {
 }
 
 /* ---------- Kachel-Ansicht ---------- */
-function CaseTile({ c, t, fontScale, cs, onOpen, onToggleStatus, daysUntil, translatedName, uiLang }) {
+/* Kleines Menü (drei Punkte) auf Fall-Kachel und Fall-Zeile: Umbenennen, Löschen */
+function CaseMenu({ c, t, fontScale, cs, onRename, onDelete }) {
+  const [pos, setPos] = useState(null);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!pos) return;
+    const close = () => setPos(null);
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) close(); };
+    const k = (e) => { if (e.key === "Escape") close(); };
+    document.addEventListener("pointerdown", h); document.addEventListener("keydown", k); window.addEventListener("scroll", close, true); window.addEventListener("resize", close);
+    return () => { document.removeEventListener("pointerdown", h); document.removeEventListener("keydown", k); window.removeEventListener("scroll", close, true); window.removeEventListener("resize", close); };
+  }, [pos]);
+  const toggle = (e) => {
+    e.stopPropagation();
+    if (pos) return setPos(null);
+    const r = e.currentTarget.getBoundingClientRect(); const w = 210; const h = 2 * 44 + 10;
+    const left = Math.max(8, Math.min(window.innerWidth - w - 8, r.right - w));
+    const top = window.innerHeight - r.bottom - 74 < h && r.top > h ? r.top - h - 4 : r.bottom + 4;
+    setPos({ left, top, w });
+  };
+  const item = (label, Ico, fn, warn) => (
+    <button role="menuitem" onClick={(e) => { e.stopPropagation(); setPos(null); fn(); }} style={{
+      display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "11px 10px", background: "transparent", border: "none",
+      color: warn ? c.warn : c.text, cursor: "pointer", textAlign: "start", fontSize: 13 * fontScale, borderRadius: 6, fontFamily: "inherit",
+    }}><Ico size={14} style={{ flexShrink: 0 }} /> <span>{label}</span></button>
+  );
+  return (
+    <div ref={ref} onClick={(e) => e.stopPropagation()} style={{ display: "inline-block" }}>
+      <button onClick={toggle} aria-haspopup="menu" aria-expanded={!!pos} aria-label={`${t.more}: ${cs.name}`} title={t.more} style={{
+        width: 36, height: 36, borderRadius: 18, border: "none", background: "transparent", color: c.textMuted, cursor: "pointer",
+        fontSize: 20, lineHeight: 1, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit",
+      }}>⋮</button>
+      {pos && (
+        <div role="menu" style={{ position: "fixed", left: pos.left, top: pos.top, width: pos.w, zIndex: 60, background: c.surface, border: `1px solid ${c.border}`, borderRadius: 10, boxShadow: "0 8px 28px rgba(0,0,0,.22)", padding: 4, boxSizing: "border-box" }}>
+          {item(t.caseRename, Pencil, onRename)}
+          {item(t.caseDelete, Trash2, onDelete, true)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CaseTile({ c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDelete, daysUntil, translatedName, uiLang }) {
   const dl = caseDeadline(cs);
   const d = dl ? daysUntil(dl) : null;
   const urgent = d !== null && d <= 7 && d >= 0;
@@ -2409,16 +2451,17 @@ function CaseTile({ c, t, fontScale, cs, onOpen, onToggleStatus, daysUntil, tran
         )}
         <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted }}>{nLetters(cs.letters.length, t)}</div>
       </div>
-      <div style={{ padding: "0 12px 12px", display: "flex", justifyContent: "flex-end" }}>
-        <div onClick={(e) => { e.stopPropagation(); onToggleStatus(); }} style={{ cursor: "pointer", color: c.textMuted }}>
+      <div style={{ padding: "0 6px 6px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto" }}>
+        <div onClick={(e) => { e.stopPropagation(); onToggleStatus(); }} style={{ cursor: "pointer", color: c.textMuted, padding: "8px 8px 8px 0" }}>
           {cs.status === "done" ? <FolderCheck size={15} /> : <Check size={15} style={{ opacity: 0.35 }} />}
         </div>
+        {onDelete && <CaseMenu c={c} t={t} fontScale={fontScale} cs={cs} onRename={onRename} onDelete={onDelete} />}
       </div>
     </div>
   );
 }
 
-function CaseRow({ c, t, fontScale, cs, onOpen, onToggleStatus, daysUntil, translatedName, uiLang }) {
+function CaseRow({ c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDelete, daysUntil, translatedName, uiLang }) {
   const dl = caseDeadline(cs);
   const d = dl ? daysUntil(dl) : null;
   return (
@@ -2442,6 +2485,7 @@ function CaseRow({ c, t, fontScale, cs, onOpen, onToggleStatus, daysUntil, trans
       <div onClick={(e) => { e.stopPropagation(); onToggleStatus(); }} style={{ cursor: "pointer", color: c.textMuted }}>
         {cs.status === "done" ? <FolderCheck size={16} /> : <Check size={16} style={{ opacity: 0.35 }} />}
       </div>
+      {onDelete && <CaseMenu c={c} t={t} fontScale={fontScale} cs={cs} onRename={onRename} onDelete={onDelete} />}
     </div>
   );
 }
