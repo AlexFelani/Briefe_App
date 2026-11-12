@@ -4397,10 +4397,12 @@ function deDateIso(m) {
 }
 const firstDate = (s) => { const re = new RegExp(RX_DATE, "i"); const m = String(s).match(re); return m ? deDateIso(m) : null; };
 const SENDER_HINT = /(jobcenter|agentur für arbeit|bundesagentur|familienkasse|finanzamt|städteregion|staedteregion|stadt\s|stadtverwaltung|kreis|landkreis|bezirksamt|bürgeramt|buergeramt|ausländerbehörde|auslaenderbehoerde|ordnungsamt|sozialamt|jugendamt|wohngeldstelle|amtsgericht|landgericht|sozialgericht|verwaltungsgericht|arbeitsgericht|gericht|staatsanwaltschaft|polizei|krankenkasse|\baok\b|techniker|\btk\b|barmer|\bdak\b|\bikk\b|\bbkk\b|knappschaft|rentenversicherung|unfallkasse|berufsgenossenschaft|beitragsservice|rundfunk|versicherung|stadtwerke|telekom|vodafone|\bo2\b|telefónica|telefonica|inkasso|sparkasse|volksbank|\bbank\b|gewoge|wohnungs|hausverwaltung|gmbh|\bag\b|\bkg\b|e\.\s?v\.|\bamt\b|behörde|ministerium|universität|hochschule|schule)/i;
-const RECIPIENT = /^(herrn?|frau|familie|eheleute|an\s)/i;
+const RECIPIENT = /^(herrn?|herm|hern|hrn\.?|frau|fr\.|familie|eheleute|an\s)\b/i;
+const ADDRESS = /(stra(ß|ss)e|str\.|weg|platz|allee|gasse|ring|damm|ufer)\s*\d|\b\d{5}\s+[A-ZÄÖÜ]|postfach/i;
+const tidy = (x) => String(x || "").replace(/(\s+(?:[^\p{L}\d\s]{1,3}|[\p{Ll}\d]{1,2}|\p{Lu}))+$/u, "").replace(/[\s.:;,\-–]+$/, "").trim();
 function ruleExtract(text) {
   const raw = String(text || "").replace(/\r/g, "");
-  const lines = raw.split("\n").map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean);
+  const lines = raw.split("\n").map((l) => l.replace(/\s+/g, " ").replace(/^[^\p{L}\d]+/u, "").trim()).filter(Boolean);
   const head = lines.slice(0, 30);
   const flat = raw.replace(/\s+/g, " ");
   // Aktenzeichen / Geschäftszeichen / Kundennummer …
@@ -4423,7 +4425,7 @@ function ruleExtract(text) {
     const m = l.match(new RegExp(String.raw`^[A-ZÄÖÜ][A-Za-zÄÖÜäöüß .\-]{1,40},\s*(?:den\s+)?(?:${RX_DATE})`));
     if (m) { letterDate = deDateIso(m.slice(1)); if (letterDate) break; }
   }
-  if (!letterDate) for (const l of head) { if (/geb(?:oren|\.)|geburt/i.test(l)) continue; const d = firstDate(l); if (d) { letterDate = d; break; } }
+  if (!letterDate) for (const l of head) { if (/geb(?:oren|\.)|geburt|\bbis\b|spätestens|spaetestens|frist|fällig|faellig/i.test(l)) continue; const d = firstDate(l); if (d) { letterDate = d; break; } }
   // Frist mit Datum
   let deadline = null;
   const DL = new RegExp(String.raw`(?:bis\s+(?:spätestens\s+|spaetestens\s+)?(?:zum\s+|am\s+)?|spätestens\s+(?:bis\s+)?(?:zum\s+|am\s+)?|spaetestens\s+(?:bis\s+)?(?:zum\s+|am\s+)?|Frist[^.\n]{0,40}?(?:bis\s+)?(?:zum\s+|am\s+)?|fällig\s+(?:am\s+|zum\s+)?|faellig\s+(?:am\s+|zum\s+)?|zahlbar\s+bis\s+(?:zum\s+)?|Termin\s*[:.]?\s*(?:am\s+)?)(?:den\s+)?(?:${RX_DATE})`, "gi");
@@ -4439,12 +4441,17 @@ function ruleExtract(text) {
   }
   // Absender
   let sender = null;
-  for (const l of head) {
-    if (RECIPIENT.test(l) || /^(sehr geehrt|betreff|betr\.)/i.test(l)) continue;
+  for (const l of lines.slice(0, 14)) {
+    if (RECIPIENT.test(l) || /^(sehr geehrt|betreff|betr\.|ihr\s|mit freundlichen)/i.test(l)) continue;
     if (!SENDER_HINT.test(l)) continue;
     let s = l.split(/\s[·•|]\s|\s[-–]\s|,\s(?=Postfach|\d{5}|[A-ZÄÖÜ][a-zäöüß]+str)/)[0].trim();
     s = s.replace(/\s+(Postfach|Telefon|Tel\.|Fax|E-Mail|www\.).*$/i, "").trim();
+    s = tidy(s);
     if (s.length >= 3 && s.length <= 80 && !/^\d/.test(s)) { sender = s; break; }
+  }
+  if (!sender) {   // Unterschrift unter „Mit freundlichen Grüßen“
+    const g = lines.findIndex((l) => /^mit freundlichen gr|^freundliche gr|^hochachtungsvoll/i.test(l));
+    if (g >= 0) for (const l of lines.slice(g + 1, g + 4)) { const s = tidy(l.replace(/^(ihr|ihre|im auftrag|i\.\s?a\.)\s+/i, "")); if (SENDER_HINT.test(s) && s.length >= 3 && s.length <= 80) { sender = s; break; } }
   }
   // Betreff
   let subject = null;
@@ -4454,7 +4461,7 @@ function ruleExtract(text) {
     const i = lines.findIndex((l) => /^sehr geehrte|^guten tag|^hallo/i.test(l));
     for (let k = i - 1; k >= Math.max(0, i - 4) && i > 0; k--) {
       const l = lines[k];
-      if (l.length < 5 || l.length > 140 || /\d{5}\s/.test(l) || /^(datum|ihr zeichen|unser zeichen|aktenzeichen|telefon|tel\.|fax|e-mail)/i.test(l) || firstDate(l) === firstDate(l) && new RegExp(RX_DATE, "i").test(l) && l.length < 30) continue;
+      if (l.length < 5 || l.length > 140 || /\d{5}\s/.test(l) || ADDRESS.test(l) || /^(datum|ihr zeichen|unser zeichen|aktenzeichen|telefon|tel\.|fax|e-mail)/i.test(l) || firstDate(l) === firstDate(l) && new RegExp(RX_DATE, "i").test(l) && l.length < 30) continue;
       if (RECIPIENT.test(l)) break;
       subject = l; break;
     }
@@ -4463,7 +4470,7 @@ function ruleExtract(text) {
     const kw = lines.find((l) => /^(bescheid|änderungsbescheid|bewilligungsbescheid|ablehnungsbescheid|widerspruchsbescheid|steuerbescheid|beitragsbescheid|mahnung|zahlungserinnerung|rechnung|anhörung|aufforderung|erinnerung|einladung|mitteilung|kündigung|vorladung|ladung|information|hinweis)/i.test(l) && l.length <= 140);
     if (kw) subject = kw;
   }
-  if (subject) subject = subject.replace(/[\s.:;,-]+$/, "");
+  if (subject) subject = tidy(subject);
   return { subject, sender, caseNumber, letterDate, deadline, deadlineNote };
 }
 
