@@ -1,0 +1,5 @@
+Fremdsoftware in diesem Ordner (Lizenz: Apache License 2.0)
+tesseract.js 5.1.1 – https://github.com/naptha/tesseract.js
+tesseract.js-core 5.1.1 – https://github.com/naptha/tesseract.js-core
+Tesseract-Sprachdaten deu (tessdata_fast) – https://github.com/tesseract-ocr/tessdata_fast
+PDF.js 6.2.108 – https://github.com/mozilla/pdf.js
