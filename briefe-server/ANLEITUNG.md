@@ -130,3 +130,13 @@ Briefinhalte gehen nur zur Verarbeitung an den KI-Anbieter und werden auf dem Se
 - **iCloud:** Apple bietet Web-Apps keine Schnittstelle. Es bleibt beim Teilen-Menü und der Dateiauswahl des Geräts.
 - In der App lassen sich alle weiteren Clouds mit dem Betreiberschalter „Weitere Clouds anbieten" ausblenden.
 - Mit echten Konten bei diesen Anbietern wurde noch nicht getestet, nur gegen nachgebaute Gegenstellen.
+
+## Ordner, Unterordner und Speicherort (Stand 12.11.2026)
+
+- **Ordner statt Fall:** Die App spricht überall von „Ordner“. Ordner lassen sich über das Plus anlegen (Name, Farbe nach Wunsch), umbenennen, umfärben, verschieben, löschen und per Halten und Ziehen umsortieren.
+- **Unterordner:** Ein Ordner kann Unterordner enthalten (eine Ebene). Anlegen im Ordner über „Neuer Unterordner“ oder über das Plus („Liegt in“). Ein Ordner mit eigenen Unterordnern kann nicht selbst in einen anderen Ordner gelegt werden. Beim Löschen eines Ordners werden seine Unterordner mit gelöscht; die Dokumente können vorher nach „Unsortiert“ gelegt werden.
+- **Speicherort (Einstellungen → Speicherort):** Wo der Browser es erlaubt (Chrome und Edge am Computer, Chrome auf Android), wählt der Nutzer einen Ordner auf dem Gerät. Die App legt dort alle Dateien als normale Dateien ab, in denselben Ordnern und Unterordnern wie in der App, dazu die Datei `briefe-app-daten.json` mit allen Angaben. Nach geleertem Browser-Speicher lässt sich der Bestand aus diesem Ordner zurückholen. In Safari und Firefox gibt es diese Funktion nicht; dort bleibt der Browser-Speicher mit Sicherung.
+- **Speicherfehler:** Kann eine Datei oder Änderung nicht dauerhaft gespeichert werden, zeigt die App eine deutliche Meldung.
+- **Erinnerung an die Sicherung:** alle 30 Tage, solange eigene Dokumente vorhanden sind und kein Speicherordner verbunden ist.
+- **Barrierefreiheit:** Sprache der Seite folgt der App-Sprache, Fenster und Knöpfe sind beschriftet, Ordner per Tastatur bedienbar, Kontraste im dunklen Design korrigiert. Unter „Rechtliches“ gibt es den Entwurf einer Erklärung zur Barrierefreiheit (Platzhalter vor dem Livegang füllen, Prüfung durch Fachstelle steht aus).
+- **Betreiber-Schalter:** „Neue Ordner und Unterordner …“ (`folderTools`) und „Speicherordner auf dem Gerät anbieten“ (`deviceFolder`).

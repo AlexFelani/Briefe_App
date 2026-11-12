@@ -22,6 +22,7 @@ const palette = {
     accentSoft: "#DCEAE5",
     warn: "#B5502A",
     warnSoft: "#F6E3D8",
+    onAccent: "#FFFFFF",   // Schrift auf Akzent-/Warnfläche
   },
   dark: {
     bg: "#15181A",
@@ -29,11 +30,12 @@ const palette = {
     surfaceAlt: "#262B2D",
     border: "#33393B",
     text: "#EFEDE8",
-    textMuted: "#9C9border",
+    textMuted: "#A8A297",
     accent: "#4FA893",
     accentSoft: "#243330",
     warn: "#E0865C",
     warnSoft: "#332420",
+    onAccent: "#0F1B18",   // im dunklen Design dunkle Schrift auf den hellen Akzentflächen (Kontrast)
   },
 };
 
@@ -60,7 +62,7 @@ const OPERATOR = {               // Betreiberangaben für Impressum/Datenschutz 
   phone: "[Telefonnummer oder zweiter schneller Kontaktweg]",
 };
 const DEFAULT_SHOP = {
-  flags: { paymentRequired: false, subscription: false, tracking: false, newsletter: false, usSales: false, ai: true, moreClouds: true, folderTools: true },   // ai = KI-Funktionen anbieten (Nutzer schaltet sie selbst zu)
+  flags: { paymentRequired: false, subscription: false, tracking: false, newsletter: false, usSales: false, ai: true, moreClouds: true, folderTools: true, deviceFolder: true },   // ai = KI-Funktionen anbieten (Nutzer schaltet sie selbst zu)
   orders: [],
   unlocked: {},     // letterId -> "free" | "paid"
   consent: null,    // { status: "accepted" | "declined", at }
@@ -124,8 +126,8 @@ const LANGS = [
 
 const UI_STRINGS = {
   de: {
-    appName: "Briefe", newCase: "Neuer Fall", search: "Suchen…", myCases: "Meine Fälle",
-    settings: "Einstellungen", allCases: "Alle Fälle", open: "Offen", done: "Erledigt",
+    appName: "Briefe", newCase: "Neuer Ordner", search: "Suchen…", myCases: "Meine Ordner",
+    settings: "Einstellungen", allCases: "Alle Ordner", open: "Offen", done: "Erledigt",
     upload: "Dokument hochladen", translate: "Übersetzen", reply: "Antwort erstellen",
     deadline: "Frist", noDeadline: "Keine Frist erkannt", tabText: "Text", tabReply: "Antwort",
     translation: "Übersetzung", generateReply: "KI-Antwort generieren", confirm: "Geprüft & bestätigen",
@@ -147,7 +149,7 @@ const UI_STRINGS = {
     checkOk: "Alle {n} Angaben aus dem Original (Datum, Betrag, Aktenzeichen, Kontonummer) stehen mit denselben Ziffern in der Übersetzung.",
     checkMissing: "Diese Angaben aus dem Original wurden in der Übersetzung nicht gefunden:", checkCompare: "Bitte vergleiche diese Stellen mit dem Original. Es gilt das Original.",
     checkAi: "Übersetzung von der KI prüfen lassen", checkAiLabel: "Prüfung durch KI – kann selbst Fehler enthalten. Verbindlich ist nur das Original.",
-    letterWord: "Dokument", noCases: "Keine Fälle gefunden. Füge ein Dokument hinzu, um zu starten.", searchHint: "(auch in deiner Sprache, z. B. „recovery“)", menu: "Menü",
+    letterWord: "Dokument", noCases: "Keine Ordner gefunden. Füge ein Dokument hinzu, um zu starten.", searchHint: "(auch in deiner Sprache, z. B. „recovery“)", menu: "Menü",
     layoutLabel: "Design", layoutClassic: "Desktop", layoutNew: "Klassisch",
     tabHome: "Home", tabSearch: "Suche", tabAdd: "Hinzufügen", tabDeadlines: "Fristen", tabProfile: "Profil",
     docFrom: "Dokument vom {d}", unsortedCase: "Unsortiert", more: "Mehr", viewLarge: "Groß ansehen", fileOf: "Datei {n} von {total}", closeWord: "Schließen",
@@ -162,24 +164,39 @@ const UI_STRINGS = {
     aiConsentYes: "Einschalten", aiUseHere: "Mit KI lesen und Angaben ausfüllen", aiIsOff: "Die KI ist aus.", aiTurnOn: "KI einschalten",
     detailsTitle: "Angaben zum Dokument", detailsTitleN: "Angaben zu {n} Dokumenten", detailsHint: "Alles ist freiwillig. Leere Felder kannst du später ausfüllen.",
     detailsAiHint: "Von der KI ausgefüllt – bitte prüfen.", detailsAiFail: "Die KI konnte nichts lesen. Du kannst die Angaben selbst eintragen.",
-    fName: "Name", moreFields: "Weitere Angaben", lessFields: "Weniger Angaben", caseNewName: "Name des neuen Falls", backWord: "Zurück",
+    fName: "Name", moreFields: "Weitere Angaben", lessFields: "Weniger Angaben", caseNewName: "Name des neuen Ordners", backWord: "Zurück",
     grpLook: "Darstellung", grpAi: "KI", grpRemind: "Erinnerungen", grpSecurity: "Sicherheit & Profile", grpData: "Daten", grpHelp: "Hilfe & Rechtliches", grpOperator: "Betreiber-Schalter",
-    toolsSection: "Fristen & Daten", viewToggle: "Ansicht wechseln", caseRename: "Fall umbenennen", caseDelete: "Fall löschen", caseName: "Name des Falls",
+    toolsSection: "Fristen & Daten", viewToggle: "Ansicht wechseln", caseRename: "Ordner umbenennen", caseDelete: "Ordner löschen", caseName: "Name des Ordners",
     moveWord: "Verschieben", deleteWord: "Löschen", selectWord: "Auswählen", selectedN: "{n} ausgewählt", moveTitle: "Verschieben nach", moveDo: "Hierhin verschieben",
     delDocsTitle: "Löschen?", delDocsText: "{n} Dokument(e) mit allen Dateien endgültig löschen? Das kann nicht rückgängig gemacht werden.",
     delFile: "Diese Datei löschen", delFileText: "Datei „{n}“ endgültig löschen? Das kann nicht rückgängig gemacht werden.",
-    delCaseText: "Fall „{n}“ löschen?", delCaseWith: "Der Fall enthält {n} Dokument(e). Was soll mit ihnen geschehen?",
-    delCaseAll: "Fall und Dokumente endgültig löschen", delCaseKeep: "Dokumente nach „Unsortiert“ verschieben, nur den Fall löschen",
-    noticeMoved: "{n} Dokument(e) verschoben.", noticeDeleted: "{n} Dokument(e) gelöscht.", fileDeleted: "Datei gelöscht.", caseDeleted: "Fall gelöscht.",
+    delCaseText: "Ordner „{n}“ löschen?", delCaseWith: "Der Ordner enthält {n} Dokument(e). Was soll mit ihnen geschehen?",
+    delCaseAll: "Ordner und Dokumente endgültig löschen", delCaseKeep: "Dokumente nach „Unsortiert“ verschieben, nur den Ordner löschen",
+    noticeMoved: "{n} Dokument(e) verschoben.", noticeDeleted: "{n} Dokument(e) gelöscht.", fileDeleted: "Datei gelöscht.", caseDeleted: "Ordner gelöscht.",
     replyOwnPh: "Schreibe hier deine Antwort.", replyOwnStart: "Eigene Antwort schreiben", replyAiHead: "Antwort von der KI entwerfen lassen",
     home: "Übersicht", langSearch: "Sprache suchen…", noLangFound: "Keine Sprache gefunden", copied: "Kopiert!",
     intakeTitle: "Dokument hinzufügen", takePhoto: "Foto aufnehmen", addPage: "Weitere Seite fotografieren",
     chooseFiles: "Dateien auswählen (Foto, PDF, Word …)", fromCloud: "Aus Cloud holen",
+    subfolders: "Unterordner", newSubfolder: "Neuer Unterordner", folderParent: "Liegt in", folderTop: "Hauptebene (kein Oberordner)", folderMove: "Ordner verschieben", folderMoved: "Ordner verschoben.",
+    folderMoveHasSubs: "Dieser Ordner hat selbst Unterordner. Er kann deshalb nicht in einen anderen Ordner gelegt werden.", folderCreated: "Ordner angelegt.",
+    delCaseSubs: "Der Ordner enthält {n} Unterordner. Sie werden mit gelöscht.", subCount: "{n} Unterordner", inFolder: "in: {n}", demoBadge: "Beispiel",
+    addFileBtn: "Datei hinzufügen", layoutChanged: "Design gewechselt: {n}", closeWord: "Schließen", openFolder: "Ordner öffnen", markDone: "Als erledigt markieren", markOpen: "Wieder öffnen",
+    storeFailFile: "Achtung: Eine Datei konnte nicht dauerhaft gespeichert werden (Speicher voll oder gesperrt). Sie geht beim Schließen der App verloren. Bitte Speicherplatz schaffen und eine Sicherung erstellen.",
+    storeFailData: "Achtung: Die letzte Änderung konnte nicht gespeichert werden (Speicher voll oder gesperrt). Bitte Speicherplatz schaffen und eine Sicherung erstellen.",
+    backupNow: "Jetzt sichern", laterWord: "Später", backupDueNever: "Du hast noch keine Sicherung deiner Dokumente. Der Browser kann gespeicherte Daten löschen – eine Sicherung schützt davor.",
+    backupDueOld: "Deine letzte Sicherung ist über 30 Tage her. Bitte sichere deine Dokumente.",
+    storeTitle: "Speicherort", storeOpenBtn: "Speicherort wählen", storeInfo: "Normalerweise liegen deine Dokumente im Speicher des Browsers. Hier kannst du zusätzlich einen Ordner auf diesem Gerät wählen. Die App legt dort alle Dateien als normale Dateien ab – in denselben Ordnern und Unterordnern wie in der App. So findest du sie auch ohne die App, und sie bleiben erhalten, wenn der Browser seinen Speicher leert.",
+    storeUnsupported: "Dieser Browser erlaubt keinen Speicherordner. Das geht in Chrome und Edge am Computer und in Chrome auf Android. Deine Dokumente liegen hier nur im Speicher des Browsers – bitte sichere sie regelmäßig.",
+    storeChoose: "Ordner auf diesem Gerät wählen", storeChange: "Anderen Ordner wählen", storeConnected: "Verbunden mit dem Ordner „{n}“.", storeSyncNow: "Jetzt abgleichen", storeDisconnect: "Verbindung trennen",
+    storeDisconnected: "Verbindung getrennt. Die Dateien im Ordner bleiben erhalten.", storeLast: "Zuletzt abgeglichen: {t}", storeReconnect: "Speicherordner wieder verbinden",
+    storeAskText: "Der Browser braucht deine Erlaubnis erneut, damit die App in den Speicherordner schreiben kann.", storeErr: "Der Speicherordner ist gerade nicht erreichbar. Deine Dokumente sind weiter im Browser gespeichert.",
+    storeFound: "In diesem Ordner liegt schon ein Bestand der Briefe-App ({n} Dokumente). Was möchtest du tun?", storeRestore: "Bestand in die App holen und verbinden", storeUseAnyway: "Nur verbinden (Ordner wird mit dem Stand der App überschrieben)",
+    storeSynced: "Speicherordner abgeglichen.", storeFailN: "{n} Datei(en) konnten nicht in den Speicherordner geschrieben werden.", storeRestored: "{c} Ordner und {l} Dokument(e) aus dem Speicherordner geholt.", storeBusy: "Wird abgeglichen …",
     newFolder: "Neuer Ordner", folderName: "Name des Ordners", folderColor: "Farbe (kann leer bleiben)", folderColorAuto: "Automatisch", folderCreate: "Ordner anlegen", sortManual: "Eigene Reihenfolge",
     noFilesYet: "Noch keine Dateien ausgewählt.", pagesOfOne: "Diese Dateien sind Seiten eines einzigen Dokuments",
     intakeLocalNote: "Die Dateien bleiben auf deinem Gerät. Es wird nichts übertragen.", intakeAiNote: "Die Dateien bleiben auf deinem Gerät. Zum Lesen wird der Inhalt an den KI-Dienst gesendet.",
     intakeReading: "Wird gelesen … ({n} von {total})", startIntake: "Weiter",
-    assignNew: "Neuer Fall", sameSenderHint: "Gleicher Absender wie in diesem Fall – bitte prüfen.",
+    assignNew: "Neuer Ordner", sameSenderHint: "Gleicher Absender wie in diesem Ordner – bitte prüfen.",
     filesTitle: "Dateien (auf deinem Gerät)", view: "Ansehen", download: "Herunterladen", shareFile: "Teilen",
     toCloud: "In Cloud sichern", openNewTab: "In neuem Tab öffnen",
     cloudsMenu: "Dateien & Clouds", cloudTabImport: "Holen aus …", cloudTabExport: "Sichern in …", cloudTabConn: "Verbindungen",
@@ -210,8 +227,8 @@ const UI_STRINGS = {
     fDeadline: "Frist", fPages: "Seiten", fNote: "Notiz", fUploaded: "Hochgeladen",
     lettersWord: "Dokumente", sortBy: "Sortieren nach", ascending: "Aufsteigend", descending: "Absteigend",
     customizeTiles: "Kachel anpassen", customizeHint: "Wähle, was auf der Dokument-Kachel steht, und verschiebe die Reihenfolge. Das gilt für alle Dokumente.",
-    resetDefault: "Voreinstellung", previewWord: "Vorschau", noHits: "Keine Treffer in diesem Fall.", caseEmpty: "In diesem Fall sind noch keine Dokumente.",
-    editLetter: "Dokument bearbeiten", deadlineNoteLabel: "Frist als Text (wenn kein Datum bekannt)", moveToCase: "Fall", save: "Speichern",
+    resetDefault: "Voreinstellung", previewWord: "Vorschau", noHits: "Keine Treffer in diesem Ordner.", caseEmpty: "In diesem Ordner sind noch keine Dokumente.",
+    editLetter: "Dokument bearbeiten", deadlineNoteLabel: "Frist als Text (wenn kein Datum bekannt)", moveToCase: "Ordner", save: "Speichern",
     deleteLetter: "Dokument löschen", deleteConfirm: "Wirklich löschen? Die Originaldateien werden ebenfalls gelöscht.",
     addAttachment: "Anhang hinzufügen", addEnvelope: "Umschlag fotografieren", envelope: "Umschlag",
     escTitle: "Wichtiges Dokument – Beratung empfohlen", escIntro: "Bei diesem Dokument kann viel davon abhängen. Du kannst trotzdem eine Antwort erstellen. Wir empfehlen dir zusätzlich eine Beratung. Gründe:",
@@ -220,7 +237,7 @@ const UI_STRINGS = {
     escHelpTitle: "Hier bekommst du Hilfe:", escHelp1: "Beratungshilfe: Mit wenig Geld bekommst du beim Amtsgericht (Rechtsantragstelle) einen Beratungshilfeschein für einen Anwalt.",
     escHelp2: "Rechtsanwältin oder Rechtsanwalt (Fachanwalt für das Thema)", escHelp3: "Sozialberatung (z. B. Caritas, Diakonie, AWO) bei Jobcenter, Sozialamt oder Schulden",
     escHelp4: "Mieterverein bei Problemen mit der Wohnung, Verbraucherzentrale bei Inkasso und Verträgen", escHelp5: "Migrationsberatung oder Flüchtlingsberatung bei Fragen zum Aufenthalt",
-    escDeadlineHint: "Wichtig: Lass die Frist nicht verstreichen. Nimm dieses Dokument zur Beratung mit (z. B. als Fall-PDF).",
+    escDeadlineHint: "Wichtig: Lass die Frist nicht verstreichen. Nimm dieses Dokument zur Beratung mit (z. B. als Ordner-PDF).",
     aiLabelTranslation: "Mit KI übersetzt – kann Fehler enthalten. Verbindlich ist nur das Original.", aiLabelReply: "Mit KI erstellter Entwurf – bitte vor dem Absenden selbst prüfen.",
     freeNeedsLogin: "Für die kostenlosen Dokumente bitte kurz anmelden (E-Mail-Link oder Universal Profile).", serverFail: "Der Server ist gerade nicht erreichbar. Bitte später erneut versuchen.",
     loginDone: "Du bist angemeldet.", loginLinkBad: "Der Anmeldelink ist ungültig oder abgelaufen. Bitte fordere einen neuen an.", mailSent: "Wir haben dir einen Link geschickt. Bitte öffne ihn auf diesem Gerät.",
@@ -232,7 +249,7 @@ const UI_STRINGS = {
     fbAsk: "Wie gut war das?", fbGood: "Gut", fbBad: "Nicht gut", fbThanks: "Danke!", fbComment: "Was war falsch? (optional)", fbSave: "Speichern",
     fbShareLabel: "Bewertungen anonym an den Anbieter senden (ohne Text des Dokuments), damit Übersetzungen besser werden",
     obLangTitle: "Willkommen! Welche Sprache sprichst du?", obLangText: "Die App zeigt alles in deiner Sprache.",
-    obAddTitle: "Dokumente hinzufügen", obAddText: "Fotografiere ein Dokument oder lade ein Foto oder eine PDF hoch – auch aus deiner Cloud. Mehrere Seiten gehören zu einem Dokument. Am Ende gibst du ihm einen Namen und legst es in einen Fall. Alle Angaben sind freiwillig.",
+    obAddTitle: "Dokumente hinzufügen", obAddText: "Fotografiere ein Dokument oder lade ein Foto oder eine PDF hoch – auch aus deiner Cloud. Mehrere Seiten gehören zu einem Dokument. Am Ende gibst du ihm einen Namen und legst es in einen Ordner. Alle Angaben sind freiwillig.",
     obReadTitle: "KI – nur wenn du willst", obReadText: "Die KI ist beim Start aus. Die App funktioniert auch ohne sie. Schaltest du die KI in den Einstellungen ein, liest sie deine Dokumente, füllt Name, Absender und Frist aus, übersetzt und schreibt auf Wunsch einen Antwort-Entwurf. Prüfe jeden Entwurf selbst. Die App sendet nie etwas von allein.",
     obDeadTitle: "Fristen nicht verpassen", obDeadText: "Trage zu einem Dokument eine Frist ein – oder lass sie von der KI erkennen. Die App erinnert dich und trägt die Frist auf Wunsch in deinen Kalender ein. Das kannst du jederzeit unter „Fristen & Erinnerungen“ ändern.",
     obPrivTitle: "Deine Daten", obPrivText: "Dokumente und Dateien werden auf deinem Gerät gespeichert. Ohne KI verlässt nichts dein Gerät. Nur wenn du die KI einschaltest, wird der Inhalt zum Lesen, Übersetzen und Antworten an einen KI-Dienst übertragen. Die KI kann Fehler machen und ersetzt keine Rechtsberatung. Du kannst die App mit einer PIN sperren und alle Daten jederzeit exportieren oder löschen.",
@@ -240,14 +257,14 @@ const UI_STRINGS = {
     coHelpTitle: "Kurz erklärt – in deiner Sprache", coHelpOne: "Du zahlst {price} einmal für dieses Dokument (Übersetzung und Antwort-Entwurf). Kein Abo, keine automatische Verlängerung.", coHelpSub: "Du zahlst {price} pro Monat. Der Vertrag läuft weiter, bis du kündigst (Frist: {term}). Kündigen kannst du unter „Käufe & Widerruf“.",
     coHelpBoxes: "Zwei Kästchen musst du ankreuzen: Das erste erlaubt, dass sofort begonnen wird – danach kannst du nicht mehr widerrufen. Das zweite bestätigt, dass du AGB, Widerrufsbelehrung und Datenschutz gelesen hast.", coHelpButton: "Erst der Knopf „{btn}“ kauft verbindlich. Davor wird nichts abgebucht.", coHelpGerman: "Verbindlich sind die deutschen Texte (AGB, Widerrufsbelehrung, Datenschutz, Bestellübersicht). Sie bleiben immer auf Deutsch.", coHelpLive: "Die Zahlungsart wählst du auf der nächsten Seite beim Zahlungsdienst.", coHelpDemo: "Demo-Modus: Es wird nichts abgebucht.",
     obNext: "Weiter", obBack: "Zurück", obStart: "Los geht's", obSkip: "Überspringen", obTranslating: "Die App wird in deine Sprache übersetzt …", obAgain: "Einführung ansehen",
-    casePdf: "Fall als PDF", casePdfInfo: "Eine PDF mit Inhaltsverzeichnis und allen Dokumenten dieses Falls – Angaben, Text, Übersetzung, Antwort und Verlauf –, z. B. für Anwalt, Beratungsstelle oder Amt.",
+    casePdf: "Ordner als PDF", casePdfInfo: "Eine PDF mit Inhaltsverzeichnis und allen Dokumenten dieses Ordners – Angaben, Text, Übersetzung, Antwort und Verlauf –, z. B. für Anwalt, Beratungsstelle oder Amt.",
     casePdfPhotos: "Fotos der Dokumente einfügen", casePdfBuild: "PDF erstellen", casePdfBusy: "Erstelle PDF …", casePdfToc: "Inhalt",
-    casePdfImgFail: "Foto „{n}“ konnte nicht eingefügt werden (Format wird hier nicht unterstützt). Es ist im Fall als eigene Datei gespeichert.",
+    casePdfImgFail: "Foto „{n}“ konnte nicht eingefügt werden (Format wird hier nicht unterstützt). Es ist im Ordner als eigene Datei gespeichert.",
     casePdfSeparate: "Anlage „{n}“ ist als eigene Datei gespeichert (nicht in dieser PDF).", casePdfMissing: "Datei „{n}“ ist auf diesem Gerät nicht mehr vorhanden.",
     profilesTitle: "Profile (mehrere Nutzer)", profileWho: "Wer nutzt die App?", profileAdd: "Hinzufügen", profileName: "Name des neuen Profils",
     profileDefaultName: "Ich", profileSwitch: "Profil wechseln", profileActive: "aktiv", profileRename: "Umbenennen", profileDelete: "Profil löschen",
     profileDeleteConfirm: "Profil „{n}“ mit allen Dokumenten, Dateien und Einstellungen endgültig löschen?",
-    profilesInfo: "Jedes Profil hat eigene Fälle, Dokumente, Dateien, Einstellungen und eine eigene Sperre. Andere Profile sehen diese Daten nicht. Käufe und Guthaben gelten für das ganze Gerät.",
+    profilesInfo: "Jedes Profil hat eigene Ordner, Dokumente, Dateien, Einstellungen und eine eigene Sperre. Andere Profile sehen diese Daten nicht. Käufe und Guthaben gelten für das ganze Gerät.",
     lockTitle: "App-Sperre (PIN / Biometrie)", lockInfo: "Schützt dieses Profil mit einer PIN (4–8 Ziffern) und auf Wunsch mit Fingerabdruck oder Gesichtserkennung. Gespeichert wird nur ein Prüfwert, nicht die PIN.",
     lockHonest: "Die Sperre schützt den Zugang über die App. Nutze zusätzlich die Bildschirmsperre deines Handys.",
     lockSet: "PIN festlegen", lockChange: "Änderungen speichern", lockRemove: "Sperre entfernen", pinCurrent: "Aktuelle PIN", pinNew: "Neue PIN", pinRepeat: "Neue PIN wiederholen",
@@ -256,19 +273,19 @@ const UI_STRINGS = {
     lockNoCrypto: "Die Sperre braucht eine sichere Verbindung (https).", lockSaved: "Sperre gespeichert.", lockRemoved: "Sperre entfernt.", lockNow: "Jetzt sperren",
     unlockTitle: "Entsperren", pinEnter: "PIN", unlockBtn: "Entsperren", pinWrong: "Falsche PIN.", pinWait: "Zu viele Versuche. Bitte {n} Sekunden warten.", bioBtn: "Mit Fingerabdruck / Gesicht",
     pinForgot: "PIN vergessen?", pinForgotInfo: "Die PIN kann aus Sicherheitsgründen nicht wiederhergestellt werden. Du kannst dieses Profil mit allen Daten löschen und neu beginnen. Ein vorhandenes Backup kannst du danach wieder einspielen.",
-    wipeTitle: "Alle Daten löschen", wipeInfo: "Löscht Fälle, Dokumente, Dateien, Einstellungen und Erinnerungen von diesem Gerät, außerdem Kalender-Abo und Push-Erinnerungen auf dem Server. Kopien in deinen Clouds, Kalendern oder Backups bleiben dort und müssen dort gelöscht werden.",
+    wipeTitle: "Alle Daten löschen", wipeInfo: "Löscht Ordner, Dokumente, Dateien, Einstellungen und Erinnerungen von diesem Gerät, außerdem Kalender-Abo und Push-Erinnerungen auf dem Server. Kopien in deinen Clouds, Kalendern oder Backups bleiben dort und müssen dort gelöscht werden.",
     wipeExportFirst: "Vorher alles exportieren", wipeScopeProfile: "Nur dieses Profil", wipeScopeAll: "Alle Profile und alle Daten auf diesem Gerät",
     wipeType: "Zur Bestätigung „{w}“ eingeben:", wipeWord: "LÖSCHEN", wipeBtn: "Endgültig löschen", wipeDone: "Die Daten wurden gelöscht.",
     backupAllProfiles: "Alle Profile in das Backup aufnehmen",
-    exportTitle: "Export (alle Dokumente & Dateien)", exportAllCases: "Alle Fälle", exportFormatLabel: "Dokumente speichern als",
+    exportTitle: "Export (alle Dokumente & Dateien)", exportAllCases: "Alle Ordner", exportFormatLabel: "Dokumente speichern als",
     fmtPdf: "PDF (empfohlen)", fmtTxt: "Textdatei", fmtBoth: "PDF und Textdatei",
     exportOriginals: "Original-Dateien mitexportieren (Fotos, PDFs, Anlagen, Umschlag)",
     exportPdfNote: "Je Dokument: Angaben, Text, Übersetzung und Antwort. Die PDF zeigt jede Schrift korrekt, auch Arabisch oder Persisch. Wer den Text durchsuchen oder kopieren will, wählt zusätzlich die Textdatei. Dazu kommt eine Übersicht aller Dokumente für Excel (CSV).",
-    exportSize: "Geschätzte Größe: {s}", exportSizeWarn: "Geschätzte Größe: {s}. Das kann auf älteren Geräten dauern – bei Problemen Fälle einzeln exportieren.",
+    exportSize: "Geschätzte Größe: {s}", exportSizeWarn: "Geschätzte Größe: {s}. Das kann auf älteren Geräten dauern – bei Problemen Ordner einzeln exportieren.",
     exportBuild: "Export erstellen", exportBusy: "Erstelle Export … {n} von {total} Dokumenten", exportReady: "Export fertig",
     exportDownload: "Herunterladen", exportShare: "Teilen", exportCloud: "In Cloud speichern", exportAgain: "Neu erstellen",
-    exportFail: "Export fehlgeschlagen. Bitte erneut versuchen oder weniger Fälle wählen.", exportTooBig: "Der Export ist zu groß. Bitte weniger Fälle auf einmal exportieren.",
-    exportNoCases: "Keine Fälle vorhanden.", exportCase: "Fall exportieren", caseWord: "Fall", filesWord: "Dateien",
+    exportFail: "Export fehlgeschlagen. Bitte erneut versuchen oder weniger Ordner wählen.", exportTooBig: "Der Export ist zu groß. Bitte weniger Ordner auf einmal exportieren.",
+    exportNoCases: "Keine Ordner vorhanden.", exportCase: "Ordner exportieren", caseWord: "Ordner", filesWord: "Dateien",
     secOriginal: "Text des Dokuments", secTranslation: "Übersetzung", secReply: "Antwort", secReplyTr: "Übersetzung der Antwort",
     draftNotConfirmed: "Entwurf – noch nicht geprüft und bestätigt", exportedOn: "Exportiert am {d} mit der Briefe-App",
     exLetterFile: "Dokument", exOriginal: "Original", exEnvelope: "Umschlag", exAttachment: "Anlage", exOverview: "Übersicht", exNotes: "Hinweise", exFolder: "Ordner",
@@ -277,8 +294,8 @@ const UI_STRINGS = {
     confirmedOn: "Bestätigt am {d}", confirmFirst: "Erst bestätigen, dann exportieren oder senden.",
     mailLong: "Der Text ist lang und liegt in der Zwischenablage. Füge ihn in die E-Mail ein.", popupBlocked: "Bitte Pop-ups erlauben, damit sich das PDF öffnen kann.",
     backupTitle: "Backup", backupSave: "Backup als Datei speichern", backupCloud: "Backup in Cloud sichern", backupRestore: "Backup einspielen",
-    backupInfo: "Enthält alle Fälle, Dokumente und Originaldateien (ohne Beispieldaten, Konto und Käufe). Beim Einspielen wird alles zu deinen vorhandenen Daten hinzugefügt, nichts wird überschrieben.",
-    backupDone: "Backup gespeichert.", backupRestored: "{c} Fall/Fälle und {l} Dokument(e) hinzugefügt.", backupBad: "Das ist keine gültige Backup-Datei.",
+    backupInfo: "Enthält alle Ordner, Dokumente und Originaldateien (ohne Beispieldaten, Konto und Käufe). Beim Einspielen wird alles zu deinen vorhandenen Daten hinzugefügt, nichts wird überschrieben.",
+    backupDone: "Backup gespeichert.", backupRestored: "{c} Ordner und {l} Dokument(e) hinzugefügt.", backupBad: "Das ist keine gültige Backup-Datei.",
     needPass: "Bitte zuerst ein Passwort eingeben oder die Verschlüsselung ausschalten.", wrongPass: "Entschlüsseln fehlgeschlagen (falsches Passwort?).",
     demoShow: "Beispieldaten anzeigen", demoRemove: "Beispieldaten entfernen",
     remindersTitle: "Fristen & Erinnerungen", remindersNone: "Keine Fristen eingetragen.", remindersOn: "Benachrichtigungen aktivieren", remindersOff: "Benachrichtigungen ausschalten",
@@ -296,8 +313,8 @@ const UI_STRINGS = {
     remindTitle: "Frist in {d} Tag(en)", remindToday: "Frist heute",
   },
   en: {
-    appName: "Letters", newCase: "New case", search: "Search…", myCases: "My cases",
-    settings: "Settings", allCases: "All cases", open: "Open", done: "Done",
+    appName: "Letters", newCase: "New folder", search: "Search…", myCases: "My folders",
+    settings: "Settings", allCases: "All folders", open: "Open", done: "Done",
     upload: "Upload document", translate: "Translate", reply: "Draft reply",
     deadline: "Deadline", noDeadline: "No deadline detected", tabText: "Text", tabReply: "Reply",
     translation: "Translation", generateReply: "Generate AI reply", confirm: "Reviewed & confirm",
@@ -319,7 +336,7 @@ const UI_STRINGS = {
     checkOk: "All {n} details from the original (date, amount, reference number, account number) appear with the same digits in the translation.",
     checkMissing: "These details from the original were not found in the translation:", checkCompare: "Please compare these places with the original. The original applies.",
     checkAi: "Have the AI check the translation", checkAiLabel: "Check by AI – may itself contain errors. Only the original is binding.",
-    letterWord: "document", noCases: "No cases found. Add a document to get started.", searchHint: "(also in your language, e.g. “recovery”)", menu: "Menu",
+    letterWord: "document", noCases: "No folders found. Add a document to get started.", searchHint: "(also in your language, e.g. “recovery”)", menu: "Menu",
     layoutLabel: "Layout", layoutClassic: "Desktop", layoutNew: "Classic",
     tabHome: "Home", tabSearch: "Search", tabAdd: "Add", tabDeadlines: "Deadlines", tabProfile: "Profile",
     docFrom: "Document of {d}", unsortedCase: "Unsorted", more: "More", viewLarge: "View large", fileOf: "File {n} of {total}", closeWord: "Close",
@@ -334,24 +351,39 @@ const UI_STRINGS = {
     aiConsentYes: "Turn on", aiUseHere: "Read with AI and fill in details", aiIsOff: "The AI is off.", aiTurnOn: "Turn AI on",
     detailsTitle: "Document details", detailsTitleN: "Details for {n} documents", detailsHint: "Everything is optional. You can fill in empty fields later.",
     detailsAiHint: "Filled in by the AI – please check.", detailsAiFail: "The AI could not read anything. You can enter the details yourself.",
-    fName: "Name", moreFields: "More details", lessFields: "Fewer details", caseNewName: "Name of the new case", backWord: "Back",
+    fName: "Name", moreFields: "More details", lessFields: "Fewer details", caseNewName: "Name of the new folder", backWord: "Back",
     grpLook: "Appearance", grpAi: "AI", grpRemind: "Reminders", grpSecurity: "Security & profiles", grpData: "Data", grpHelp: "Help & legal", grpOperator: "Operator switches",
-    toolsSection: "Deadlines & data", viewToggle: "Switch view", caseRename: "Rename case", caseDelete: "Delete case", caseName: "Name of the case",
+    toolsSection: "Deadlines & data", viewToggle: "Switch view", caseRename: "Rename folder", caseDelete: "Delete folder", caseName: "Name of the folder",
     moveWord: "Move", deleteWord: "Delete", selectWord: "Select", selectedN: "{n} selected", moveTitle: "Move to", moveDo: "Move here",
     delDocsTitle: "Delete?", delDocsText: "Permanently delete {n} document(s) with all files? This cannot be undone.",
     delFile: "Delete this file", delFileText: "Permanently delete file “{n}”? This cannot be undone.",
-    delCaseText: "Delete case “{n}”?", delCaseWith: "The case contains {n} document(s). What should happen to them?",
-    delCaseAll: "Permanently delete case and documents", delCaseKeep: "Move documents to “Unsorted”, delete only the case",
-    noticeMoved: "{n} document(s) moved.", noticeDeleted: "{n} document(s) deleted.", fileDeleted: "File deleted.", caseDeleted: "Case deleted.",
+    delCaseText: "Delete folder “{n}”?", delCaseWith: "The folder contains {n} document(s). What should happen to them?",
+    delCaseAll: "Permanently delete folder and documents", delCaseKeep: "Move documents to “Unsorted”, delete only the folder",
+    noticeMoved: "{n} document(s) moved.", noticeDeleted: "{n} document(s) deleted.", fileDeleted: "File deleted.", caseDeleted: "Folder deleted.",
     replyOwnPh: "Write your reply here.", replyOwnStart: "Write your own reply", replyAiHead: "Have the AI draft a reply",
     home: "Overview", langSearch: "Search language…", noLangFound: "No language found", copied: "Copied!",
     intakeTitle: "Add document", takePhoto: "Take photo", addPage: "Photograph another page",
     chooseFiles: "Choose files (photo, PDF, Word …)", fromCloud: "Get from cloud",
+    subfolders: "Subfolders", newSubfolder: "New subfolder", folderParent: "Located in", folderTop: "Top level (no parent folder)", folderMove: "Move folder", folderMoved: "Folder moved.",
+    folderMoveHasSubs: "This folder has subfolders of its own, so it cannot be placed inside another folder.", folderCreated: "Folder created.",
+    delCaseSubs: "The folder contains {n} subfolder(s). They will be deleted too.", subCount: "{n} subfolder(s)", inFolder: "in: {n}", demoBadge: "Sample",
+    addFileBtn: "Add file", layoutChanged: "Layout changed: {n}", closeWord: "Close", openFolder: "Open folder", markDone: "Mark as done", markOpen: "Reopen",
+    storeFailFile: "Warning: a file could not be saved permanently (storage full or blocked). It will be lost when the app is closed. Please free up space and create a backup.",
+    storeFailData: "Warning: the last change could not be saved (storage full or blocked). Please free up space and create a backup.",
+    backupNow: "Back up now", laterWord: "Later", backupDueNever: "You have no backup of your documents yet. The browser can delete stored data – a backup protects you.",
+    backupDueOld: "Your last backup is more than 30 days old. Please back up your documents.",
+    storeTitle: "Storage location", storeOpenBtn: "Choose storage location", storeInfo: "Normally your documents are kept in the browser's storage. Here you can also choose a folder on this device. The app puts all files there as normal files – in the same folders and subfolders as in the app. You can find them without the app, and they are kept even if the browser clears its storage.",
+    storeUnsupported: "This browser does not allow a storage folder. It works in Chrome and Edge on a computer and in Chrome on Android. Here your documents are kept only in the browser's storage – please back them up regularly.",
+    storeChoose: "Choose a folder on this device", storeChange: "Choose another folder", storeConnected: "Connected to the folder “{n}”.", storeSyncNow: "Sync now", storeDisconnect: "Disconnect",
+    storeDisconnected: "Disconnected. The files in the folder are kept.", storeLast: "Last synced: {t}", storeReconnect: "Reconnect storage folder",
+    storeAskText: "The browser needs your permission again so the app can write to the storage folder.", storeErr: "The storage folder cannot be reached right now. Your documents are still stored in the browser.",
+    storeFound: "This folder already contains Briefe app data ({n} documents). What would you like to do?", storeRestore: "Load the data into the app and connect", storeUseAnyway: "Just connect (folder is overwritten with the app's data)",
+    storeSynced: "Storage folder synced.", storeFailN: "{n} file(s) could not be written to the storage folder.", storeRestored: "{c} folder(s) and {l} document(s) loaded from the storage folder.", storeBusy: "Syncing …",
     newFolder: "New folder", folderName: "Folder name", folderColor: "Color (optional)", folderColorAuto: "Automatic", folderCreate: "Create folder", sortManual: "My own order",
     noFilesYet: "No files selected yet.", pagesOfOne: "These files are pages of a single document",
     intakeLocalNote: "The files stay on your device. Nothing is transmitted.", intakeAiNote: "The files stay on your device. For reading, the content is sent to the AI service.",
     intakeReading: "Reading … ({n} of {total})", startIntake: "Continue",
-    assignNew: "New case", sameSenderHint: "Same sender as in this case – please check.",
+    assignNew: "New folder", sameSenderHint: "Same sender as in this folder – please check.",
     filesTitle: "Files (on your device)", view: "View", download: "Download", shareFile: "Share",
     toCloud: "Save to cloud", openNewTab: "Open in new tab",
     cloudsMenu: "Files & clouds", cloudTabImport: "Get from …", cloudTabExport: "Save to …", cloudTabConn: "Connections",
@@ -382,8 +414,8 @@ const UI_STRINGS = {
     fDeadline: "Deadline", fPages: "Pages", fNote: "Note", fUploaded: "Uploaded",
     lettersWord: "documents", sortBy: "Sort by", ascending: "Ascending", descending: "Descending",
     customizeTiles: "Customize tiles", customizeHint: "Choose what appears on the document tile and change the order. This applies to all documents.",
-    resetDefault: "Default", previewWord: "Preview", noHits: "No matches in this case.", caseEmpty: "There are no documents in this case yet.",
-    editLetter: "Edit document", deadlineNoteLabel: "Deadline as text (if no date is known)", moveToCase: "Case", save: "Save",
+    resetDefault: "Default", previewWord: "Preview", noHits: "No matches in this folder.", caseEmpty: "There are no documents in this folder yet.",
+    editLetter: "Edit document", deadlineNoteLabel: "Deadline as text (if no date is known)", moveToCase: "Folder", save: "Save",
     deleteLetter: "Delete document", deleteConfirm: "Really delete? The original files will be deleted too.",
     addAttachment: "Add attachment", addEnvelope: "Photograph envelope", envelope: "Envelope",
     escTitle: "Important document – advice recommended", escIntro: "A lot may depend on this document. You can still create a reply. We recommend that you also get advice. Reasons:",
@@ -392,7 +424,7 @@ const UI_STRINGS = {
     escHelpTitle: "Where to get help:", escHelp1: "Legal aid: with a low income, the local court (Amtsgericht, Rechtsantragstelle) can give you a certificate (Beratungshilfeschein) for a lawyer.",
     escHelp2: "A lawyer specialised in the topic", escHelp3: "Social counselling (e.g. Caritas, Diakonie, AWO) for Jobcenter, social welfare office or debts",
     escHelp4: "Tenants' association for housing problems, consumer advice centre for debt collection and contracts", escHelp5: "Migration or refugee counselling for residence questions",
-    escDeadlineHint: "Important: do not let the deadline pass. Take this document with you to the counselling (e.g. as case PDF).",
+    escDeadlineHint: "Important: do not let the deadline pass. Take this document with you to the counselling (e.g. as folder PDF).",
     aiLabelTranslation: "Translated with AI – may contain errors. Only the original is binding.", aiLabelReply: "Draft created with AI – please check it yourself before sending.",
     freeNeedsLogin: "To use the free documents, please sign in (email link or Universal Profile).", serverFail: "The server cannot be reached right now. Please try again later.",
     loginDone: "You are signed in.", loginLinkBad: "The sign-in link is invalid or expired. Please request a new one.", mailSent: "We sent you a link. Please open it on this device.",
@@ -404,7 +436,7 @@ const UI_STRINGS = {
     fbAsk: "How good was this?", fbGood: "Good", fbBad: "Not good", fbThanks: "Thanks!", fbComment: "What was wrong? (optional)", fbSave: "Save",
     fbShareLabel: "Send ratings anonymously to the provider (without the document text) to improve translations",
     obLangTitle: "Welcome! Which language do you speak?", obLangText: "The app shows everything in your language.",
-    obAddTitle: "Add documents", obAddText: "Take a photo of a document or upload a photo or PDF – also from your cloud. Several pages belong to one document. At the end you give it a name and put it into a case. All details are optional.",
+    obAddTitle: "Add documents", obAddText: "Take a photo of a document or upload a photo or PDF – also from your cloud. Several pages belong to one document. At the end you give it a name and put it into a folder. All details are optional.",
     obReadTitle: "AI – only if you want", obReadText: "The AI is off at the start. The app also works without it. If you turn the AI on in the settings, it reads your documents, fills in name, sender and deadline, translates and, if you wish, writes a reply draft. Check every draft yourself. The app never sends anything on its own.",
     obDeadTitle: "Never miss a deadline", obDeadText: "Enter a deadline for a document – or let the AI detect it. The app reminds you and, if you wish, adds the deadline to your calendar. You can change this anytime under “Deadlines & reminders”.",
     obPrivTitle: "Your data", obPrivText: "Documents and files are stored on your device. Without AI, nothing leaves your device. Only if you turn the AI on is the content sent to an AI service to read, translate and reply. The AI can make mistakes and does not replace legal advice. You can lock the app with a PIN and export or delete all data at any time.",
@@ -412,14 +444,14 @@ const UI_STRINGS = {
     coHelpTitle: "In short – in your language", coHelpOne: "You pay {price} once for this document (translation and reply draft). No subscription, no automatic renewal.", coHelpSub: "You pay {price} per month. The contract continues until you cancel (notice period: {term}). You can cancel under “Purchases & withdrawal”.",
     coHelpBoxes: "You must tick two boxes: the first allows us to start immediately – afterwards you can no longer withdraw. The second confirms that you have read the terms, the withdrawal policy and the privacy policy.", coHelpButton: "Only the button “{btn}” buys with binding effect. Nothing is charged before that.", coHelpGerman: "The German texts are binding (terms, withdrawal policy, privacy policy, order summary). They always stay in German.", coHelpLive: "You choose the payment method on the next page at the payment provider.", coHelpDemo: "Demo mode: nothing is charged.",
     obNext: "Next", obBack: "Back", obStart: "Let's go", obSkip: "Skip", obTranslating: "The app is being translated into your language …", obAgain: "Show introduction",
-    casePdf: "Case as PDF", casePdfInfo: "One PDF with a table of contents and all documents of this case – details, text, translation, reply and history – e.g. for a lawyer, advice centre or authority.",
+    casePdf: "Folder as PDF", casePdfInfo: "One PDF with a table of contents and all documents of this folder – details, text, translation, reply and history – e.g. for a lawyer, advice centre or authority.",
     casePdfPhotos: "Include photos of the documents", casePdfBuild: "Create PDF", casePdfBusy: "Creating PDF …", casePdfToc: "Contents",
-    casePdfImgFail: "Photo “{n}” could not be included (format not supported here). It is saved in the case as a separate file.",
+    casePdfImgFail: "Photo “{n}” could not be included (format not supported here). It is saved in the folder as a separate file.",
     casePdfSeparate: "Attachment “{n}” is saved as a separate file (not in this PDF).", casePdfMissing: "File “{n}” is no longer on this device.",
     profilesTitle: "Profiles (several users)", profileWho: "Who is using the app?", profileAdd: "Add", profileName: "Name of the new profile",
     profileDefaultName: "Me", profileSwitch: "Switch profile", profileActive: "active", profileRename: "Rename", profileDelete: "Delete profile",
     profileDeleteConfirm: "Permanently delete profile “{n}” with all documents, files and settings?",
-    profilesInfo: "Each profile has its own cases, documents, files, settings and lock. Other profiles cannot see this data. Purchases and credit apply to the whole device.",
+    profilesInfo: "Each profile has its own folders, documents, files, settings and lock. Other profiles cannot see this data. Purchases and credit apply to the whole device.",
     lockTitle: "App lock (PIN / biometrics)", lockInfo: "Protects this profile with a PIN (4–8 digits) and optionally with fingerprint or face recognition. Only a check value is stored, not the PIN.",
     lockHonest: "The lock protects access through the app. Also use your phone's screen lock.",
     lockSet: "Set PIN", lockChange: "Save changes", lockRemove: "Remove lock", pinCurrent: "Current PIN", pinNew: "New PIN", pinRepeat: "Repeat new PIN",
@@ -428,19 +460,19 @@ const UI_STRINGS = {
     lockNoCrypto: "The lock requires a secure connection (https).", lockSaved: "Lock saved.", lockRemoved: "Lock removed.", lockNow: "Lock now",
     unlockTitle: "Unlock", pinEnter: "PIN", unlockBtn: "Unlock", pinWrong: "Wrong PIN.", pinWait: "Too many attempts. Please wait {n} seconds.", bioBtn: "With fingerprint / face",
     pinForgot: "Forgot PIN?", pinForgotInfo: "For security reasons the PIN cannot be recovered. You can delete this profile with all its data and start again. You can then restore an existing backup.",
-    wipeTitle: "Delete all data", wipeInfo: "Deletes cases, documents, files, settings and reminders from this device, as well as the calendar subscription and push reminders on the server. Copies in your clouds, calendars or backups remain there and must be deleted there.",
+    wipeTitle: "Delete all data", wipeInfo: "Deletes folders, documents, files, settings and reminders from this device, as well as the calendar subscription and push reminders on the server. Copies in your clouds, calendars or backups remain there and must be deleted there.",
     wipeExportFirst: "Export everything first", wipeScopeProfile: "Only this profile", wipeScopeAll: "All profiles and all data on this device",
     wipeType: "Type “{w}” to confirm:", wipeWord: "DELETE", wipeBtn: "Delete permanently", wipeDone: "The data has been deleted.",
     backupAllProfiles: "Include all profiles in the backup",
-    exportTitle: "Export (all documents & files)", exportAllCases: "All cases", exportFormatLabel: "Save documents as",
+    exportTitle: "Export (all documents & files)", exportAllCases: "All folders", exportFormatLabel: "Save documents as",
     fmtPdf: "PDF (recommended)", fmtTxt: "Text file", fmtBoth: "PDF and text file",
     exportOriginals: "Include original files (photos, PDFs, attachments, envelope)",
     exportPdfNote: "Per document: details, text, translation and reply. The PDF shows every script correctly, including Arabic or Persian. To search or copy the text, also choose the text file. An overview of all documents for Excel (CSV) is included.",
-    exportSize: "Estimated size: {s}", exportSizeWarn: "Estimated size: {s}. This may take a while on older devices – if there are problems, export cases one by one.",
+    exportSize: "Estimated size: {s}", exportSizeWarn: "Estimated size: {s}. This may take a while on older devices – if there are problems, export folders one by one.",
     exportBuild: "Create export", exportBusy: "Creating export … {n} of {total} documents", exportReady: "Export ready",
     exportDownload: "Download", exportShare: "Share", exportCloud: "Save to cloud", exportAgain: "Create again",
-    exportFail: "Export failed. Please try again or select fewer cases.", exportTooBig: "The export is too large. Please export fewer cases at once.",
-    exportNoCases: "No cases yet.", exportCase: "Export case", caseWord: "Case", filesWord: "Files",
+    exportFail: "Export failed. Please try again or select fewer folders.", exportTooBig: "The export is too large. Please export fewer folders at once.",
+    exportNoCases: "No folders yet.", exportCase: "Export folder", caseWord: "Folder", filesWord: "Files",
     secOriginal: "Text of the document", secTranslation: "Translation", secReply: "Reply", secReplyTr: "Translation of the reply",
     draftNotConfirmed: "Draft – not yet reviewed and confirmed", exportedOn: "Exported on {d} with Briefe-App",
     exLetterFile: "Document", exOriginal: "Original", exEnvelope: "Envelope", exAttachment: "Attachment", exOverview: "Overview", exNotes: "Notes", exFolder: "Folder",
@@ -449,8 +481,8 @@ const UI_STRINGS = {
     confirmedOn: "Confirmed on {d}", confirmFirst: "Confirm first, then export or send.",
     mailLong: "The text is long and is in your clipboard. Paste it into the email.", popupBlocked: "Please allow pop-ups so the PDF can open.",
     backupTitle: "Backup", backupSave: "Save backup as file", backupCloud: "Save backup to cloud", backupRestore: "Restore backup",
-    backupInfo: "Contains all cases, documents and original files (without sample data, account and purchases). Restoring adds everything to your existing data; nothing is overwritten.",
-    backupDone: "Backup saved.", backupRestored: "{c} case(s) and {l} document(s) added.", backupBad: "This is not a valid backup file.",
+    backupInfo: "Contains all folders, documents and original files (without sample data, account and purchases). Restoring adds everything to your existing data; nothing is overwritten.",
+    backupDone: "Backup saved.", backupRestored: "{c} folder(s) and {l} document(s) added.", backupBad: "This is not a valid backup file.",
     needPass: "Please enter a password first or turn encryption off.", wrongPass: "Decryption failed (wrong password?).",
     demoShow: "Show sample data", demoRemove: "Remove sample data",
     remindersTitle: "Deadlines & reminders", remindersNone: "No deadlines entered.", remindersOn: "Enable notifications", remindersOff: "Turn notifications off",
@@ -524,7 +556,7 @@ function IconBtn({ icon: Icon, onClick, active, c, label, size = 18 }) {
   return (
     <button
       onClick={onClick}
-      title={label}
+      title={label} aria-label={label} aria-pressed={active === undefined ? undefined : !!active}
       style={{
         display: "flex", alignItems: "center", justifyContent: "center",
         width: 36, height: 36, borderRadius: 10, border: `1px solid ${c.border}`,
@@ -750,6 +782,16 @@ function BriefeCore({ profileApi }) {
   const [caseEdit, setCaseEdit] = useState(null);            // Fall umbenennen: { id, name }
   const [sel, setSel] = useState(null);                      // Auswahl in der Fall-Ansicht: null oder Liste von Dokument-IDs
   const [moveFor, setMoveFor] = useState(null);              // Verschieben-Dialog: { ids }
+  const [folderMove, setFolderMove] = useState(null);        // Ordner verschieben: { id, target }
+  const [storageWarn, setStorageWarn] = useState(null);      // "file" | "data": etwas konnte nicht dauerhaft gespeichert werden
+  const [backupDue, setBackupDue] = useState(null);          // "never" | "old": Erinnerung an die Sicherung (alle 30 Tage)
+  const [storeOpen, setStoreOpen] = useState(false);         // Fenster "Speicherort"
+  const [dir, setDir] = useState({ state: "none" });         // Speicherordner: none | ok | ask | error (+ handle, name, last, failed)
+  const [dirFound, setDirFound] = useState(null);            // gewählter Ordner enthält schon einen Bestand: { handle, n }
+  const [dirBusy, setDirBusy] = useState(false);
+  const [casesLoaded, setCasesLoaded] = useState(false);
+  STORE_FAIL.fn = (kind) => setStorageWarn((w) => w || kind);
+  A11Y.close = t.closeWord || "Schließen";
   const [confirmDel, setConfirmDel] = useState(null);        // Nachfrage vor dem Löschen: { kind: "docs", ids } | { kind: "file", letterId, file } | { kind: "case", id }
 
   // Ordnernamen zweisprachig: übersetzt die Fallnamen in die gewählte App-Sprache
@@ -872,7 +914,7 @@ function BriefeCore({ profileApi }) {
   const mainRef = useRef(null);
   const searchRef = useRef(null);
   const backRef = useRef(() => {});               // ein Schritt zurück (wird bei jedem Render aktualisiert)
-  const navRef = useRef({ depth: 0, popPending: false, ignorePop: 0, histOk: true, lastBack: 0, edge: null });
+  const navRef = useRef({ depth: 0, pos: 0, busy: false, timer: null, sync: null, popPending: false, ignorePop: 0, histOk: true, lastBack: 0, edge: null });
 
   // Bildschirmbreite beobachten (mobile vs. desktop)
   const [winWidth, setWinWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
@@ -888,6 +930,8 @@ function BriefeCore({ profileApi }) {
   const navNew = prefs.layout ? prefs.layout === "new" : (isMobile || isTouch);
   const ovl = isMobile || navNew;   // Menü als einblendbares Fenster statt fester Seitenleiste
   const isRTL = ["ar", "fa", "ur", "ps", "he", "ckb"].includes(uiLang);
+  // Vorleseprogramme und Silbentrennung brauchen die richtige Sprache der Seite
+  useEffect(() => { try { document.documentElement.lang = uiLang; } catch (e) {} }, [uiLang]);
 
   // Auf mobilen Geräten startet die Seitenleiste eingeklappt
   useEffect(() => {
@@ -900,8 +944,8 @@ function BriefeCore({ profileApi }) {
   useEffect(() => {
     const N = navRef.current;
     const onPop = () => {
-      if (N.ignorePop > 0) { N.ignorePop--; return; }
-      if (N.depth > 0) { N.popPending = true; backRef.current(); }
+      if (N.ignorePop > 0) { N.ignorePop--; N.busy = false; clearTimeout(N.timer); N.sync && N.sync(); return; }   // eigener Schritt zurück ist angekommen
+      if (N.depth > 0) { N.pos = Math.max(0, N.pos - 1); N.popPending = true; backRef.current(); }
     };
     const onStart = (e) => {
       const tt = e.touches && e.touches[0]; if (!tt) return;
@@ -931,6 +975,7 @@ function BriefeCore({ profileApi }) {
         const res = await window.storage?.get(PK("briefe-app-cases"));
         if (res?.value) setCases(normalizeCases(JSON.parse(res.value)));
       } catch (e) {}
+      setCasesLoaded(true);
     })();
   }, []);
 
@@ -938,8 +983,80 @@ function BriefeCore({ profileApi }) {
     setCases(next);
     try {
       await window.storage?.set(PK("briefe-app-cases"), JSON.stringify(next));
-    } catch (e) {}
+    } catch (e) { setStorageWarn("data"); }   // nicht stillschweigend: der Nutzer muss wissen, dass die Änderung nicht gesichert ist
   };
+
+  /* ---------- Speicherordner auf dem Gerät ---------- */
+  const dirKey = PK("briefe-app-dir");
+  const dirRef = useRef(dir); dirRef.current = dir;
+  const dirRun = useRef({ busy: false, again: false });
+  useEffect(() => {
+    let dead = false;
+    (async () => {
+      if (flags.deviceFolder === false || !dirSupported()) return;
+      const h = await dirHandleGet(dirKey); if (dead || !h) return;
+      const p = await dirPerm(h, false); if (dead) return;
+      setDir({ state: p === "granted" ? "ok" : "ask", handle: h, name: h.name });
+    })();
+    return () => { dead = true; };
+  }, [dirKey]);
+  const runDirSync = async (manual) => {
+    const R = dirRun.current; const D = dirRef.current; const h = D.handle;
+    if (!h || (D.state !== "ok" && !(manual && D.state === "error"))) return;
+    if (R.busy) { R.again = true; return; }
+    R.busy = true; if (manual) setDirBusy(true);
+    try {
+      const r = await dirSync(h, casesRef.current);
+      setDir((d) => (d.handle === h ? { ...d, state: "ok", last: Date.now(), failed: r.failed } : d));
+      if (manual) setNotice(r.failed ? t.storeFailN.replace("{n}", r.failed) : t.storeSynced);
+    } catch (e) {
+      const p = await dirPerm(h, false);
+      setDir((d) => (d.handle === h ? { ...d, state: p === "granted" ? "error" : "ask" } : d));
+      if (manual) setNotice(t.storeErr);
+    }
+    R.busy = false; if (manual) setDirBusy(false);
+    if (R.again) { R.again = false; runDirSync(false); }
+  };
+  useEffect(() => {
+    if (dir.state !== "ok" || !casesLoaded) return;
+    const id = setTimeout(() => runDirSync(false), 1200);   // kurz warten, damit mehrere Änderungen zusammen abgeglichen werden
+    return () => clearTimeout(id);
+  }, [cases, dir.state, dir.handle, casesLoaded]);
+  const connectDir = async (h, restore) => {
+    setDirFound(null); setDirBusy(true);
+    try {
+      if (restore) {
+        const d = await dirRestore(h);
+        if (d) { const r = mergeBackup(casesRef.current, d); persist(r.cases); setNotice(t.storeRestored.replace("{c}", r.addedCases).replace("{l}", r.addedLetters)); }
+      }
+      await dirHandleSet(dirKey, h);
+      setDir({ state: "ok", handle: h, name: h.name });
+    } catch (e) { setNotice(t.storeErr); }
+    setDirBusy(false);
+  };
+  const chooseDir = async () => {
+    let h; try { h = await window.showDirectoryPicker({ mode: "readwrite", id: "briefe-app" }); } catch (e) { return; }   // abgebrochen
+    if ((await dirPerm(h, true)) !== "granted") return setNotice(t.storeErr);
+    const d = await dirReadData(h);
+    const n = d ? d.cases.reduce((a, cs) => a + (cs.letters || []).length, 0) : 0;
+    if (n > 0) return setDirFound({ handle: h, n });
+    connectDir(h, false);
+  };
+  const reconnectDir = async () => {
+    const h = dirRef.current.handle; if (!h) return;
+    if ((await dirPerm(h, true)) === "granted") setDir((d) => ({ ...d, state: "ok" })); else setNotice(t.storeErr);
+  };
+  const disconnectDir = async () => { await dirHandleSet(dirKey, null); setDir({ state: "none" }); setNotice(t.storeDisconnected); };
+
+  // Erinnerung an die Sicherung: alle 30 Tage, solange es eigene Dokumente gibt und kein Speicherordner verbunden ist
+  useEffect(() => {
+    if (!prefsLoaded || !casesLoaded) return;
+    const hasReal = cases.some((cs) => !cs.demo && cs.letters.length);
+    if (!hasReal || dir.state === "ok") { setBackupDue(null); return; }
+    const last = Math.max(prefs.backupAt || 0, prefs.backupAskAt || 0);
+    if (!last) { setPrefs({ backupAskAt: Date.now() }); return; }
+    setBackupDue(Date.now() - last >= 30 * 86400000 ? (prefs.backupAt ? "old" : "never") : null);
+  }, [prefsLoaded, casesLoaded, cases, prefs.backupAt, prefs.backupAskAt, dir.state]);
 
   const allLetters = useMemo(
     () => cases.flatMap((cs) => cs.letters.map((l) => ({ ...l, caseId: cs.id, caseName: cs.name, caseColor: cs.color, caseStatus: cs.status }))),
@@ -1088,8 +1205,18 @@ function BriefeCore({ profileApi }) {
   const newsletterPatch = (id, patch) =>
     setShop((s) => ({ ...s, newsletter: s.newsletter.map((n) => (n.id === id ? { ...n, ...patch } : n)) }));
 
+  // Unterordner (eine Ebene): ein Ordner mit "parent" liegt in einem anderen Ordner
+  const isTopCase = (cs) => !cs.parent || !cases.some((x) => x.id === cs.parent);
+  const parentOf = (cs) => (cs && cs.parent ? cases.find((x) => x.id === cs.parent) || null : null);
+  const kidsOf = (id) => sortCasesBy(visibleCases.filter((cs) => cs.parent === id), sortBy);
+  const caseLabel = (cs) => { const p = parentOf(cs); return p ? `${p.name} › ${cs.name}` : cs.name; };
+  // Auswahllisten: Ordner, direkt darunter seine Unterordner mit vollem Namen
+  const labeled = (list) => { const out = []; for (const cs of list) if (isTopCase(cs)) { out.push(cs); for (const k of list) if (k.parent === cs.id) out.push({ ...k, name: caseLabel(k) }); } return out; };
+  const parentChoices = (exceptId) => visibleCases.filter((cs) => isTopCase(cs) && !cs.demo && cs.id !== "unsorted" && cs.id !== exceptId);
+
   const filteredCases = useMemo(() => {
     let list = visibleCases;
+    if (!searchTerms.length) list = list.filter(isTopCase);   // Übersicht: nur die oberste Ebene; die Suche findet auch Unterordner
     if (statusFilter !== "all") list = list.filter((cs) => cs.status === statusFilter);
     if (searchTerms.length) {
       list = list.filter((cs) =>
@@ -1100,11 +1227,21 @@ function BriefeCore({ profileApi }) {
   }, [visibleCases, statusFilter, searchTerms, sortBy]);
 
   // Neuer Ordner: leer anlegen, ganz nach vorn; die bisher sichtbare Reihenfolge bleibt erhalten
-  const createFolder = (name, color) => {
+  const createFolder = (name, color, parent) => {
     const nm = String(name || "").trim(); if (!nm) return;
-    const cs = { id: "c" + Date.now() + Math.random().toString(36).slice(2, 5), name: nm, status: "open", color: color || FALLBACK_COLORS[cases.length % FALLBACK_COLORS.length], letters: [] };
+    const par = parent && parentChoices(null).some((x) => x.id === parent) ? parent : null;
+    const cs = { id: "c" + Date.now() + Math.random().toString(36).slice(2, 5), name: nm, status: "open", color: color || FALLBACK_COLORS[cases.length % FALLBACK_COLORS.length], letters: [], ...(par ? { parent: par } : {}) };
     persist([cs, ...sortCasesBy(cases, sortBy)]);
-    setSortBy("manual"); setFolderNew(null); setIntake((s) => (s && s.files && s.files.length ? s : null)); setOpenCaseId(null);
+    setSortBy("manual"); setFolderNew(null); setIntake((s) => (s && s.files && s.files.length ? s : null));
+    setActiveTab(null); setOpenCaseId(par);
+    setNotice(t.folderCreated);
+  };
+  // Ordner in einen anderen Ordner legen oder zurück auf die Hauptebene (nur eine Ebene tief)
+  const moveCase = (caseId, target) => {
+    const cs = cases.find((x) => x.id === caseId); if (!cs || caseId === "unsorted") return;
+    const par = target && parentChoices(caseId).some((x) => x.id === target) && !cases.some((x) => x.parent === caseId) ? target : null;
+    persist(cases.map((x) => { if (x.id !== caseId) return x; const { parent, ...rest } = x; return par ? { ...rest, parent: par } : rest; }));
+    setFolderMove(null); setNotice(t.folderMoved);
   };
   // Kacheln per Ziehen umordnen: die gezeigten Fälle tauschen untereinander ihre Plätze, alle anderen bleiben stehen
   const reorderCases = (ids) => {
@@ -1353,15 +1490,17 @@ function BriefeCore({ profileApi }) {
   const deleteCase = async (caseId, mode) => {
     const cs = casesRef.current.find((x) => x.id === caseId); if (!cs) return;
     let working = casesRef.current;
-    if (cs.letters.length && mode === "keep" && caseId !== "unsorted") {
-      working = ensureUnsorted(working).map((x) => (x.id === "unsorted" ? { ...x, letters: [...cs.letters, ...x.letters] } : x));
+    const group = [cs, ...working.filter((x) => x.parent === caseId)];   // der Ordner samt seinen Unterordnern
+    const gids = group.map((x) => x.id); const letters = group.flatMap((x) => x.letters);
+    if (letters.length && mode === "keep" && caseId !== "unsorted") {
+      working = ensureUnsorted(working).map((x) => (x.id === "unsorted" ? { ...x, letters: [...letters, ...x.letters] } : x));
     } else {
-      for (const l of cs.letters) for (const f of l.files || []) await fileDelete(f.id);
-      const gone = cs.letters.map((l) => l.id);
+      for (const l of letters) for (const f of l.files || []) await fileDelete(f.id);
+      const gone = letters.map((l) => l.id);
       setOpenTabs((tabs) => tabs.filter((id) => !gone.includes(id)));
     }
-    persist(working.filter((x) => x.id !== caseId));
-    setOpenCaseId(null); setSel(null);
+    persist(working.filter((x) => !gids.includes(x.id)));
+    setOpenCaseId(cs.parent && working.some((x) => x.id === cs.parent) ? cs.parent : null); setSel(null);
     setNotice(t.caseDeleted);
   };
   const addLetterFiles = async (letter, list, kind) => {
@@ -1440,7 +1579,7 @@ function BriefeCore({ profileApi }) {
     setCasePdfBusy(true);
     try {
       const blob = await buildCasePdf(cs, { photos: prefs.casePdfPhotos, t, lang: uiLang });
-      setExportReady({ blob, name: `Fall-${safeName(cs.name)}-${todayIso()}.pdf` });
+      setExportReady({ blob, name: `Ordner-${safeName(cs.name)}-${todayIso()}.pdf` });
       setCasePdfFor(null); setExportOpen({ caseIds: [cs.id] });
     } catch (e) { console.error("casepdf", e); setNotice(t.exportFail); }
     setCasePdfBusy(false);
@@ -1455,6 +1594,7 @@ function BriefeCore({ profileApi }) {
       let blob = backupAll && profileApi.profiles.length > 1 ? await buildBackupAll(profileApi, cases, prefs) : await buildBackup(cases, prefs); let name = backupName();
       if (cloud.encrypt) { blob = await encryptBlob(blob, cloudPass); name += ".enc"; }
       downloadBlob(blob, name);
+      setPrefs({ backupAt: Date.now() });
       setNotice(t.backupDone);
     } catch (e) { console.error("backup", e); setNotice(t.backupBad); }
     setBackupBusy(false);
@@ -1601,7 +1741,7 @@ function BriefeCore({ profileApi }) {
   const menuOver = ovl && sidebarOpen && sbFor === ovl;
   // Geöffnete Fenster/Dialoge (oberstes zuerst): Zurück schließt zuerst das Fenster
   const overlays = [
-    [folderNew, () => setFolderNew(null)], [confirmDel, () => setConfirmDel(null)], [moveFor, () => setMoveFor(null)], [caseEdit, () => setCaseEdit(null)], [viewer, () => setViewer(false)], [aiConsentOpen, () => setAiConsentOpen(false)], [drafts && !savingDrafts, () => draftsBack()],
+    [dirFound, () => setDirFound(null)], [folderMove, () => setFolderMove(null)], [folderNew, () => setFolderNew(null)], [storeOpen, () => setStoreOpen(false)], [confirmDel, () => setConfirmDel(null)], [moveFor, () => setMoveFor(null)], [caseEdit, () => setCaseEdit(null)], [viewer, () => setViewer(false)], [aiConsentOpen, () => setAiConsentOpen(false)], [drafts && !savingDrafts, () => draftsBack()],
     [showHomeConfirm, () => setShowHomeConfirm(false)], [legalTab, () => setLegalTab(null)], [modal, () => setModal(null)],
     [casePdfFor, () => setCasePdfFor(null)], [exportOpen, () => setExportOpen(null)], [wipeOpen, () => setWipeOpen(false)],
     [lockOpen, () => setLockOpen(false)], [profilesOpen, () => setProfilesOpen(false)], [backupOpen, () => setBackupOpen(false)],
@@ -1609,23 +1749,53 @@ function BriefeCore({ profileApi }) {
     [editOpen, () => setEditOpen(false)], [tileModal, () => setTileModal(false)], [intake && !progress, () => setIntake(null)],
     [showSettings, () => setShowSettings(false)], [sel, () => setSel(null)],
   ].filter(([open]) => !!open);
-  const navDepth = (activeLetter ? 2 : openCase ? 1 : 0) + (menuOver ? 1 : 0) + overlays.length;
+  const subDepth = (id) => (parentOf(cases.find((x) => x.id === id)) ? 1 : 0);
+  const navDepth = (activeLetter ? 2 + subDepth(activeLetter.caseId) : openCase ? 1 + subDepth(openCase.id) : 0) + (menuOver ? 1 : 0) + overlays.length;
   backRef.current = () => {
     if (overlays.length) overlays[0][1]();
     else if (menuOver) setSidebarOpen(false);
     else if (activeLetter) { setOpenCaseId(activeLetter.caseId); setActiveTab(null); }
-    else if (openCase) setOpenCaseId(null);
+    else if (openCase) setOpenCaseId(parentOf(openCase)?.id || null);
+  };
+  // Verlauf des Browsers an die Tiefe der App angleichen. "pos" zählt die eigenen Einträge im Verlauf; ein Schritt zurück
+  // (history.go) kommt erst später an – bis dahin wird nichts Neues eingetragen, sonst geriete beides durcheinander.
+  navRef.current.sync = () => {
+    const N = navRef.current;
+    if (!N.histOk || N.busy) return;
+    try {
+      if (N.depth > N.pos) { for (let i = N.pos; i < N.depth; i++) window.history.pushState({ briefe: i + 1 }, ""); N.pos = N.depth; }
+      else if (N.depth < N.pos) {
+        const k = N.pos - N.depth; N.pos = N.depth; N.busy = true; N.ignorePop += 1;
+        window.history.go(-k);   // go(-n) meldet sich nur einmal zurück, egal wie viele Schritte
+        N.timer = setTimeout(() => { if (N.busy) { N.busy = false; N.ignorePop = Math.max(0, N.ignorePop - 1); N.sync(); } }, 900);
+      }
+    } catch (e) { N.histOk = false; N.busy = false; N.popPending = false; N.ignorePop = 0; }
   };
   useEffect(() => {
-    const N = navRef.current; const prev = N.depth; N.depth = navDepth;
-    try {
-      if (navDepth > prev) { for (let i = prev; i < navDepth; i++) window.history.pushState({ briefe: i + 1 }, ""); }
-      else if (navDepth < prev) {
-        if (N.popPending) N.popPending = false;      // Verlauf wurde schon vom Gerät zurückgesetzt
-        else { N.ignorePop += 1; window.history.go(-(prev - navDepth)); }   // go(-n) meldet sich nur einmal zurück, egal wie viele Schritte
-      }
-    } catch (e) { N.histOk = false; N.popPending = false; N.ignorePop = 0; }
+    const N = navRef.current; N.depth = navDepth; N.popPending = false;
+    N.sync();
   }, [navDepth]);
+
+  // Kacheln oder Zeilen einer Ordnerliste (Übersicht und Unterordner), per Halten und Ziehen umsortierbar
+  const renderCases = (list, showParent) => (
+    <SortableBox
+      c={c} enabled={flags.folderTools !== false} ids={list.map((cs) => cs.id)} onReorder={reorderCases}
+      labelOf={(id) => list.find((cs) => cs.id === id)?.name || ""}
+      style={view === "tiles"
+        ? { display: "grid", gridTemplateColumns: isMobile ? "repeat(auto-fill, minmax(140px,1fr))" : "repeat(auto-fill, minmax(220px,1fr))", gap: isMobile ? 10 : 16 }
+        : { display: "flex", flexDirection: "column", gap: 8 }}
+      renderItem={(id, sortProps) => {
+        const cs = list.find((x) => x.id === id); if (!cs) return null;
+        const Item = view === "tiles" ? CaseTile : CaseRow;
+        const canMove = flags.folderTools !== false && cs.id !== "unsorted" && !cs.demo;
+        return <Item key={cs.id} {...sortProps} c={c} t={t} fontScale={fontScale} cs={cs} subs={kidsOf(cs.id)} parentName={showParent ? parentOf(cs)?.name : null}
+          onOpen={() => setOpenCaseId(cs.id)} onToggleStatus={() => toggleCaseStatus(cs.id)}
+          onRename={() => setCaseEdit({ id: cs.id, name: cs.name, color: cs.color })} onDelete={() => setConfirmDel({ kind: "case", id: cs.id })}
+          onMove={canMove ? () => setFolderMove({ id: cs.id, target: cs.parent || "" }) : null}
+          daysUntil={daysUntil} translatedName={caseNameTranslations[cs.id + ":" + uiLang]} uiLang={uiLang} />;
+      }}
+    />
+  );
 
   /* ---------- Styles ---------- */
   const shellStyle = {
@@ -1674,7 +1844,7 @@ function BriefeCore({ profileApi }) {
               <FileText size={16} color="#fff" />
             </div>
             <span style={{ fontWeight: 700, fontSize: 16 * fontScale, letterSpacing: -0.3, flex: 1 }}>{t.appName}</span>
-            {ovl && <X size={20} onClick={() => setSidebarOpen(false)} style={{ cursor: "pointer", color: c.textMuted }} />}
+            {ovl && <button type="button" onClick={() => setSidebarOpen(false)} aria-label={t.closeWord} title={t.closeWord} style={{ background: "transparent", border: "none", color: c.textMuted, cursor: "pointer", padding: 6, margin: -6, display: "inline-flex" }}><X size={20} /></button>}
           </div>
 
           <div style={{ padding: 12, flex: 1, overflowY: "auto" }}>
@@ -1739,8 +1909,8 @@ function BriefeCore({ profileApi }) {
             {t.disclaimer}
             {/* Pflichtseiten: von jeder Ansicht in höchstens 2 Klicks erreichbar (Menü öffnen + Link) */}
             <div dir="ltr" style={{ display: "flex", flexWrap: "wrap", gap: "4px 10px", marginTop: 8 }}>
-              {[["impressum", "Impressum"], ["datenschutz", "Datenschutz"], ["agb", "AGB"], ["widerruf", "Widerruf"]].map(([k, l]) => (
-                <span key={k} onClick={() => { setLegalTab(k); if (ovl) setSidebarOpen(false); }} style={{ cursor: "pointer", textDecoration: "underline" }}>{l}</span>
+              {[["impressum", "Impressum"], ["datenschutz", "Datenschutz"], ["agb", "AGB"], ["widerruf", "Widerruf"], ["barrierefreiheit", "Barrierefreiheit"]].map(([k, l]) => (
+                <span key={k} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") { setLegalTab(k); if (ovl) setSidebarOpen(false); } }} onClick={() => { setLegalTab(k); if (ovl) setSidebarOpen(false); }} style={{ cursor: "pointer", textDecoration: "underline" }}>{l}</span>
               ))}
             </div>
           </div>
@@ -1792,7 +1962,7 @@ function BriefeCore({ profileApi }) {
               style={{
                 display: "flex", alignItems: "center", gap: 6,
                 padding: "9px 14px", borderRadius: 10,
-                background: c.accent, color: "#fff", border: "none", cursor: "pointer", fontWeight: 600,
+                background: c.accent, color: c.onAccent, border: "none", cursor: "pointer", fontWeight: 600,
                 fontSize: 13 * fontScale,
               }}
             >
@@ -1851,7 +2021,7 @@ function BriefeCore({ profileApi }) {
                   }}
                 >
                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.subject}</span>
-                  <X size={13} onClick={(e) => { e.stopPropagation(); closeTab(id); }} />
+                  <button type="button" onClick={(e) => { e.stopPropagation(); closeTab(id); }} aria-label={A11Y.close} title={A11Y.close} style={{ background: "transparent", border: "none", color: "inherit", cursor: "pointer", padding: 4, margin: -4, display: "inline-flex", flexShrink: 0 }}><X size={13} /></button>
                 </div>
               );
             })}
@@ -1860,6 +2030,27 @@ function BriefeCore({ profileApi }) {
 
         {/* Content */}
         <div style={{ flex: 1, overflowY: "auto", padding: isMobile ? 14 : 20 }}>
+          {storageWarn && (
+            <WarnBar c={c} fontScale={fontScale} tone="warn" id="storage" text={storageWarn === "file" ? t.storeFailFile : t.storeFailData} onClose={() => setStorageWarn(null)} closeLabel={t.closeWord}>
+              <button onClick={() => setBackupOpen(true)} style={btnSmall(c)}><Download size={13} /> {t.backupNow}</button>
+            </WarnBar>
+          )}
+          {dir.state === "ask" && (
+            <WarnBar c={c} fontScale={fontScale} id="dir-ask" text={t.storeAskText}>
+              <button data-dir-reconnect onClick={reconnectDir} style={btnSmall(c)}><Folder size={13} /> {t.storeReconnect}</button>
+            </WarnBar>
+          )}
+          {dir.state === "error" && (
+            <WarnBar c={c} fontScale={fontScale} tone="warn" id="dir-error" text={t.storeErr}>
+              <button onClick={() => runDirSync(true)} style={btnSmall(c)}>{t.storeSyncNow}</button>
+            </WarnBar>
+          )}
+          {backupDue && !storageWarn && (
+            <WarnBar c={c} fontScale={fontScale} id="backup-due" text={backupDue === "old" ? t.backupDueOld : t.backupDueNever}>
+              <button data-backup-now onClick={() => setBackupOpen(true)} style={{ ...btnSmall(c), background: c.accent, color: c.onAccent, borderColor: c.accent }}><Download size={13} /> {t.backupNow}</button>
+              <button data-backup-later onClick={() => { setPrefs({ backupAskAt: Date.now() }); setBackupDue(null); }} style={btnSmall(c)}>{t.laterWord}</button>
+            </WarnBar>
+          )}
           {activeLetter ? (
             <LetterDetail
               c={c} t={t} fontScale={fontScale} letter={activeLetter} caseObj={activeCase}
@@ -1886,7 +2077,11 @@ function BriefeCore({ profileApi }) {
               c={c} t={t} fontScale={fontScale} cs={openCase} translatedName={caseNameTranslations[openCase.id + ":" + uiLang]}
               letters={caseLetters} view={view} sort={prefs.letterSort} setSort={(s) => setPrefs({ letterSort: s })}
               fields={prefs.tileFields}
-              onBack={() => setOpenCaseId(null)} onOpenLetter={openLetter}
+              onBack={() => setOpenCaseId(parentOf(openCase)?.id || null)} onOpenLetter={openLetter}
+              subs={kidsOf(openCase.id)} subsNode={renderCases(kidsOf(openCase.id), false)} parentCase={parentOf(openCase)}
+              canSub={flags.folderTools !== false && isTopCase(openCase) && openCase.id !== "unsorted" && !openCase.demo}
+              onNewSub={() => setFolderNew({ name: "", color: null, parent: openCase.id })}
+              onMoveFolder={flags.folderTools !== false && openCase.id !== "unsorted" && !openCase.demo ? () => setFolderMove({ id: openCase.id, target: openCase.parent || "" }) : null}
               onCustomize={() => setTileModal(true)} onToggleStatus={() => toggleCaseStatus(openCase.id)}
               onAdd={() => setIntake((s) => s || { files: [], asPages: false })} onExport={() => openExport([openCase.id])} onCasePdf={() => setCasePdfFor(openCase.id)}
               onRename={() => setCaseEdit({ id: openCase.id, name: openCase.name, color: openCase.color })} onDelete={() => setConfirmDel({ kind: "case", id: openCase.id })}
@@ -1895,18 +2090,7 @@ function BriefeCore({ profileApi }) {
             />
           ) : (
             <>
-              <SortableBox
-                c={c} enabled={flags.folderTools !== false} ids={filteredCases.map((cs) => cs.id)} onReorder={reorderCases}
-                labelOf={(id) => filteredCases.find((cs) => cs.id === id)?.name || ""}
-                style={view === "tiles"
-                  ? { display: "grid", gridTemplateColumns: isMobile ? "repeat(auto-fill, minmax(140px,1fr))" : "repeat(auto-fill, minmax(220px,1fr))", gap: isMobile ? 10 : 16 }
-                  : { display: "flex", flexDirection: "column", gap: 8 }}
-                renderItem={(id, sortProps) => {
-                  const cs = filteredCases.find((x) => x.id === id); if (!cs) return null;
-                  const Item = view === "tiles" ? CaseTile : CaseRow;
-                  return <Item key={cs.id} {...sortProps} c={c} t={t} fontScale={fontScale} cs={cs} onOpen={() => setOpenCaseId(cs.id)} onToggleStatus={() => toggleCaseStatus(cs.id)} onRename={() => setCaseEdit({ id: cs.id, name: cs.name, color: cs.color })} onDelete={() => setConfirmDel({ kind: "case", id: cs.id })} daysUntil={daysUntil} translatedName={caseNameTranslations[cs.id + ":" + uiLang]} uiLang={uiLang} />;
-                }}
-              />
+              {renderCases(filteredCases, searchTerms.length > 0)}
               {filteredCases.length === 0 && (
                 <div style={{ textAlign: "center", padding: 60, color: c.textMuted }}>
                   {t.noCases}
@@ -1941,11 +2125,11 @@ function BriefeCore({ profileApi }) {
                     color: it.active ? c.accent : c.textMuted, fontSize: 10.5 * fontScale, fontWeight: it.active ? 700 : 500, position: "relative",
                   }}>
                     {it.center ? (
-                      <span style={{ width: 44, height: 26, borderRadius: 10, background: c.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}><Ico size={20} /></span>
+                      <span style={{ width: 44, height: 26, borderRadius: 10, background: c.accent, color: c.onAccent, display: "flex", alignItems: "center", justifyContent: "center" }}><Ico size={20} /></span>
                     ) : (
                       <span style={{ position: "relative", display: "flex" }}>
                         <Ico size={20} />
-                        {it.badge > 0 && <span style={{ position: "absolute", top: -4, right: -8, minWidth: 15, height: 15, padding: "0 3px", boxSizing: "border-box", borderRadius: 8, background: c.warn, color: "#fff", fontSize: 9.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{it.badge}</span>}
+                        {it.badge > 0 && <span style={{ position: "absolute", top: -4, right: -8, minWidth: 15, height: 15, padding: "0 3px", boxSizing: "border-box", borderRadius: 8, background: c.warn, color: c.onAccent, fontSize: 9.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{it.badge}</span>}
                       </span>
                     )}
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{it.label}</span>
@@ -1968,7 +2152,7 @@ function BriefeCore({ profileApi }) {
               {t.unsavedBody}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <button onClick={() => setShowHomeConfirm(false)} style={{ ...btnSmall(c), justifyContent: "center", background: c.accent, color: "#fff", borderColor: c.accent }}>
+              <button onClick={() => setShowHomeConfirm(false)} style={{ ...btnSmall(c), justifyContent: "center", background: c.accent, color: c.onAccent, borderColor: c.accent }}>
                 {t.keepWriting}
               </button>
               <button onClick={() => { setShowHomeConfirm(false); }} style={{ ...btnSmall(c), justifyContent: "center" }}>
@@ -1987,7 +2171,7 @@ function BriefeCore({ profileApi }) {
           <div onClick={(e) => e.stopPropagation()} style={{ width: 340, maxWidth: "100%", background: c.surface, height: "100%", padding: 20, borderLeft: `1px solid ${c.border}`, overflowY: "auto", boxSizing: "border-box" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <h3 style={{ margin: 0, fontSize: 16 * fontScale }}>{t.settings}</h3>
-              <X size={18} style={{ cursor: "pointer" }} onClick={() => setShowSettings(false)} />
+              <button type="button" onClick={() => setShowSettings(false)} aria-label={A11Y.close} title={A11Y.close} style={{ background: "transparent", border: "none", color: "inherit", cursor: "pointer", padding: 4, margin: -4, display: "inline-flex", flexShrink: 0 }}><X size={18} /></button>
             </div>
 
             {/* ----- Darstellung ----- */}
@@ -2004,7 +2188,7 @@ function BriefeCore({ profileApi }) {
                   <button key={s} onClick={() => setFontScale(s)}
                     style={{
                       width: 32, height: 32, borderRadius: 8, border: `1px solid ${c.border}`,
-                      background: fontScale === s ? c.accent : c.bg, color: fontScale === s ? "#fff" : c.text,
+                      background: fontScale === s ? c.accent : c.bg, color: fontScale === s ? c.onAccent : c.text,
                       cursor: "pointer", fontSize: 12,
                     }}>A</button>
                 ))}
@@ -2013,11 +2197,16 @@ function BriefeCore({ profileApi }) {
             <SettingRow c={c} label={t.layoutLabel} fontScale={fontScale}>
               <div style={{ display: "flex", gap: 6 }}>
                 {[["new", t.layoutNew], ["classic", t.layoutClassic]].map(([k, l]) => (
-                  <button key={k} onClick={() => setPrefs({ layout: k })}
-                    style={{ ...btnSmall(c), background: (navNew ? "new" : "classic") === k ? c.accent : c.bg, color: (navNew ? "new" : "classic") === k ? "#fff" : c.text, borderColor: (navNew ? "new" : "classic") === k ? c.accent : c.border }}>{l}</button>
+                  <button key={k} data-layout={k} onClick={() => { setPrefs({ layout: k }); setShowSettings(false); setNotice(t.layoutChanged.replace("{n}", l)); }}
+                    style={{ ...btnSmall(c), background: (navNew ? "new" : "classic") === k ? c.accent : c.bg, color: (navNew ? "new" : "classic") === k ? c.onAccent : c.text, borderColor: (navNew ? "new" : "classic") === k ? c.accent : c.border }}>{l}</button>
                 ))}
               </div>
             </SettingRow>
+            {flags.deviceFolder !== false && (
+              <SettingRow c={c} label={t.storeTitle} fontScale={fontScale}>
+                <button data-store-open onClick={() => { setShowSettings(false); setStoreOpen(true); }} style={btnSmall(c)}><Folder size={13} /> {dir.state === "ok" ? dir.name : t.storeOpenBtn}</button>
+              </SettingRow>
+            )}
             <SettingRow c={c} label={t.customizeTiles} fontScale={fontScale}>
               <button onClick={() => { setShowSettings(false); setTileModal(true); }} style={btnSmall(c)}><SlidersHorizontal size={13} /></button>
             </SettingRow>
@@ -2124,7 +2313,8 @@ function BriefeCore({ profileApi }) {
                     ["newsletter", "Newsletter (Double-Opt-In)"],
                     ["usSales", "Verkauf in die USA"],
                     ["moreClouds", "Weitere Clouds anbieten (Box, pCloud, MagentaCLOUD, GMX, WEB.DE, HiDrive, Nextcloud)"],
-                    ["folderTools", "Neue Ordner anlegen und Kacheln per Ziehen verschieben"],
+                    ["folderTools", "Neue Ordner und Unterordner anlegen, Kacheln per Ziehen verschieben"],
+                    ["deviceFolder", "Speicherordner auf dem Gerät anbieten (Chrome, Edge, Chrome auf Android)"],
                   ].map(([k, label]) => (
                     <SettingRow key={k} c={c} label={label} fontScale={fontScale}>
                       <ToggleSwitch c={c} on={!!flags[k]} label={label} onClick={() => setFlag(k, !flags[k])} />
@@ -2153,7 +2343,7 @@ function BriefeCore({ profileApi }) {
 
       {moveFor && (
         <MoveModal c={c} t={t} fontScale={fontScale} rtl={isRTL} count={moveFor.ids.length}
-          cases={visibleCases.filter((cs) => !cs.demo && cs.id !== "unsorted")}
+          cases={labeled(visibleCases.filter((cs) => !cs.demo && cs.id !== "unsorted"))}
           currentId={(() => { const ids = moveFor.ids; const from = cases.filter((cs) => cs.letters.some((l) => ids.includes(l.id))); return from.length === 1 ? from[0].id : null; })()}
           onMove={(target, name) => moveLetters(moveFor.ids, target, name)} onClose={() => setMoveFor(null)} />
       )}
@@ -2162,14 +2352,15 @@ function BriefeCore({ profileApi }) {
         const k = confirmDel.kind;
         const cs = k === "case" ? cases.find((x) => x.id === confirmDel.id) : null;
         if (k === "case" && !cs) return null;
-        const n = k === "case" ? cs.letters.length : 0;
-        const warnBtn = { ...btnSmall(c), background: c.warn, color: "#fff", borderColor: c.warn, justifyContent: "center", padding: "10px 12px" };
+        const kids = k === "case" ? cases.filter((x) => x.parent === cs.id) : [];
+        const n = k === "case" ? cs.letters.length + kids.reduce((a, x) => a + x.letters.length, 0) : 0;
+        const warnBtn = { ...btnSmall(c), background: c.warn, color: c.onAccent, borderColor: c.warn, justifyContent: "center", padding: "10px 12px" };
         return (
           <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={k === "case" ? t.caseDelete : k === "file" ? t.delFile : t.delDocsTitle} onClose={close} maxWidth={440} z={96}>
             <div style={{ marginBottom: 14, lineHeight: 1.55, overflowWrap: "anywhere" }}>
               {k === "docs" && t.delDocsText.replace("{n}", confirmDel.ids.length)}
               {k === "file" && t.delFileText.replace("{n}", confirmDel.file.name)}
-              {k === "case" && <>{t.delCaseText.replace("{n}", cs.name)}{n > 0 && <div style={{ marginTop: 6 }}>{t.delCaseWith.replace("{n}", n)}</div>}</>}
+              {k === "case" && <>{t.delCaseText.replace("{n}", cs.name)}{kids.length > 0 && <div style={{ marginTop: 6 }}>{t.delCaseSubs.replace("{n}", kids.length)}</div>}{n > 0 && <div style={{ marginTop: 6 }}>{t.delCaseWith.replace("{n}", n)}</div>}</>}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {k === "docs" && <button onClick={() => { deleteLetters(confirmDel.ids); close(); }} style={warnBtn}><Trash2 size={14} /> {t.deleteWord}</button>}
@@ -2235,7 +2426,7 @@ function BriefeCore({ profileApi }) {
         />
       )}
       {editOpen && activeLetter && (
-        <LetterEditModal c={c} t={t} fontScale={fontScale} rtl={isRTL} letter={activeLetter} cases={visibleCases.filter((cs) => !cs.demo || cs.id === activeLetter.caseId)} onSave={saveLetterEdit} onDelete={deleteLetter} onClose={() => setEditOpen(false)} />
+        <LetterEditModal c={c} t={t} fontScale={fontScale} rtl={isRTL} letter={activeLetter} cases={labeled(visibleCases.filter((cs) => !cs.demo || cs.id === activeLetter.caseId))} onSave={saveLetterEdit} onDelete={deleteLetter} onClose={() => setEditOpen(false)} />
       )}
       {remindersOpen && (
         <RemindersModal
@@ -2264,7 +2455,7 @@ function BriefeCore({ profileApi }) {
       )}
       {exportOpen && (
         <ExportModal
-          c={c} t={t} fontScale={fontScale} rtl={isRTL} cases={visibleCases} initialIds={exportOpen.caseIds}
+          c={c} t={t} fontScale={fontScale} rtl={isRTL} cases={labeled(visibleCases)} initialIds={exportOpen.caseIds}
           format={prefs.exportFormat} setFormat={(v) => setPrefs({ exportFormat: v })}
           originals={prefs.exportOriginals} setOriginals={(v) => setPrefs({ exportOriginals: v })}
           progress={exportProgress} ready={exportReady} onBuild={runExport}
@@ -2289,25 +2480,94 @@ function BriefeCore({ profileApi }) {
           onCamera={() => camInputRef.current?.click()}
           onPick={() => pickInputRef.current?.click()} onFiles={addToIntake}
           onCloud={() => setCloudModal({ tab: "import", files: [] })}
-          onNewFolder={flags.folderTools !== false && !progress ? () => setFolderNew({ name: "", color: null }) : null}
+          onNewFolder={flags.folderTools !== false && !progress ? () => { const oc = openCase; const par = oc ? (isTopCase(oc) ? oc.id : oc.parent) : null; setFolderNew({ name: "", color: null, parent: par && parentChoices(null).some((x) => x.id === par) ? par : null }); } : null}
           onRemove={(i) => setIntake((s) => ({ ...s, files: s.files.filter((_, k) => k !== i) }))}
           onStart={startIntake} onClose={() => setIntake(null)} progress={progress}
         />
       )}
       {folderNew && (
-        <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={t.newFolder} onClose={() => setFolderNew(null)} maxWidth={440}>
+        <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={folderNew.parent ? t.newSubfolder : t.newFolder} onClose={() => setFolderNew(null)} maxWidth={440}>
           <FieldRow c={c} fontScale={fontScale} label={t.folderName}>
             <input autoFocus data-folder-name style={fieldStyle(c, fontScale)} value={folderNew.name} onChange={(e) => setFolderNew({ ...folderNew, name: e.target.value })}
-              onKeyDown={(e) => { if (e.key === "Enter" && folderNew.name.trim()) createFolder(folderNew.name, folderNew.color); }} />
+              onKeyDown={(e) => { if (e.key === "Enter" && folderNew.name.trim()) createFolder(folderNew.name, folderNew.color, folderNew.parent); }} />
           </FieldRow>
+          {parentChoices(null).length > 0 && (
+            <FieldRow c={c} fontScale={fontScale} label={t.folderParent}>
+              <select data-folder-parent value={folderNew.parent || ""} onChange={(e) => setFolderNew({ ...folderNew, parent: e.target.value || null })} style={{ ...fieldStyle(c, fontScale) }}>
+                <option value="">{t.folderTop}</option>
+                {parentChoices(null).map((cs) => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
+              </select>
+            </FieldRow>
+          )}
           <ColorPick c={c} t={t} fontScale={fontScale} value={folderNew.color} auto onChange={(col) => setFolderNew({ ...folderNew, color: col })} />
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => setFolderNew(null)} style={btnSmall(c)}>{t.cancel}</button>
-            <button data-folder-create disabled={!folderNew.name.trim()} onClick={() => createFolder(folderNew.name, folderNew.color)} style={{ ...btnPrimary(c, !folderNew.name.trim()), flex: 1, width: "auto" }}>{t.folderCreate}</button>
+            <button data-folder-create disabled={!folderNew.name.trim()} onClick={() => createFolder(folderNew.name, folderNew.color, folderNew.parent)} style={{ ...btnPrimary(c, !folderNew.name.trim()), flex: 1, width: "auto" }}>{t.folderCreate}</button>
           </div>
         </AppModal>
       )}
 
+      {folderMove && (() => {
+        const cs = cases.find((x) => x.id === folderMove.id); if (!cs) return null;
+        const hasKids = cases.some((x) => x.parent === cs.id);
+        const opts = [["", t.folderTop], ...(hasKids ? [] : parentChoices(cs.id).map((x) => [x.id, x.name]))];
+        return (
+          <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={t.folderMove} onClose={() => setFolderMove(null)} maxWidth={440}>
+            <div style={{ fontWeight: 600, marginBottom: 10, overflowWrap: "anywhere" }}>{cs.name}</div>
+            {hasKids && <InfoBox c={c}>{t.folderMoveHasSubs}</InfoBox>}
+            <div role="radiogroup" aria-label={t.folderParent} style={{ maxHeight: "46vh", overflowY: "auto", marginBottom: 10 }}>
+              {opts.map(([id, label]) => (
+                <label key={id || "top"} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 10px", borderRadius: 8, marginBottom: 6, cursor: "pointer", border: `1px solid ${folderMove.target === id ? c.accent : c.border}`, background: folderMove.target === id ? c.accentSoft : "transparent" }}>
+                  <input type="radio" name="foldertarget" data-move-target={id || "top"} checked={folderMove.target === id} onChange={() => setFolderMove({ ...folderMove, target: id })} />
+                  <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>{label}</span>
+                </label>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setFolderMove(null)} style={btnSmall(c)}>{t.cancel}</button>
+              <button data-move-do disabled={(cs.parent || "") === folderMove.target} onClick={() => moveCase(cs.id, folderMove.target)} style={{ ...btnPrimary(c, (cs.parent || "") === folderMove.target), flex: 1, width: "auto" }}>{t.moveDo}</button>
+            </div>
+          </AppModal>
+        );
+      })()}
+      {storeOpen && (
+        <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={t.storeTitle} onClose={() => setStoreOpen(false)} maxWidth={480}>
+          <div style={{ marginBottom: 12, lineHeight: 1.55 }}>{t.storeInfo}</div>
+          {!dirSupported() ? (
+            <>
+              <InfoBox c={c} tone="warn">{t.storeUnsupported}</InfoBox>
+              <button onClick={() => { setStoreOpen(false); setBackupOpen(true); }} style={btnPrimary(c, false)}><Download size={14} /> {t.backupNow}</button>
+            </>
+          ) : dir.state === "none" ? (
+            <button data-dir-choose disabled={dirBusy} onClick={chooseDir} style={btnPrimary(c, dirBusy)}><Folder size={14} /> {t.storeChoose}</button>
+          ) : (
+            <>
+              <InfoBox c={c} tone={dir.state === "ok" ? undefined : "warn"}>
+                <div data-dir-state={dir.state}>{dir.state === "ok" ? t.storeConnected.replace("{n}", dir.name) : dir.state === "ask" ? t.storeAskText : t.storeErr}</div>
+                {dir.state === "ok" && dir.last && <div style={{ marginTop: 4 }}>{t.storeLast.replace("{t}", new Date(dir.last).toLocaleString(uiLang))}</div>}
+                {dir.state === "ok" && dir.failed > 0 && <div style={{ marginTop: 4, color: c.warn }}>{t.storeFailN.replace("{n}", dir.failed)}</div>}
+              </InfoBox>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {dir.state === "ask"
+                  ? <button onClick={reconnectDir} style={btnPrimary(c, false)}><Folder size={14} /> {t.storeReconnect}</button>
+                  : <button data-dir-sync disabled={dirBusy} onClick={() => runDirSync(true)} style={btnPrimary(c, dirBusy)}>{dirBusy ? t.storeBusy : t.storeSyncNow}</button>}
+                <button disabled={dirBusy} onClick={chooseDir} style={{ ...btnSmall(c), justifyContent: "center", padding: "10px 12px" }}>{t.storeChange}</button>
+                <button data-dir-off disabled={dirBusy} onClick={disconnectDir} style={{ ...btnSmall(c), justifyContent: "center", padding: "10px 12px" }}>{t.storeDisconnect}</button>
+              </div>
+            </>
+          )}
+        </AppModal>
+      )}
+      {dirFound && (
+        <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={t.storeTitle} onClose={() => setDirFound(null)} maxWidth={460} z={96}>
+          <div style={{ marginBottom: 14, lineHeight: 1.55 }}>{t.storeFound.replace("{n}", dirFound.n)}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <button data-dir-restore onClick={() => connectDir(dirFound.handle, true)} style={btnPrimary(c, false)}>{t.storeRestore}</button>
+            <button data-dir-overwrite onClick={() => connectDir(dirFound.handle, false)} style={{ ...btnSmall(c), justifyContent: "center", padding: "10px 12px" }}>{t.storeUseAnyway}</button>
+            <button onClick={() => setDirFound(null)} style={{ ...btnSmall(c), justifyContent: "center", padding: "10px 12px" }}>{t.cancel}</button>
+          </div>
+        </AppModal>
+      )}
       {cloudModal && (
         <CloudModal
           key={(cloudModal.files || []).map((f) => f.id).join(",")}
@@ -2324,7 +2584,7 @@ function BriefeCore({ profileApi }) {
         <DetailsModal
           key={drafts.items.map((d) => d.id).join(",")}
           c={c} t={t} fontScale={fontScale} rtl={isRTL} drafts={drafts} uiLang={uiLang}
-          cases={visibleCases.filter((cs) => !cs.demo)} saving={savingDrafts} onSave={saveDrafts} onClose={draftsBack}
+          cases={labeled(visibleCases.filter((cs) => !cs.demo))} saving={savingDrafts} onSave={saveDrafts} onClose={draftsBack}
         />
       )}
       {authOpen && (
@@ -2367,7 +2627,8 @@ function MenuSection({ c, label, icon: Icon, open, onToggle, children }) {
 function MenuItem({ c, label, onClick, active, count, icon: Icon }) {
   return (
     <div
-      onClick={onClick}
+      onClick={onClick} role="button" tabIndex={0} aria-current={active ? "true" : undefined}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick && onClick(e); } }}
       style={{
         display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 7,
         cursor: "pointer", fontSize: 12.5, color: active ? c.accent : c.textMuted,
@@ -2410,7 +2671,7 @@ function SettingRow({ c, label, children, fontScale }) {
 
 /* ---------- Kachel-Ansicht ---------- */
 /* Kleines Menü (drei Punkte) auf Fall-Kachel und Fall-Zeile: Umbenennen, Löschen */
-function CaseMenu({ c, t, fontScale, cs, onRename, onDelete }) {
+function CaseMenu({ c, t, fontScale, cs, onRename, onDelete, onMove }) {
   const [pos, setPos] = useState(null);
   const ref = useRef(null);
   useEffect(() => {
@@ -2424,7 +2685,7 @@ function CaseMenu({ c, t, fontScale, cs, onRename, onDelete }) {
   const toggle = (e) => {
     e.stopPropagation();
     if (pos) return setPos(null);
-    const r = e.currentTarget.getBoundingClientRect(); const w = 210; const h = 2 * 44 + 10;
+    const r = e.currentTarget.getBoundingClientRect(); const w = 220; const h = (onMove ? 3 : 2) * 44 + 10;
     const left = Math.max(8, Math.min(window.innerWidth - w - 8, r.right - w));
     const top = window.innerHeight - r.bottom - 74 < h && r.top > h ? r.top - h - 4 : r.bottom + 4;
     setPos({ left, top, w });
@@ -2444,6 +2705,7 @@ function CaseMenu({ c, t, fontScale, cs, onRename, onDelete }) {
       {pos && (
         <div role="menu" style={{ position: "fixed", left: pos.left, top: pos.top, width: pos.w, zIndex: 60, background: c.surface, border: `1px solid ${c.border}`, borderRadius: 10, boxShadow: "0 8px 28px rgba(0,0,0,.22)", padding: 4, boxSizing: "border-box" }}>
           {item(t.caseRename, Pencil, onRename)}
+          {onMove && item(t.folderMove, Folder, onMove)}
           {item(t.caseDelete, Trash2, onDelete, true)}
         </div>
       )}
@@ -2550,7 +2812,7 @@ function SortableBox({ c, enabled, ids, onReorder, labelOf, renderItem, style })
       onClickCapture={(e) => { if (swallow.current) { e.stopPropagation(); e.preventDefault(); } }}>
       {ids.map((id) => renderItem(id, extra(id)))}
       {drag && (
-        <div style={{ position: "fixed", left: drag.x, top: drag.y, transform: "translate(-50%, -130%)", pointerEvents: "none", zIndex: 80, maxWidth: 220, padding: "8px 12px", borderRadius: 10, background: c.accent, color: "#fff", fontSize: 13, fontWeight: 700, boxShadow: "0 8px 24px rgba(0,0,0,.3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div style={{ position: "fixed", left: drag.x, top: drag.y, transform: "translate(-50%, -130%)", pointerEvents: "none", zIndex: 80, maxWidth: 220, padding: "8px 12px", borderRadius: 10, background: c.accent, color: c.onAccent, fontSize: 13, fontWeight: 700, boxShadow: "0 8px 24px rgba(0,0,0,.3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {labelOf(drag.id)}
         </div>
       )}
@@ -2558,64 +2820,81 @@ function SortableBox({ c, enabled, ids, onReorder, labelOf, renderItem, style })
   );
 }
 
-function CaseTile({ sid, dragStyle, c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDelete, daysUntil, translatedName, uiLang }) {
-  const dl = caseDeadline(cs);
+// Name eines Ordners: lange Wörter mit Silbentrennung umbrechen statt mitten im Wort
+const nameWrap = { overflowWrap: "break-word", wordBreak: "normal", hyphens: "auto", WebkitHyphens: "auto" };
+const withSubs = (cs, subs) => (subs && subs.length ? { ...cs, letters: [...cs.letters, ...subs.flatMap((x) => x.letters)] } : cs);
+const countLine = (cs, subs, t) => nLetters(cs.letters.length, t) + (subs && subs.length ? " · " + t.subCount.replace("{n}", subs.length) : "");
+const openKey = (fn) => (e) => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); fn(); } };
+function DemoBadge({ c, t, fontScale }) {
+  return <span style={{ display: "inline-block", fontSize: 10.5 * fontScale, fontWeight: 700, padding: "1px 7px", borderRadius: 999, background: c.surfaceAlt, color: c.text, border: `1px solid ${c.border}`, marginInlineEnd: 6, verticalAlign: "middle" }}>{t.demoBadge}</span>;
+}
+function StatusBtn({ c, t, cs, size, onToggleStatus }) {
+  const done = cs.status === "done";
+  return (
+    <button type="button" data-nodrag aria-pressed={done} aria-label={`${done ? t.markOpen : t.markDone}: ${cs.name}`} title={done ? t.markOpen : t.markDone}
+      onClick={(e) => { e.stopPropagation(); onToggleStatus(); }}
+      style={{ cursor: "pointer", color: c.textMuted, background: "transparent", border: "none", padding: 8, margin: "0 0 0 -8px", display: "inline-flex", borderRadius: 8 }}>
+      {done ? <FolderCheck size={size} /> : <Check size={size} style={{ opacity: 0.55 }} />}
+    </button>
+  );
+}
+
+function CaseTile({ sid, dragStyle, c, t, fontScale, cs, subs, parentName, onOpen, onToggleStatus, onRename, onDelete, onMove, daysUntil, translatedName, uiLang }) {
+  const dl = caseDeadline(withSubs(cs, subs));
   const d = dl ? daysUntil(dl) : null;
   const urgent = d !== null && d <= 7 && d >= 0;
   return (
     <div style={{
       border: `1px solid ${c.border}`, borderRadius: 16, background: c.surface, overflow: "hidden",
       display: "flex", flexDirection: "column", cursor: "pointer", ...(dragStyle || {}),
-    }} data-sid={sid} onClick={onOpen}>
+    }} data-sid={sid} onClick={onOpen} role="button" tabIndex={0} aria-label={`${t.openFolder}: ${cs.name}`} onKeyDown={openKey(onOpen)}>
       <div style={{ height: 70, background: cs.color, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", opacity: cs.status === "done" ? 0.55 : 1 }}>
         <Folder size={26} color="#fff" style={{ opacity: 0.9 }} />
         {urgent && (
-          <div style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 999, padding: "2px 8px", fontSize: 10.5, color: c.warn, fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
+          <div style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 999, padding: "2px 8px", fontSize: 10.5, color: "#B5502A", fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
             <Clock size={11} /> {d}T
           </div>
         )}
       </div>
       <div style={{ padding: 12, opacity: cs.status === "done" ? 0.6 : 1 }}>
-        <div style={{ fontWeight: 700, fontSize: 13 * fontScale, marginBottom: 2, lineHeight: 1.3, overflowWrap: "anywhere" }}>{cs.name}</div>
+        {cs.demo && <div style={{ marginBottom: 3 }}><DemoBadge c={c} t={t} fontScale={fontScale} /></div>}
+        <div style={{ fontWeight: 700, fontSize: 13 * fontScale, marginBottom: 2, lineHeight: 1.3, ...nameWrap }}>{cs.name}</div>
         {translatedName && translatedName !== cs.name && (
-          <div style={{ fontSize: 11 * fontScale, color: c.accent, marginBottom: 4, lineHeight: 1.3, overflowWrap: "anywhere" }}>{translatedName}</div>
+          <div style={{ fontSize: 11 * fontScale, color: c.accent, marginBottom: 4, lineHeight: 1.3, ...nameWrap }}>{translatedName}</div>
         )}
-        <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted }}>{nLetters(cs.letters.length, t)}</div>
+        {parentName && <div style={{ fontSize: 11 * fontScale, color: c.textMuted, ...nameWrap }}>{t.inFolder.replace("{n}", parentName)}</div>}
+        <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted }}>{countLine(cs, subs, t)}</div>
       </div>
       <div style={{ padding: "0 6px 6px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto" }}>
-        <div onClick={(e) => { e.stopPropagation(); onToggleStatus(); }} style={{ cursor: "pointer", color: c.textMuted, padding: "8px 8px 8px 0" }}>
-          {cs.status === "done" ? <FolderCheck size={15} /> : <Check size={15} style={{ opacity: 0.35 }} />}
-        </div>
-        {onDelete && <CaseMenu c={c} t={t} fontScale={fontScale} cs={cs} onRename={onRename} onDelete={onDelete} />}
+        <StatusBtn c={c} t={t} cs={cs} size={15} onToggleStatus={onToggleStatus} />
+        {onDelete && <CaseMenu c={c} t={t} fontScale={fontScale} cs={cs} onRename={onRename} onDelete={onDelete} onMove={onMove} />}
       </div>
     </div>
   );
 }
 
-function CaseRow({ sid, dragStyle, c, t, fontScale, cs, onOpen, onToggleStatus, onRename, onDelete, daysUntil, translatedName, uiLang }) {
-  const dl = caseDeadline(cs);
+function CaseRow({ sid, dragStyle, c, t, fontScale, cs, subs, parentName, onOpen, onToggleStatus, onRename, onDelete, onMove, daysUntil, translatedName, uiLang }) {
+  const dl = caseDeadline(withSubs(cs, subs));
   const d = dl ? daysUntil(dl) : null;
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12,
       border: `1px solid ${c.border}`, background: c.surface, cursor: "pointer", ...(dragStyle || {}),
-    }} data-sid={sid} onClick={onOpen}>
+    }} data-sid={sid} onClick={onOpen} role="button" tabIndex={0} aria-label={`${t.openFolder}: ${cs.name}`} onKeyDown={openKey(onOpen)}>
       <div style={{ width: 8, height: 34, borderRadius: 4, background: cs.color, opacity: cs.status === "done" ? 0.55 : 1 }} />
       <div style={{ flex: 1, minWidth: 0, opacity: cs.status === "done" ? 0.6 : 1 }}>
-        <div style={{ fontWeight: 600, fontSize: 13 * fontScale, overflowWrap: "anywhere" }}>
-          {cs.name}{translatedName && translatedName !== cs.name && <span style={{ color: c.accent, fontWeight: 500 }}> · {translatedName}</span>}
+        <div style={{ fontWeight: 600, fontSize: 13 * fontScale, ...nameWrap }}>
+          {cs.demo && <DemoBadge c={c} t={t} fontScale={fontScale} />}{cs.name}{translatedName && translatedName !== cs.name && <span style={{ color: c.accent, fontWeight: 500 }}> · {translatedName}</span>}
         </div>
-        <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted }}>{caseNo(cs) || "—"} · {nLetters(cs.letters.length, t)}</div>
+        <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted }}>{parentName ? t.inFolder.replace("{n}", parentName) + " · " : ""}{caseNo(cs) || "—"} · {countLine(cs, subs, t)}</div>
       </div>
       {d !== null && d >= 0 && (
         <div style={{ fontSize: 11.5 * fontScale, color: d <= 7 ? c.warn : c.textMuted, display: "flex", alignItems: "center", gap: 4 }}>
           <Clock size={13} /> {d === 0 ? t.todayWord : t.daysLeft.replace("{n}", d)}
         </div>
       )}
-      <div onClick={(e) => { e.stopPropagation(); onToggleStatus(); }} style={{ cursor: "pointer", color: c.textMuted }}>
-        {cs.status === "done" ? <FolderCheck size={16} /> : <Check size={16} style={{ opacity: 0.35 }} />}
-      </div>
-      {onDelete && <CaseMenu c={c} t={t} fontScale={fontScale} cs={cs} onRename={onRename} onDelete={onDelete} />}
+      <StatusBtn c={c} t={t} cs={cs} size={16} onToggleStatus={onToggleStatus} />
+      {onDelete && <CaseMenu c={c} t={t} fontScale={fontScale} cs={cs} onRename={onRename} onDelete={onDelete} onMove={onMove} />}
     </div>
   );
 }
@@ -2773,7 +3052,7 @@ function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, ta
                             <Check size={14} /> {t.confirmedOn.replace("{d}", fmtD(letter.replyConfirmedAt.slice(0, 10), uiLang))}
                           </span>
                         ) : (
-                          <button onClick={onConfirmReply} style={{ ...btnSmall(c), background: c.accent, color: "#fff", borderColor: c.accent }}>
+                          <button onClick={onConfirmReply} style={{ ...btnSmall(c), background: c.accent, color: c.onAccent, borderColor: c.accent }}>
                             <Check size={13} /> {t.confirm}
                           </button>
                         )}
@@ -3017,7 +3296,7 @@ function ShopModal({ c, fontScale, title, onClose, children, maxWidth = 480, z =
       style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: z, display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}
     >
       <div
-        dir="ltr"
+        dir="ltr" role="dialog" aria-modal="true" aria-label={typeof title === "string" ? title : undefined}
         onClick={(e) => e.stopPropagation()}
         style={{
           background: c.surface, color: c.text, borderRadius: 14, border: `1px solid ${c.border}`,
@@ -3027,7 +3306,7 @@ function ShopModal({ c, fontScale, title, onClose, children, maxWidth = 480, z =
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 8 }}>
           <h3 style={{ margin: 0, fontSize: 16 * fontScale }}>{title}</h3>
-          <X size={18} style={{ cursor: "pointer", flexShrink: 0 }} onClick={onClose} />
+          <button type="button" onClick={onClose} aria-label={A11Y.close} title={A11Y.close} style={{ background: "transparent", border: "none", color: "inherit", cursor: "pointer", padding: 4, margin: -4, display: "inline-flex", flexShrink: 0 }}><X size={18} /></button>
         </div>
         {children}
       </div>
@@ -3058,7 +3337,7 @@ function LinkBtn({ c, onClick, children }) {
 function btnPrimary(c, disabled) {
   return {
     ...btnSmall(c), width: "100%", justifyContent: "center", padding: "12px 14px", fontWeight: 700, fontSize: 13.5,
-    background: disabled ? c.border : c.accent, color: disabled ? c.textMuted : "#fff",
+    background: disabled ? c.border : c.accent, color: disabled ? c.textMuted : c.onAccent,
     borderColor: disabled ? c.border : c.accent, cursor: disabled ? "not-allowed" : "pointer",
   };
 }
@@ -3380,7 +3659,7 @@ function CancelModal({ c, fontScale, subs, onClose, onConfirm }) {
 
 /* ---------- Rechtstexte: immer Deutsch, Platzhalter in orange ---------- */
 function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
-  const tabs = [["impressum", "Impressum"], ["datenschutz", "Datenschutz"], ["agb", "AGB"], ["widerruf", "Widerruf"]];
+  const tabs = [["impressum", "Impressum"], ["datenschutz", "Datenschutz"], ["agb", "AGB"], ["widerruf", "Widerruf"], ["barrierefreiheit", "Barrierefreiheit"]];
   const H = ({ children }) => <div style={{ fontWeight: 700, marginTop: 14, marginBottom: 4 }}>{children}</div>;
   const P = ({ children }) => <div style={{ marginBottom: 6 }}>{children}</div>;
   const Ph = ({ children }) => <span style={{ color: c.warn }}>{children}</span>;
@@ -3391,7 +3670,7 @@ function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
         {tabs.map(([k, l]) => (
           <button
             key={k} onClick={() => setTab(k)}
-            style={{ ...btnSmall(c), background: tab === k ? c.accent : c.surface, color: tab === k ? "#fff" : c.text, borderColor: tab === k ? c.accent : c.border }}
+            style={{ ...btnSmall(c), background: tab === k ? c.accent : c.surface, color: tab === k ? c.onAccent : c.text, borderColor: tab === k ? c.accent : c.border }}
           >
             {l}
           </button>
@@ -3513,13 +3792,31 @@ function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
           <P>Wenn Sie im Bestellvorgang ausdrücklich zugestimmt haben, dass wir sofort mit der Ausführung beginnen, und bestätigt haben, dass Sie dadurch Ihr Widerrufsrecht verlieren, richten sich die Rechtsfolgen nach § 356 BGB. <Ph>[Wortlaut rechtlich prüfen lassen]</Ph></P>
         </>
       )}
+      {tab === "barrierefreiheit" && (
+        <>
+          <H>Erklärung zur Barrierefreiheit</H>
+          <P>Diese Erklärung gilt für die Briefe-App. Wir möchten, dass alle Menschen die App nutzen können, auch mit Vorleseprogramm (Screenreader), mit Tastatur, mit vergrößerter Schrift oder im dunklen Design. Grundlage sind das Barrierefreiheitsstärkungsgesetz (BFSG) und die Norm EN 301 549 (WCAG 2.1, Stufe AA).</P>
+          <H>Was die App macht</H>
+          <P>Mit der App verwalten Sie Dokumente und Behördenpost: Dokumente fotografieren oder hochladen, in Ordner und Unterordner legen, Fristen im Blick behalten und auf Wunsch übersetzen und beantworten lassen.</P>
+          <H>Stand der Vereinbarkeit</H>
+          <P><Ph>[Nach Prüfung eintragen: „vollständig vereinbar“ oder „teilweise vereinbar“. Bis zu einer Prüfung durch eine Fachstelle gilt: teilweise vereinbar.]</Ph></P>
+          <P>Umgesetzt sind unter anderem: Die Sprache der Seite wird für Vorleseprogramme richtig gemeldet. Schaltflächen und Fenster sind beschriftet. Ordner lassen sich mit der Tastatur öffnen. Die Schriftgröße ist einstellbar. Es gibt ein helles und ein dunkles Design mit ausreichenden Kontrasten. Sprachen mit Schreibrichtung von rechts nach links werden unterstützt.</P>
+          <H>Bekannte Einschränkungen</H>
+          <P>Das Umsortieren von Ordnern durch Halten und Ziehen geht nur mit Finger oder Maus; über das Menü „Sortieren“ lässt sich die Reihenfolge auch ohne Ziehen festlegen. Hochgeladene Fotos und PDF-Dateien stammen von den Nutzern und haben keine Bildbeschreibung; der erkannte Text steht, soweit vorhanden, daneben als Text bereit. Die Rechtstexte liegen nur auf Deutsch <Ph>[und Englisch]</Ph> vor. Ein vollständiger Test mit Vorleseprogrammen durch eine Fachstelle steht noch aus. <Ph>[Liste nach dem Test anpassen]</Ph></P>
+          <H>Barriere melden</H>
+          <P>Wenn Ihnen eine Barriere auffällt oder Sie Inhalte in anderer Form brauchen, schreiben Sie uns: <Ph>[E-Mail-Adresse, Telefon, Postanschrift des Anbieters]</Ph>. Wir antworten in der Regel innerhalb von <Ph>[Frist]</Ph>.</P>
+          <H>Zuständige Behörde</H>
+          <P>Marktüberwachungsstelle der Länder für die Barrierefreiheit von Produkten und Dienstleistungen (MLBF), Sitz Magdeburg <Ph>[Anschrift und Kontaktweg vor dem Livegang prüfen und eintragen]</Ph>.</P>
+          <P>Stand dieser Erklärung: <Ph>[Datum]</Ph></P>
+        </>
+      )}
     </ShopModal>
   );
 }
 
 /* ---------- Consent-Banner (§ 25 TDDDG): "Ablehnen" gleich sichtbar wie "Akzeptieren" ---------- */
 function ConsentBanner({ c, fontScale, onChoose, openLegal }) {
-  const btn = { ...btnSmall(c), flex: 1, justifyContent: "center", padding: "11px 12px", fontWeight: 600, fontSize: 13, background: c.accent, color: "#fff", borderColor: c.accent };
+  const btn = { ...btnSmall(c), flex: 1, justifyContent: "center", padding: "11px 12px", fontWeight: 600, fontSize: 13, background: c.accent, color: c.onAccent, borderColor: c.accent };
   return (
     <div
       dir="ltr"
@@ -3677,8 +3974,86 @@ const cloudConfigured = (p) => {
 const DEFAULT_CLOUD = { consent: {}, encrypt: true, auto: null };
 const DEFAULT_ACCOUNT = null;
 
+/* ---------- Speicherordner auf dem Gerät: echte Dateien in einem Ordner, den der Nutzer wählt.
+   Geht nur, wo der Browser es erlaubt (Chrome und Edge am Computer, Chrome auf Android). ---------- */
+const dirSupported = () => typeof window !== "undefined" && typeof window.showDirectoryPicker === "function";
+const DIR_DATA = "briefe-app-daten.json";
+function dirKv() {
+  return new Promise((resolve) => {
+    try { const r = indexedDB.open("briefe-app-dir", 1); r.onupgradeneeded = () => r.result.createObjectStore("h"); r.onsuccess = () => resolve(r.result); r.onerror = () => resolve(null); }
+    catch (e) { resolve(null); }
+  });
+}
+async function dirHandleGet(key) {
+  const db = await dirKv(); if (!db) return null;
+  return new Promise((res) => { try { const q = db.transaction("h").objectStore("h").get(key); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); } catch (e) { res(null); } });
+}
+async function dirHandleSet(key, h) {
+  const db = await dirKv(); if (!db) return false;
+  return new Promise((res) => { try { const tx = db.transaction("h", "readwrite"); if (h) tx.objectStore("h").put(h, key); else tx.objectStore("h").delete(key); tx.oncomplete = () => res(true); tx.onerror = () => res(false); } catch (e) { res(false); } });
+}
+async function dirPerm(h, ask) {
+  try {
+    if (!h.queryPermission) return "granted";
+    let p = await h.queryPermission({ mode: "readwrite" });
+    if (p !== "granted" && ask && h.requestPermission) p = await h.requestPermission({ mode: "readwrite" });
+    return p;
+  } catch (e) { return "denied"; }
+}
+async function dirSub(root, parts, create) { let d = root; for (const p of parts) d = await d.getDirectoryHandle(p, { create }); return d; }
+async function dirWrite(root, parts, name, blob) {
+  const d = await dirSub(root, parts, true); const fh = await d.getFileHandle(name, { create: true });
+  const w = await fh.createWritable(); await w.write(blob); await w.close();
+}
+async function dirRead(root, parts, name) { try { const d = await dirSub(root, parts, false); return await (await d.getFileHandle(name)).getFile(); } catch (e) { return null; } }
+async function dirRemove(root, parts, name) { try { const d = await dirSub(root, parts, false); await d.removeEntry(name); } catch (e) {} }
+async function dirReadData(root) { try { const f = await dirRead(root, [], DIR_DATA); if (!f) return null; const d = JSON.parse(await f.text()); return d && d.app === "briefe-app" && Array.isArray(d.cases) ? d : null; } catch (e) { return null; } }
+// Gleicht den Ordner mit dem Stand der App ab: jede Datei als normale Datei unter "Ordner/Unterordner/", dazu eine Daten-Datei
+// mit allen Angaben. Es werden nur Dateien verschoben oder entfernt, die die App selbst dort abgelegt hat.
+async function dirSync(root, cases) {
+  const real = cases.filter((cs) => !cs.demo);
+  const byId = Object.fromEntries(real.map((cs) => [cs.id, cs]));
+  const pathOf = (cs) => { const par = cs.parent && byId[cs.parent]; return par ? [safeName(par.name), safeName(cs.name)] : [safeName(cs.name)]; };
+  const old = (await dirReadData(root)) || {}; const oldFiles = old.files || {}; const oldDirs = old.dirs || [];
+  // Sicherheitsnetz: Ist die App leer, der Ordner aber nicht, wird im Ordner nichts gelöscht (z. B. nach geleertem Browser-Speicher)
+  if (!real.some((cs) => cs.letters.length) && Object.keys(oldFiles).length) return { written: 0, failed: 0, skipped: true };
+  const files = {}; const used = new Set(); const dirs = []; let written = 0, failed = 0;
+  for (const cs of real) {
+    const parts = pathOf(cs); dirs.push(parts);
+    try { await dirSub(root, parts, true); } catch (e) { failed++; continue; }
+    for (const l of cs.letters) for (const f of l.files || []) {
+      let name = safeName(f.name || f.id);
+      if (used.has((parts.join("/") + "/" + name).toLowerCase())) name = String(f.id).slice(-5) + "_" + name;
+      used.add((parts.join("/") + "/" + name).toLowerCase());
+      const o = oldFiles[f.id];
+      if (o && o.n === name && o.p.join("/") === parts.join("/")) { files[f.id] = o; continue; }   // liegt schon an der richtigen Stelle
+      const blob = await fileGet(f.id);
+      if (!blob) { if (o) files[f.id] = o; failed++; continue; }
+      try { await dirWrite(root, parts, name, blob); files[f.id] = { p: parts, n: name }; written++; if (o) await dirRemove(root, o.p, o.n); }
+      catch (e) { if (o) files[f.id] = o; failed++; }
+    }
+  }
+  for (const [id, o] of Object.entries(oldFiles)) if (!files[id]) await dirRemove(root, o.p, o.n);   // in der App gelöscht
+  // leer gewordene Ordner der App entfernen (tiefste zuerst); nicht leere bleiben stehen
+  const keep = new Set(dirs.map((d) => d.join("/")));
+  for (const d of [...oldDirs].sort((a, b) => b.length - a.length)) if (!keep.has(d.join("/"))) await dirRemove(root, d.slice(0, -1), d[d.length - 1]);
+  await dirWrite(root, [], DIR_DATA, new Blob([JSON.stringify({ app: "briefe-app", kind: "speicherordner", version: 1, savedAt: new Date().toISOString(), cases: real, files, dirs })], { type: "application/json" }));
+  return { written, failed };
+}
+// Bestand aus dem Ordner zurück in die App holen (Dateien, die es in der App noch nicht gibt)
+async function dirRestore(root) {
+  const d = await dirReadData(root); if (!d) return null;
+  for (const [id, o] of Object.entries(d.files || {})) {
+    if (await fileGet(id)) continue;
+    const f = await dirRead(root, o.p, o.n); if (f) await fileSave(id, f);
+  }
+  return d;
+}
+
 /* ---------- Dateiablage auf dem Gerät (IndexedDB, Fallback Arbeitsspeicher) ---------- */
 const memFiles = new Map();
+const STORE_FAIL = { fn: null };   // wird von der App gesetzt: meldet, wenn etwas nicht dauerhaft gespeichert werden konnte
+const storeFail = (kind) => { try { STORE_FAIL.fn && STORE_FAIL.fn(kind); } catch (e) {} };
 let fileDbPromise = null;
 function fileDb() {
   if (fileDbPromise) return fileDbPromise;
@@ -3696,14 +4071,15 @@ function fileDb() {
 }
 async function fileSave(id, blob) {
   const db = await fileDb();
-  if (!db) { memFiles.set(id, blob); return "memory"; }
+  if (!db) { memFiles.set(id, blob); storeFail("file"); return "memory"; }
   return new Promise((res) => {
+    const fail = () => { memFiles.set(id, blob); storeFail("file"); res("memory"); };
     try {
       const tx = db.transaction("files", "readwrite");
       tx.objectStore("files").put(blob, id);
       tx.oncomplete = () => res("device");
-      tx.onerror = () => { memFiles.set(id, blob); res("memory"); };
-    } catch (e) { memFiles.set(id, blob); res("memory"); }
+      tx.onerror = fail; tx.onabort = fail;
+    } catch (e) { fail(); }
   });
 }
 async function fileGet(id) {
@@ -4177,19 +4553,41 @@ const shortAddr = (a) => (a ? a.slice(0, 6) + "…" + a.slice(-4) : "");
    DIALOGE: Hinzufügen · Zuordnen · Originale · Clouds · Konto
    ===================================================================== */
 
+// Hinweis-Leiste oben im Inhaltsbereich (Speicherfehler, Sicherung fällig, Speicherordner)
+function WarnBar({ c, fontScale, tone, id, text, children, onClose, closeLabel }) {
+  const warn = tone === "warn";
+  return (
+    <div role={warn ? "alert" : "status"} data-bar={id} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "10px 12px", marginBottom: 12, borderRadius: 12, border: `1px solid ${warn ? c.warn : c.border}`, background: warn ? c.warnSoft : c.surface, color: c.text, fontSize: 12.5 * fontScale, lineHeight: 1.45 }}>
+      <div style={{ flex: "1 1 220px", minWidth: 0 }}>{text}</div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        {children}
+        {onClose && <button type="button" onClick={onClose} aria-label={closeLabel} title={closeLabel} style={{ background: "transparent", border: "none", color: c.text, cursor: "pointer", padding: 6, display: "inline-flex" }}><X size={16} /></button>}
+      </div>
+    </div>
+  );
+}
+const A11Y = { close: "Schließen" };   // Beschriftung des Schließen-Knopfs in der App-Sprache (setzt die App)
 function AppModal({ c, fontScale, title, onClose, children, maxWidth = 520, z = 95, rtl, noBackdropClose }) {
+  const boxRef = useRef(null);
+  // Beim Öffnen den Dialog fokussieren (Vorleseprogramme, Tastatur) und beim Schließen zum vorherigen Element zurück
+  useEffect(() => {
+    const before = typeof document !== "undefined" ? document.activeElement : null;
+    try { if (boxRef.current && !boxRef.current.contains(document.activeElement)) boxRef.current.focus({ preventScroll: true }); } catch (e) {}
+    return () => { try { before && before.focus && before.focus({ preventScroll: true }); } catch (e) {} };
+  }, []);
   return (
     <div onClick={noBackdropClose ? undefined : onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: z, display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
       <div
+        ref={boxRef} role="dialog" aria-modal="true" aria-label={typeof title === "string" ? title : undefined} tabIndex={-1}
         dir={rtl ? "rtl" : "ltr"} onClick={(e) => e.stopPropagation()}
         style={{
           background: c.surface, color: c.text, borderRadius: 14, border: `1px solid ${c.border}`, width: "100%", maxWidth,
-          maxHeight: "92vh", overflowY: "auto", padding: 18, boxSizing: "border-box", fontSize: 13 * fontScale, lineHeight: 1.5,
+          maxHeight: "92vh", overflowY: "auto", padding: 18, boxSizing: "border-box", fontSize: 13 * fontScale, lineHeight: 1.5, outline: "none",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 8 }}>
           <h3 style={{ margin: 0, fontSize: 16 * fontScale }}>{title}</h3>
-          <X size={18} style={{ cursor: "pointer", flexShrink: 0 }} onClick={onClose} />
+          <button type="button" onClick={onClose} aria-label={A11Y.close} title={A11Y.close} style={{ background: "transparent", border: "none", color: c.text, cursor: "pointer", padding: 6, margin: -6, display: "inline-flex", flexShrink: 0, borderRadius: 8 }}><X size={18} /></button>
         </div>
         {children}
       </div>
@@ -4206,7 +4604,7 @@ function NoticeToast({ c, fontScale, text, onClose, bottom = 16 }) {
   if (!text) return null;
   return (
     <div
-      onClick={onClose}
+      onClick={onClose} role="status" aria-live="polite"
       style={{
         position: "fixed", left: 12, right: 12, bottom, margin: "0 auto", maxWidth: 460, zIndex: 98, cursor: "pointer",
         background: c.text, color: c.bg, padding: "11px 14px", borderRadius: 12, fontSize: 13 * fontScale, boxShadow: "0 6px 24px rgba(0,0,0,.3)",
@@ -4247,7 +4645,7 @@ function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamer
               <FileThumb c={c} file={f} />
               <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} dir="ltr">{f.name}</span>
               <span style={{ color: c.textMuted, fontSize: 11.5 * fontScale, flexShrink: 0 }}>{fmtSize(f.size)}</span>
-              {!busy && <X size={15} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => onRemove(i)} />}
+              {!busy && <button type="button" onClick={() => onRemove(i)} aria-label={A11Y.close} title={A11Y.close} style={{ background: "transparent", border: "none", color: "inherit", cursor: "pointer", padding: 4, margin: -4, display: "inline-flex", flexShrink: 0 }}><X size={15} /></button>}
             </div>
           ))}
         </div>
@@ -4417,7 +4815,10 @@ function DocFiles({ c, t, fontScale, letter, files, actions, isMobile, viewer, s
       <div style={{ border: `1px solid ${c.border}`, borderRadius: 14, background: c.surface, padding: 14, minWidth: 0 }}>
         {inputs}
         <div style={{ color: c.textMuted, marginBottom: 10 }}>{t.noFile}</div>
-        <MoreMenu c={c} fontScale={fontScale} label={t.more} items={addItems} align="start" />
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button data-add-file onClick={() => attRef.current?.click()} style={{ ...btnSmall(c), background: c.accent, color: c.onAccent, borderColor: c.accent }}><Paperclip size={14} /> {t.addFileBtn}</button>
+          <MoreMenu c={c} fontScale={fontScale} label={t.more} items={addItems} align="start" />
+        </div>
       </div>
     );
   }
@@ -4640,7 +5041,7 @@ function CloudModal({ c, t, fontScale, rtl, flags, tab, setTab, cloud, setCloud,
     <AppModal c={c} fontScale={fontScale} rtl={rtl} title={t.cloudsMenu} onClose={onClose} maxWidth={560}>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
         {tabs.map(([k, l]) => (
-          <button key={k} onClick={() => { setTab(k); setErr(""); }} style={{ ...btnSmall(c), background: tab === k ? c.accent : c.surface, color: tab === k ? "#fff" : c.text, borderColor: tab === k ? c.accent : c.border }}>{l}</button>
+          <button key={k} onClick={() => { setTab(k); setErr(""); }} style={{ ...btnSmall(c), background: tab === k ? c.accent : c.surface, color: tab === k ? c.onAccent : c.text, borderColor: tab === k ? c.accent : c.border }}>{l}</button>
         ))}
       </div>
       {err && <InfoBox c={c} tone="warn">{err}</InfoBox>}
@@ -5136,7 +5537,7 @@ function LetterTile({ c, t, fontScale, letter, fields, onOpen, daysUntil, uiLang
       <div style={{ height: 44, background: caseColor, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
         <FileText size={20} color="#fff" style={{ opacity: 0.9 }} />
         {urgent && (
-          <div style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 999, padding: "2px 8px", fontSize: 10.5, color: c.warn, fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
+          <div style={{ position: "absolute", top: 8, right: 8, background: "#fff", borderRadius: 999, padding: "2px 8px", fontSize: 10.5, color: "#B5502A", fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
             <Clock size={11} /> {dl}T
           </div>
         )}
@@ -5155,7 +5556,7 @@ function LetterTile({ c, t, fontScale, letter, fields, onOpen, daysUntil, uiLang
 }
 
 /* ---------- Fall-Ansicht: Liste der Briefe dieses Falls ---------- */
-function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, setSort, fields, onBack, onOpenLetter, onCustomize, onToggleStatus, onAdd, onExport, onCasePdf, onRename, onDelete, daysUntil, uiLang, isMobile, isRTL, searching, sel, setSel, onMoveSel, onDeleteSel }) {
+function CaseView({ subs = [], subsNode, parentCase, canSub, onNewSub, onMoveFolder, c, t, fontScale, cs, translatedName, letters, view, sort, setSort, fields, onBack, onOpenLetter, onCustomize, onToggleStatus, onAdd, onExport, onCasePdf, onRename, onDelete, daysUntil, uiLang, isMobile, isRTL, searching, sel, setSel, onMoveSel, onDeleteSel }) {
   const selecting = Array.isArray(sel);
   const toggle = (id) => setSel((x) => { const a = x || []; return a.includes(id) ? a.filter((y) => y !== id) : [...a, id]; });
   // Langes Tippen (oder Rechtsklick) auf ein Dokument startet die Auswahl
@@ -5180,15 +5581,15 @@ function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, se
   const sortOpts = [["date", t.sortDate], ["caseNumber", t.fCaseNumber], ["sender", t.fSender], ["deadline", t.sortDeadline], ["subject", t.fSubject]];
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-      <button onClick={onBack} style={{ ...btnSmall(c), marginBottom: 12 }}>
-        <ChevronRight size={14} style={{ transform: isRTL ? "none" : "rotate(180deg)" }} /> {t.home}
+      <button data-case-back onClick={onBack} style={{ ...btnSmall(c), marginBottom: 12, maxWidth: "100%" }}>
+        <ChevronRight size={14} style={{ transform: isRTL ? "none" : "rotate(180deg)", flexShrink: 0 }} /> <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{parentCase ? parentCase.name : t.home}</span>
       </button>
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
         <div style={{ width: 10, alignSelf: "stretch", minHeight: 38, borderRadius: 5, background: cs.color }} />
         <div style={{ flex: "1 1 200px", minWidth: 0 }}>
-          <h2 style={{ margin: 0, fontSize: 19 * fontScale, overflowWrap: "anywhere", lineHeight: 1.25 }}>{cs.name}</h2>
-          {translatedName && translatedName !== cs.name && <div style={{ fontSize: 12.5 * fontScale, color: c.accent, overflowWrap: "anywhere" }}>{translatedName}</div>}
-          <div style={{ fontSize: 12 * fontScale, color: c.textMuted }}>{nLetters(cs.letters.length, t)}</div>
+          <h2 style={{ margin: 0, fontSize: 19 * fontScale, lineHeight: 1.25, ...nameWrap }}>{cs.demo && <DemoBadge c={c} t={t} fontScale={fontScale} />}{cs.name}</h2>
+          {translatedName && translatedName !== cs.name && <div style={{ fontSize: 12.5 * fontScale, color: c.accent, ...nameWrap }}>{translatedName}</div>}
+          <div style={{ fontSize: 12 * fontScale, color: c.textMuted }}>{countLine(cs, subs, t)}</div>
         </div>
         <button onClick={onToggleStatus} style={{ ...btnSmall(c), flexShrink: 0 }}>
           {cs.status === "done" ? <FolderCheck size={14} /> : <Check size={14} />} {cs.status === "done" ? t.done : t.open}
@@ -5209,14 +5610,25 @@ function CaseView({ c, t, fontScale, cs, translatedName, letters, view, sort, se
           { label: t.casePdf, icon: FileText, onClick: onCasePdf },
           { label: t.exportCase, icon: Download, onClick: onExport },
           { label: t.caseRename, icon: Pencil, onClick: onRename },
+          ...(onMoveFolder ? [{ label: t.folderMove, icon: Folder, onClick: onMoveFolder }] : []),
           { label: t.caseDelete, icon: Trash2, onClick: onDelete, warn: true },
         ]} />
         {letters.length > 0 && !selecting && <button onClick={() => setSel([])} style={btnSmall(c)}><Check size={14} /> {t.selectWord}</button>}
-        <button onClick={onAdd} style={{ ...btnSmall(c), background: c.accent, color: "#fff", borderColor: c.accent }}><Upload size={14} /> {t.upload}</button>
+        <button onClick={onAdd} style={{ ...btnSmall(c), background: c.accent, color: c.onAccent, borderColor: c.accent }}><Upload size={14} /> {t.upload}</button>
       </div>
 
+      {(subs.length > 0 || canSub) && !searching && (
+        <div data-subfolders style={{ marginBottom: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <h3 style={{ margin: 0, fontSize: 13.5 * fontScale, fontWeight: 700 }}>{t.subfolders}</h3>
+            <div style={{ flex: 1 }} />
+            {canSub && <button data-new-sub onClick={onNewSub} style={btnSmall(c)}><Folder size={14} /> {t.newSubfolder}</button>}
+          </div>
+          {subs.length > 0 && subsNode}
+        </div>
+      )}
       {letters.length === 0 ? (
-        <div style={{ textAlign: "center", padding: 50, color: c.textMuted }}>{searching ? t.noHits : t.caseEmpty}</div>
+        <div style={{ textAlign: "center", padding: subs.length ? 24 : 50, color: c.textMuted }}>{searching ? t.noHits : t.caseEmpty}</div>
       ) : view === "tiles" ? (
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(auto-fill, minmax(150px,1fr))" : "repeat(auto-fill, minmax(230px,1fr))", gap: isMobile ? 10 : 16 }}>
           {letters.map((l) => wrap(l,
@@ -5318,7 +5730,7 @@ function LetterEditModal({ c, t, fontScale, rtl, letter, cases, onSave, onDelete
             <div style={{ color: c.warn, marginBottom: 8 }}>{t.deleteConfirm}</div>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => setConfirmDel(false)} style={btnSmall(c)}>{t.cancel}</button>
-              <button onClick={() => onDelete(letter)} style={{ ...btnSmall(c), background: c.warn, color: "#fff", borderColor: c.warn }}>{t.deleteLetter}</button>
+              <button onClick={() => onDelete(letter)} style={{ ...btnSmall(c), background: c.warn, color: c.onAccent, borderColor: c.warn }}>{t.deleteLetter}</button>
             </div>
           </>
         )}
@@ -5378,7 +5790,7 @@ function RemindersModal({ c, t, fontScale, rtl, items, remind, setRemind, onOpen
         <div style={{ marginBottom: 8, fontWeight: 700 }}>{t.remindDays}</div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
           {[14, 7, 3, 2, 1, 0].map((d) => (
-            <button key={d} onClick={() => toggleDay(d)} style={{ ...btnSmall(c), background: remind.days.includes(d) ? c.accent : c.surface, color: remind.days.includes(d) ? "#fff" : c.text, borderColor: remind.days.includes(d) ? c.accent : c.border }}>
+            <button key={d} onClick={() => toggleDay(d)} style={{ ...btnSmall(c), background: remind.days.includes(d) ? c.accent : c.surface, color: remind.days.includes(d) ? c.onAccent : c.text, borderColor: remind.days.includes(d) ? c.accent : c.border }}>
               {d === 0 ? t.todayWord : d}
             </button>
           ))}
@@ -5786,7 +6198,7 @@ function ExportModal({ c, t, fontScale, rtl, cases, initialIds, format, setForma
           <div style={{ fontWeight: 700, marginBottom: 4 }}>{t.exportReady}</div>
           <div style={{ color: c.textMuted, marginBottom: 12 }} dir="ltr">{ready.name} · {fmtSize(ready.blob.size)}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <button onClick={onDownload} style={{ ...big, background: c.accent, color: "#fff", borderColor: c.accent }}><Download size={15} /> {t.exportDownload}</button>
+            <button onClick={onDownload} style={{ ...big, background: c.accent, color: c.onAccent, borderColor: c.accent }}><Download size={15} /> {t.exportDownload}</button>
             <button onClick={onShare} style={big}><Share2 size={15} /> {t.exportShare}</button>
             <button onClick={onCloud} style={big}><Cloud size={15} /> {t.exportCloud}</button>
             <button onClick={onReset} style={{ ...btnSmall(c), justifyContent: "center" }}>{t.exportAgain}</button>
@@ -6109,7 +6521,7 @@ function ProfilesModal({ c, t, fontScale, rtl, api, onClose }) {
             <div style={{ marginTop: 8, color: c.warn }}>
               {t.profileDeleteConfirm.replace("{n}", profileLabel(p, t))}
               <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-                <button disabled={busy} onClick={async () => { setBusy(true); await api.remove(p.id); setBusy(false); setDel(null); }} style={{ ...btnSmall(c), color: "#fff", background: c.warn, borderColor: c.warn }}>{t.profileDelete}</button>
+                <button disabled={busy} onClick={async () => { setBusy(true); await api.remove(p.id); setBusy(false); setDel(null); }} style={{ ...btnSmall(c), color: c.onAccent, background: c.warn, borderColor: c.warn }}>{t.profileDelete}</button>
                 <button onClick={() => setDel(null)} style={btnSmall(c)}>{t.cancel}</button>
               </div>
             </div>
@@ -6237,7 +6649,7 @@ function ReplyLog({ c, t, fontScale, log, uiLang }) {
 }
 function FeedbackBar({ c, t, fontScale, value, onRate }) {
   const [comment, setComment] = useState(value?.c || ""); const [open, setOpen] = useState(false);
-  const on = (v) => (value?.v === v ? { background: v > 0 ? c.accent : c.warn, color: "#fff", borderColor: v > 0 ? c.accent : c.warn } : {});
+  const on = (v) => (value?.v === v ? { background: v > 0 ? c.accent : c.warn, color: c.onAccent, borderColor: v > 0 ? c.accent : c.warn } : {});
   return (
     <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginTop: 8, fontSize: 12 * fontScale, color: c.textMuted }}>
       <span>{t.fbAsk}</span>
