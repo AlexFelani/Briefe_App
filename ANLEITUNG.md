@@ -140,3 +140,22 @@ Inhalte von Dokumenten gehen nur bei eingeschalteter KI zur Verarbeitung an den 
 - **Erinnerung an die Sicherung:** alle 30 Tage, solange eigene Dokumente vorhanden sind und kein Speicherordner verbunden ist.
 - **Barrierefreiheit:** Sprache der Seite folgt der App-Sprache, Fenster und Knöpfe sind beschriftet, Ordner per Tastatur bedienbar, Kontraste im dunklen Design korrigiert. Unter „Rechtliches“ gibt es den Entwurf einer Erklärung zur Barrierefreiheit (Platzhalter vor dem Livegang füllen, Prüfung durch Fachstelle steht aus).
 - **Betreiber-Schalter:** „Neue Ordner und Unterordner …“ (`folderTools`) und „Speicherordner auf dem Gerät anbieten“ (`deviceFolder`).
+
+## KI-Modell, eigene KI, Lesen ohne KI, Kamera (Stand 12.11.2026)
+
+**Betreiber-Schalter „KI-Modell“** (Einstellungen → Betreiber-Schalter):
+- **A · KI über Betreiber-Konto:** Die KI läuft über deinen Server (`SERVER_URL`, KI-Schlüssel in `.env`). Dafür brauchst du Konto, Vertrag und Auftragsverarbeitung beim KI-Anbieter.
+- **B · KI des Nutzers (Standard):** Der Nutzer trägt unter Einstellungen → KI → „Deine KI“ seinen eigenen Schlüssel ein (Claude, ChatGPT/OpenAI, Grok, Gemini, Mistral oder ein anderer OpenAI-kompatibler Anbieter). Der Schlüssel bleibt nur auf dem Gerät und kommt in keine Sicherung. Die Anfragen gehen direkt vom Gerät zum Anbieter. Ohne Schlüssel kann der Nutzer Aufgaben mit „An meine KI-App übergeben“ an seine KI-App schicken und das Ergebnis einfügen.
+- **A + B:** beides; der Nutzer wählt, welche KI arbeitet.
+- **Aus:** keine KI-Funktionen.
+- Wichtig bei eigenem Server: Steht der Schalter auf B, nutzt die App die KI deines Servers nicht. Für den Server-Betrieb A oder A + B wählen.
+- Datenschutzerklärung, AGB und Einführung zeigen automatisch die zum Schalter passenden Abschnitte. Die Abschnitte zu B und die Haftungsklausel (4a) sind Entwürfe für die anwaltliche Prüfung.
+- Ob ein Anbieter Anfragen direkt aus dem Browser erlaubt, prüft „Verbindung testen“. Nicht geprüft: echte Anbieter-Konten und aktuelle Modellnamen (Vorgaben sind änderbar).
+
+**Lesen ohne KI:** Beim Hinzufügen ist „Text auf dem Gerät erkennen (ohne KI)“ vorausgewählt. Fotos werden mit Tesseract erkannt, PDFs mit PDF.js (eingescannte PDF-Seiten ebenfalls mit Tesseract). Danach sucht die App per Regeln Absender, Aktenzeichen/Kundennummer, Datum, Frist und Betreff heraus. Die Programmdateien und die deutschen Sprachdaten legt der automatische Bau der Testseite in die Ordner `ocr/` und `pdf/` (siehe `.github/workflows/testseite.yml`, Schritt „Texterkennung bereitstellen“). Bei eigenem Hosting diese Ordner mit hochladen. Dokumentinhalte verlassen das Gerät dabei nicht.
+
+**Serienkamera:** „Foto aufnehmen“ öffnet eine Kamera in der App, die offen bleibt: mehrere Seiten hintereinander, „Letztes löschen“, „Fertig“. Ist die Kamera nicht erlaubt, bietet die App die Kamera-App des Handys an.
+
+**Drehen:** Fotos lassen sich im Hinzufügen-Fenster, am gespeicherten Dokument und in der Großansicht um 90° drehen. Das gedrehte Bild wird gespeichert, auch im Speicherordner. PDFs lassen sich nicht drehen.
+
+**Sprache:** Die App startet immer auf Deutsch, bis der Nutzer eine andere Sprache wählt.

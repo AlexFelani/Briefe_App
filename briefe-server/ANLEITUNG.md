@@ -4,8 +4,8 @@ Zwei Teile:
 
 | Ordner | Was | Läuft wo |
 |---|---|---|
-| `briefe-web/` | Die App (React). Briefe, Fotos und Fälle bleiben auf dem Gerät. | Als statische Website, z. B. `app.deine-domain.de` |
-| `briefe-server/` | Der Server: KI-Zugang mit geheimem Schlüssel, Anmeldung, Zahlungen, Erinnerungen, Newsletter. Er speichert keine Briefinhalte. | Auf einem EU-Server, z. B. `api.deine-domain.de` |
+| `briefe-web/` | Die App (React). Dokumente, Fotos und Fälle bleiben auf dem Gerät. Die KI ist beim Start aus; der Nutzer schaltet sie selbst ein. | Als statische Website, z. B. `app.deine-domain.de` |
+| `briefe-server/` | Der Server: KI-Zugang mit geheimem Schlüssel, Anmeldung, Zahlungen, Erinnerungen, Newsletter. Er speichert keine Inhalte von Dokumenten. | Auf einem EU-Server, z. B. `api.deine-domain.de` |
 
 Der Server braucht nur **Node.js ab Version 22.13**. Fremdpakete gibt es keine, deshalb entfällt `npm install`. Die Datenbank (SQLite) ist in Node.js eingebaut.
 
@@ -94,9 +94,9 @@ Mit `npm run vapid` die Schlüssel erzeugen und in `.env` eintragen. Die App üb
 - [ ] Gewerbe anmelden bzw. Firma gründen. Klären, ob die Kleinunternehmerregelung greift oder Umsatzsteuer anfällt.
 - [ ] AVVs mit Hoster, KI-Anbieter (AWS bzw. Anthropic), E-Mail-Anbieter und Stripe ablegen.
 - [ ] Rechtstexte ausfüllen und **anwaltlich prüfen** lassen: Impressum, Datenschutzerklärung, AGB, Widerrufsbelehrung, E-Mail-Vorlagen in `lib/mails.js`. Alle `[Platzhalter]` ersetzen.
-- [ ] **Datenschutz-Folgenabschätzung** (Art. 35 DSGVO) prüfen lassen. Briefe vom Jobcenter, von Ärzten oder Behörden enthalten oft besonders geschützte Daten.
+- [ ] **Datenschutz-Folgenabschätzung** (Art. 35 DSGVO) prüfen lassen. Dokumente vom Jobcenter, von Ärzten oder Behörden enthalten oft besonders geschützte Daten.
 - [ ] Verzeichnis der Verarbeitungstätigkeiten und technisch-organisatorische Maßnahmen dokumentieren.
-- [ ] EU-KI-Verordnung: Die App kennzeichnet KI-Inhalte und verweist bei kritischen Briefen auf Beratung. Die Einstufung (Art. 50, Anhang III) solltest du rechtlich bestätigen lassen.
+- [ ] EU-KI-Verordnung: Die App kennzeichnet KI-Inhalte und verweist bei kritischen Dokumenten auf Beratung. Die Einstufung (Art. 50, Anhang III) solltest du rechtlich bestätigen lassen.
 - [ ] Rechtsdienstleistungsgesetz klären lassen. Die App erstellt Entwürfe nach den Angaben des Nutzers und ersetzt keinen Anwalt; die Grenze sollte ein Anwalt bewerten.
 
 ---
@@ -105,13 +105,13 @@ Mit `npm run vapid` die Schlüssel erzeugen und in `.env` eintragen. Die App üb
 
 - Zufällige Sitzungskennung je Gerät/Profil (nur als Prüfwert)
 - E-Mail-Adresse bzw. UP-Adresse nach der Anmeldung
-- Welche Briefe freigeschaltet sind: nur eine zufällige Brief-Kennung, **kein Inhalt**
+- Welche Dokumente freigeschaltet sind: nur eine zufällige Dokument-Kennung, **kein Inhalt**
 - Bestellungen (nach Kontolöschung ohne Kontobezug, wegen Aufbewahrungspflichten)
 - Nur wenn der Nutzer es einschaltet: Erinnerungszeitpunkte (Push) und das Kalender-Abo (standardmäßig nur „Frist“, ohne Betreff)
 - Newsletter nur nach Bestätigung. Unbestätigte Anmeldungen werden nach 30 Tagen gelöscht.
-- Anonyme Bewertungen ohne Brieftext
+- Anonyme Bewertungen ohne Text des Dokuments
 
-Briefinhalte gehen nur zur Verarbeitung an den KI-Anbieter und werden auf dem Server nicht gespeichert. Der Server baut alle KI-Anweisungen selbst, deshalb kann ihn niemand als freien KI-Zugang missbrauchen. Tageslimits und Rate-Limits sind eingebaut.
+Inhalte von Dokumenten gehen nur bei eingeschalteter KI zur Verarbeitung an den KI-Anbieter und werden auf dem Server nicht gespeichert. Der Server baut alle KI-Anweisungen selbst, deshalb kann ihn niemand als freien KI-Zugang missbrauchen. Tageslimits und Rate-Limits sind eingebaut.
 
 ---
 
@@ -140,3 +140,22 @@ Briefinhalte gehen nur zur Verarbeitung an den KI-Anbieter und werden auf dem Se
 - **Erinnerung an die Sicherung:** alle 30 Tage, solange eigene Dokumente vorhanden sind und kein Speicherordner verbunden ist.
 - **Barrierefreiheit:** Sprache der Seite folgt der App-Sprache, Fenster und Knöpfe sind beschriftet, Ordner per Tastatur bedienbar, Kontraste im dunklen Design korrigiert. Unter „Rechtliches“ gibt es den Entwurf einer Erklärung zur Barrierefreiheit (Platzhalter vor dem Livegang füllen, Prüfung durch Fachstelle steht aus).
 - **Betreiber-Schalter:** „Neue Ordner und Unterordner …“ (`folderTools`) und „Speicherordner auf dem Gerät anbieten“ (`deviceFolder`).
+
+## KI-Modell, eigene KI, Lesen ohne KI, Kamera (Stand 12.11.2026)
+
+**Betreiber-Schalter „KI-Modell“** (Einstellungen → Betreiber-Schalter):
+- **A · KI über Betreiber-Konto:** Die KI läuft über deinen Server (`SERVER_URL`, KI-Schlüssel in `.env`). Dafür brauchst du Konto, Vertrag und Auftragsverarbeitung beim KI-Anbieter.
+- **B · KI des Nutzers (Standard):** Der Nutzer trägt unter Einstellungen → KI → „Deine KI“ seinen eigenen Schlüssel ein (Claude, ChatGPT/OpenAI, Grok, Gemini, Mistral oder ein anderer OpenAI-kompatibler Anbieter). Der Schlüssel bleibt nur auf dem Gerät und kommt in keine Sicherung. Die Anfragen gehen direkt vom Gerät zum Anbieter. Ohne Schlüssel kann der Nutzer Aufgaben mit „An meine KI-App übergeben“ an seine KI-App schicken und das Ergebnis einfügen.
+- **A + B:** beides; der Nutzer wählt, welche KI arbeitet.
+- **Aus:** keine KI-Funktionen.
+- Wichtig bei eigenem Server: Steht der Schalter auf B, nutzt die App die KI deines Servers nicht. Für den Server-Betrieb A oder A + B wählen.
+- Datenschutzerklärung, AGB und Einführung zeigen automatisch die zum Schalter passenden Abschnitte. Die Abschnitte zu B und die Haftungsklausel (4a) sind Entwürfe für die anwaltliche Prüfung.
+- Ob ein Anbieter Anfragen direkt aus dem Browser erlaubt, prüft „Verbindung testen“. Nicht geprüft: echte Anbieter-Konten und aktuelle Modellnamen (Vorgaben sind änderbar).
+
+**Lesen ohne KI:** Beim Hinzufügen ist „Text auf dem Gerät erkennen (ohne KI)“ vorausgewählt. Fotos werden mit Tesseract erkannt, PDFs mit PDF.js (eingescannte PDF-Seiten ebenfalls mit Tesseract). Danach sucht die App per Regeln Absender, Aktenzeichen/Kundennummer, Datum, Frist und Betreff heraus. Die Programmdateien und die deutschen Sprachdaten legt der automatische Bau der Testseite in die Ordner `ocr/` und `pdf/` (siehe `.github/workflows/testseite.yml`, Schritt „Texterkennung bereitstellen“). Bei eigenem Hosting diese Ordner mit hochladen. Dokumentinhalte verlassen das Gerät dabei nicht.
+
+**Serienkamera:** „Foto aufnehmen“ öffnet eine Kamera in der App, die offen bleibt: mehrere Seiten hintereinander, „Letztes löschen“, „Fertig“. Ist die Kamera nicht erlaubt, bietet die App die Kamera-App des Handys an.
+
+**Drehen:** Fotos lassen sich im Hinzufügen-Fenster, am gespeicherten Dokument und in der Großansicht um 90° drehen. Das gedrehte Bild wird gespeichert, auch im Speicherordner. PDFs lassen sich nicht drehen.
+
+**Sprache:** Die App startet immer auf Deutsch, bis der Nutzer eine andere Sprache wählt.

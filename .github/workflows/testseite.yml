@@ -36,6 +36,31 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # Texterkennung auf dem Gerät: Programmdateien und deutsche Sprachdaten auf derselben Seite bereitstellen
+      # (Tesseract.js, Tesseract-Sprachdaten "tessdata_fast", PDF.js – alle Apache-2.0)
+      - name: Texterkennung bereitstellen
+        working-directory: briefe-web
+        run: |
+          set -e
+          mkdir -p ocr-tmp public/ocr public/pdf
+          cd ocr-tmp
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund tesseract.js@5.1.1 pdfjs-dist@6.2.108
+          cp node_modules/tesseract.js/dist/tesseract.min.js node_modules/tesseract.js/dist/worker.min.js ../public/ocr/
+          cp node_modules/tesseract.js-core/tesseract-core*.js ../public/ocr/
+          cp node_modules/tesseract.js-core/tesseract-core*.wasm ../public/ocr/ 2>/dev/null || true
+          curl -fsSL -o ../public/ocr/deu.traineddata https://github.com/tesseract-ocr/tessdata_fast/raw/main/deu.traineddata
+          cp node_modules/pdfjs-dist/legacy/build/pdf.min.mjs node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs ../public/pdf/
+          {
+            echo "Fremdsoftware in diesem Ordner (Lizenz: Apache License 2.0)"
+            echo "tesseract.js $(node -p "require('./node_modules/tesseract.js/package.json').version") – https://github.com/naptha/tesseract.js"
+            echo "tesseract.js-core $(node -p "require('./node_modules/tesseract.js-core/package.json').version") – https://github.com/naptha/tesseract.js-core"
+            echo "Tesseract-Sprachdaten deu (tessdata_fast) – https://github.com/tesseract-ocr/tessdata_fast"
+            echo "PDF.js $(node -p "require('./node_modules/pdfjs-dist/package.json').version") – https://github.com/mozilla/pdf.js"
+          } > ../public/ocr/LIZENZEN.txt
+          cp ../public/ocr/LIZENZEN.txt ../public/pdf/LIZENZEN.txt
+          cd .. && rm -rf ocr-tmp
+          ls -la public/ocr public/pdf
       - name: App bauen
         working-directory: briefe-web
         run: |

@@ -6,7 +6,7 @@ import {
   Clock, Folder, FolderCheck, Settings, LogOut, Sparkles, Send,
   Maximize2, Minimize2, Home, Languages, Receipt, Scale, Ban, CreditCard,
   Camera, Cloud, Paperclip, ArrowUp, ArrowDown, SlidersHorizontal, Trash2, Pencil,
-  Lock, Users, Fingerprint, ThumbsUp, ThumbsDown, History, BookOpen
+  Lock, Users, Fingerprint, ThumbsUp, ThumbsDown, History, BookOpen, RotateCw, RotateCcw
 } from "lucide-react";
 
 /* ---------- Farb-/Design-Tokens ---------- */
@@ -62,7 +62,7 @@ const OPERATOR = {               // Betreiberangaben für Impressum/Datenschutz 
   phone: "[Telefonnummer oder zweiter schneller Kontaktweg]",
 };
 const DEFAULT_SHOP = {
-  flags: { paymentRequired: false, subscription: false, tracking: false, newsletter: false, usSales: false, ai: true, moreClouds: true, folderTools: true, deviceFolder: true },   // ai = KI-Funktionen anbieten (Nutzer schaltet sie selbst zu)
+  flags: { paymentRequired: false, subscription: false, tracking: false, newsletter: false, usSales: false, ai: true, moreClouds: true, folderTools: true, deviceFolder: true, aiModel: "B" },   // ai = KI-Funktionen anbieten (Nutzer schaltet sie selbst zu)
   orders: [],
   unlocked: {},     // letterId -> "free" | "paid"
   consent: null,    // { status: "accepted" | "declined", at }
@@ -155,13 +155,24 @@ const UI_STRINGS = {
     docFrom: "Dokument vom {d}", unsortedCase: "Unsortiert", more: "Mehr", viewLarge: "Groß ansehen", fileOf: "Datei {n} von {total}", closeWord: "Schließen",
     noFile: "Zu diesem Dokument ist keine Datei gespeichert.", previewNone: "Für diese Datei gibt es keine Vorschau.",
     noTextAiOff: "Der Text wurde nicht gelesen, weil die KI ausgeschaltet ist.", noTextFail: "Der Text konnte nicht gelesen werden.", noTextPlain: "Zu diesem Dokument ist kein Text gespeichert.",
-    noTextNoBackend: "Die Texterkennung ist hier noch nicht eingerichtet. Das Dokument ist als Datei gespeichert.",
+    noTextNoBackend: "Die Texterkennung ist hier noch nicht eingerichtet. Das Dokument ist als Datei gespeichert.", noTextLocal: "Zu diesem Dokument ist noch kein Text gespeichert. Du kannst ihn auf dem Gerät erkennen lassen, ohne KI.",
     readNow: "Text jetzt mit KI lesen", readBusy: "Wird gelesen …", readDone: "Der Text wurde gelesen.",
     aiSwitch: "KI verwenden", aiOffInfo: "Aus: Deine Dokumente verlassen das Gerät nicht. Du benennst und ordnest sie selbst.",
     aiOnInfo: "An: Die KI liest Dokumente, füllt Angaben aus, übersetzt und entwirft Antworten. Dafür wird der Inhalt an den KI-Dienst gesendet.",
     aiNotSetUp: "Der KI-Dienst ist noch nicht eingerichtet (Betreiber). Die App funktioniert ohne KI.",
     aiConsentTitle: "KI einschalten?", aiConsentText: "Wenn die KI eingeschaltet ist, wird der Inhalt deiner Dokumente zum Lesen, Übersetzen und für Antwortentwürfe an den KI-Dienst gesendet. Dokumente können sensible Daten enthalten, zum Beispiel Gesundheitsdaten. Die KI kann Fehler machen. Du kannst sie jederzeit wieder ausschalten.",
-    aiConsentYes: "Einschalten", aiUseHere: "Mit KI lesen und Angaben ausfüllen", aiIsOff: "Die KI ist aus.", aiTurnOn: "KI einschalten",
+    aiConsentYes: "Einschalten", aiModeTitle: "KI-Modell", aiModeA: "A · KI über Betreiber-Konto", aiModeB: "B · KI des Nutzers", aiModeAB: "A + B · beides", aiModeOff: "Aus",
+    aiOwnTitle: "Deine KI", aiProvider: "Anbieter", aiKey: "API-Schlüssel", aiModelLbl: "Modell", aiBase: "Adresse des Anbieters (Basis-URL)", aiKeySave: "Speichern", aiKeyTest: "Verbindung testen", aiKeyRemove: "Schlüssel entfernen",
+    aiKeyNote: "Der Schlüssel bleibt nur auf diesem Gerät, kommt in keine Sicherung und geht nur an deinen Anbieter. Die Kosten trägst du bei deinem Anbieter.", aiKeySaved: "Gespeichert.", aiKeyRemoved: "Schlüssel entfernt.",
+    aiTestOk: "Verbindung funktioniert.", aiTestAuth: "Der Anbieter lehnt den Schlüssel ab.", aiTestNotFound: "Modellname oder Adresse stimmt nicht.", aiTestRate: "Limit oder Guthaben beim Anbieter erreicht.",
+    aiTestCors: "Keine Verbindung möglich. Entweder ist das Gerät offline, oder dieser Anbieter erlaubt keine direkten Anfragen aus einer App. Nutze dann „An meine KI-App übergeben“.", aiTestOther: "Der Anbieter hat mit einem Fehler geantwortet ({s}).", aiTestWait: "Wird geprüft …",
+    aiSource: "Welche KI soll arbeiten?", aiSourceOwn: "Meine eigene KI", aiSourceService: "KI über den Betreiber",
+    aiInfoOwn: "An: Die KI deines eigenen Anbieters liest Dokumente, übersetzt und entwirft Antworten. Der Inhalt geht direkt an deinen Anbieter, nicht an den Betreiber dieser App.",
+    aiInfoNeedKey: "Trage unter „Deine KI“ deinen Schlüssel ein. Ohne Schlüssel kannst du Aufgaben trotzdem an deine KI-App übergeben.",
+    aiConsentOwn: "Wenn die KI eingeschaltet ist, wird der Inhalt deiner Dokumente zum Lesen, Übersetzen und für Antwortentwürfe an den Anbieter gesendet, dessen Schlüssel du eingetragen hast. Dort gelten dessen Bedingungen. Der Betreiber dieser App erhält den Inhalt nicht. Dokumente können sensible Daten enthalten, zum Beispiel Gesundheitsdaten. Die KI kann Fehler machen: Verbindlich ist nur das Original. Du kannst sie jederzeit wieder ausschalten.",
+    handoffBtn: "An meine KI-App übergeben", handoffTitle: "An meine KI-App übergeben", handoffStep1: "1. Aufgabe an deine KI-App schicken", handoffStep2: "2. Ergebnis hier einfügen", handoffCopy: "Aufgabe kopieren", handoffShare: "Teilen …", handoffCopied: "Kopiert. Öffne jetzt deine KI-App und füge den Text ein.",
+    handoffWithFiles: "Dateien beim Teilen mitschicken", handoffPaste: "Antwort deiner KI hier einfügen", handoffApply: "Übernehmen", handoffTask: "Aufgabe", handoffTaskTranslate: "Übersetzen nach {lang}", handoffTaskReply: "Antwortentwurf schreiben", handoffTaskRead: "Dokument lesen (Angaben ausfüllen)",
+    handoffNote: "Beim Übergeben verlässt der Inhalt dieses Dokuments die App. Es gelten die Bedingungen deiner KI-App.", handoffDone: "Ergebnis übernommen.", handoffBadJson: "Das Ergebnis konnte nicht gelesen werden. Bitte die Antwort der KI vollständig einfügen.", handoffPromptLbl: "Aufgabentext", aiUseHere: "Mit KI lesen und Angaben ausfüllen", aiIsOff: "Die KI ist aus.", aiTurnOn: "KI einschalten",
     detailsTitle: "Angaben zum Dokument", detailsTitleN: "Angaben zu {n} Dokumenten", detailsHint: "Alles ist freiwillig. Leere Felder kannst du später ausfüllen.",
     detailsAiHint: "Von der KI ausgefüllt – bitte prüfen.", detailsAiFail: "Die KI konnte nichts lesen. Du kannst die Angaben selbst eintragen.",
     fName: "Name", moreFields: "Weitere Angaben", lessFields: "Weniger Angaben", caseNewName: "Name des neuen Ordners", backWord: "Zurück",
@@ -193,7 +204,7 @@ const UI_STRINGS = {
     storeFound: "In diesem Ordner liegt schon ein Bestand der Briefe-App ({n} Dokumente). Was möchtest du tun?", storeRestore: "Bestand in die App holen und verbinden", storeUseAnyway: "Nur verbinden (Ordner wird mit dem Stand der App überschrieben)",
     storeSynced: "Speicherordner abgeglichen.", storeFailN: "{n} Datei(en) konnten nicht in den Speicherordner geschrieben werden.", storeRestored: "{c} Ordner und {l} Dokument(e) aus dem Speicherordner geholt.", storeBusy: "Wird abgeglichen …",
     newFolder: "Neuer Ordner", folderName: "Name des Ordners", folderColor: "Farbe (kann leer bleiben)", folderColorAuto: "Automatisch", folderCreate: "Ordner anlegen", sortManual: "Eigene Reihenfolge",
-    noFilesYet: "Noch keine Dateien ausgewählt.", pagesOfOne: "Diese Dateien sind Seiten eines einzigen Dokuments",
+    noFilesYet: "Noch keine Dateien ausgewählt.", camShoot: "Foto aufnehmen", camPages: "{n} Seite(n) aufgenommen", camDone: "Fertig ({n})", camDelLast: "Letztes löschen", camStarting: "Kamera startet …", camHint: "Dokument flach hinlegen, alle Ecken im Bild.", camErr: "Die Kamera ist nicht verfügbar oder nicht erlaubt. Du kannst stattdessen die Kamera-App des Handys benutzen.", camFallback: "Kamera-App des Handys", camTitle: "Kamera", rotateRight: "Nach rechts drehen", rotateFail: "Drehen nicht möglich.", rotatePdfNote: "PDF-Dateien lassen sich nicht drehen.", rotateLeft: "Nach links drehen", intakeFolder: "Ablegen in", localRead: "Text auf dem Gerät erkennen (ohne KI)", localReadNote: "Beim ersten Mal lädt die App die Texterkennung (einige MB) von dieser Seite. Deine Dokumente bleiben auf dem Gerät.", detailsLocalHint: "Auf dem Gerät erkannt – bitte prüfen.", detailsLocalFail: "Auf dem Gerät wurde kein Text erkannt. Du kannst die Angaben selbst eintragen.", localUnavailable: "Die Texterkennung auf dem Gerät ist hier nicht verfügbar.", readLocalNow: "Text auf dem Gerät erkennen", readLocalBusy: "Wird erkannt …", folderAuto: "Automatisch zuordnen", pagesOfOne: "Diese Dateien sind Seiten eines einzigen Dokuments",
     intakeLocalNote: "Die Dateien bleiben auf deinem Gerät. Es wird nichts übertragen.", intakeAiNote: "Die Dateien bleiben auf deinem Gerät. Zum Lesen wird der Inhalt an den KI-Dienst gesendet.",
     intakeReading: "Wird gelesen … ({n} von {total})", startIntake: "Weiter",
     assignNew: "Neuer Ordner", sameSenderHint: "Gleicher Absender wie in diesem Ordner – bitte prüfen.",
@@ -251,7 +262,7 @@ const UI_STRINGS = {
     obLangTitle: "Willkommen! Welche Sprache sprichst du?", obLangText: "Die App zeigt alles in deiner Sprache.",
     obAddTitle: "Dokumente hinzufügen", obAddText: "Fotografiere ein Dokument oder lade ein Foto oder eine PDF hoch – auch aus deiner Cloud. Mehrere Seiten gehören zu einem Dokument. Am Ende gibst du ihm einen Namen und legst es in einen Ordner. Alle Angaben sind freiwillig.",
     obReadTitle: "KI – nur wenn du willst", obReadText: "Die KI ist beim Start aus. Die App funktioniert auch ohne sie. Schaltest du die KI in den Einstellungen ein, liest sie deine Dokumente, füllt Name, Absender und Frist aus, übersetzt und schreibt auf Wunsch einen Antwort-Entwurf. Prüfe jeden Entwurf selbst. Die App sendet nie etwas von allein.",
-    obDeadTitle: "Fristen nicht verpassen", obDeadText: "Trage zu einem Dokument eine Frist ein – oder lass sie von der KI erkennen. Die App erinnert dich und trägt die Frist auf Wunsch in deinen Kalender ein. Das kannst du jederzeit unter „Fristen & Erinnerungen“ ändern.",
+    obReadTextB: "Die KI ist beim Start aus. Ohne KI erkennt die App Text, Absender, Aktenzeichen und Fristen direkt auf deinem Gerät. Wenn du willst, verbindest du deine eigene KI (zum Beispiel ChatGPT, Claude oder Gemini) mit deinem Schlüssel oder übergibst Aufgaben an deine KI-App. Prüfe jedes Ergebnis selbst. Die App sendet nie etwas von allein.", obReadTitleOff: "Lesen auf dem Gerät", obReadTextOff: "Die App erkennt Text, Absender, Aktenzeichen und Fristen direkt auf deinem Gerät, ohne KI. Prüfe die Angaben selbst. Die App sendet nie etwas von allein.", obPrivTextB: "Dokumente und Dateien werden auf deinem Gerät gespeichert. Ohne KI verlässt nichts dein Gerät. Schaltest du deine eigene KI ein, geht der Inhalt direkt an deinen Anbieter. Beim Übergeben an deine KI-App teilst du ihn selbst. Die KI kann Fehler machen und ersetzt keine Rechtsberatung. Du kannst die App mit einer PIN sperren und alle Daten jederzeit exportieren oder löschen.", obPrivTextOff: "Dokumente und Dateien werden auf deinem Gerät gespeichert. Es verlässt nichts dein Gerät, außer du sicherst oder teilst es selbst. Du kannst die App mit einer PIN sperren und alle Daten jederzeit exportieren oder löschen.", obDeadTitle: "Fristen nicht verpassen", obDeadText: "Trage zu einem Dokument eine Frist ein – oder lass sie automatisch erkennen. Die App erinnert dich und trägt die Frist auf Wunsch in deinen Kalender ein. Das kannst du jederzeit unter „Fristen & Erinnerungen“ ändern.",
     obPrivTitle: "Deine Daten", obPrivText: "Dokumente und Dateien werden auf deinem Gerät gespeichert. Ohne KI verlässt nichts dein Gerät. Nur wenn du die KI einschaltest, wird der Inhalt zum Lesen, Übersetzen und Antworten an einen KI-Dienst übertragen. Die KI kann Fehler machen und ersetzt keine Rechtsberatung. Du kannst die App mit einer PIN sperren und alle Daten jederzeit exportieren oder löschen.",
     obPayTitle: "Was kostet es?", obPayText: "Bezahlt wird nur für die KI-Funktionen Übersetzung und Antwort-Entwurf. Die ersten {free} Dokumente sind kostenlos. Danach kostet jedes Dokument {price} (bis 10 Seiten), jede weitere Seite {extra}. Vor dem Kauf siehst du eine Übersicht, und es wird erst bezahlt, wenn du selbst bestellst.",
     coHelpTitle: "Kurz erklärt – in deiner Sprache", coHelpOne: "Du zahlst {price} einmal für dieses Dokument (Übersetzung und Antwort-Entwurf). Kein Abo, keine automatische Verlängerung.", coHelpSub: "Du zahlst {price} pro Monat. Der Vertrag läuft weiter, bis du kündigst (Frist: {term}). Kündigen kannst du unter „Käufe & Widerruf“.",
@@ -342,13 +353,24 @@ const UI_STRINGS = {
     docFrom: "Document of {d}", unsortedCase: "Unsorted", more: "More", viewLarge: "View large", fileOf: "File {n} of {total}", closeWord: "Close",
     noFile: "No file is stored for this document.", previewNone: "There is no preview for this file.",
     noTextAiOff: "The text was not read because the AI is turned off.", noTextFail: "The text could not be read.", noTextPlain: "No text is stored for this document.",
-    noTextNoBackend: "Text recognition is not set up here yet. The document is saved as a file.",
+    noTextNoBackend: "Text recognition is not set up here yet. The document is saved as a file.", noTextLocal: "No text is stored for this document yet. You can have it recognised on the device, without AI.",
     readNow: "Read text with AI now", readBusy: "Reading …", readDone: "The text has been read.",
     aiSwitch: "Use AI", aiOffInfo: "Off: your documents do not leave the device. You name and sort them yourself.",
     aiOnInfo: "On: the AI reads documents, fills in details, translates and drafts replies. For this, the content is sent to the AI service.",
     aiNotSetUp: "The AI service is not set up yet (operator). The app works without AI.",
     aiConsentTitle: "Turn AI on?", aiConsentText: "When the AI is on, the content of your documents is sent to the AI service for reading, translating and reply drafts. Documents can contain sensitive data, for example health data. The AI can make mistakes. You can turn it off again at any time.",
-    aiConsentYes: "Turn on", aiUseHere: "Read with AI and fill in details", aiIsOff: "The AI is off.", aiTurnOn: "Turn AI on",
+    aiConsentYes: "Turn on", aiModeTitle: "AI model", aiModeA: "A · AI via operator account", aiModeB: "B · User's own AI", aiModeAB: "A + B · both", aiModeOff: "Off",
+    aiOwnTitle: "Your AI", aiProvider: "Provider", aiKey: "API key", aiModelLbl: "Model", aiBase: "Provider address (base URL)", aiKeySave: "Save", aiKeyTest: "Test connection", aiKeyRemove: "Remove key",
+    aiKeyNote: "The key stays on this device only, is not part of any backup and is sent only to your provider. You pay your provider for usage.", aiKeySaved: "Saved.", aiKeyRemoved: "Key removed.",
+    aiTestOk: "Connection works.", aiTestAuth: "The provider rejects the key.", aiTestNotFound: "Model name or address is wrong.", aiTestRate: "Limit or credit at the provider reached.",
+    aiTestCors: "No connection possible. Either the device is offline, or this provider does not allow direct requests from an app. Use \"Hand over to my AI app\" instead.", aiTestOther: "The provider answered with an error ({s}).", aiTestWait: "Checking …",
+    aiSource: "Which AI should work?", aiSourceOwn: "My own AI", aiSourceService: "AI via the operator",
+    aiInfoOwn: "On: the AI of your own provider reads documents, translates and drafts replies. The content goes directly to your provider, not to the operator of this app.",
+    aiInfoNeedKey: "Enter your key under \"Your AI\". Without a key you can still hand tasks over to your AI app.",
+    aiConsentOwn: "When the AI is on, the content of your documents is sent for reading, translating and reply drafts to the provider whose key you entered. Their terms apply. The operator of this app does not receive the content. Documents can contain sensitive data, for example health data. The AI can make mistakes: only the original is binding. You can turn it off again at any time.",
+    handoffBtn: "Hand over to my AI app", handoffTitle: "Hand over to my AI app", handoffStep1: "1. Send the task to your AI app", handoffStep2: "2. Paste the result here", handoffCopy: "Copy task", handoffShare: "Share …", handoffCopied: "Copied. Now open your AI app and paste the text.",
+    handoffWithFiles: "Include the files when sharing", handoffPaste: "Paste your AI's answer here", handoffApply: "Apply", handoffTask: "Task", handoffTaskTranslate: "Translate into {lang}", handoffTaskReply: "Write a reply draft", handoffTaskRead: "Read document (fill in details)",
+    handoffNote: "When you hand over, the content of this document leaves the app. The terms of your AI app apply.", handoffDone: "Result applied.", handoffBadJson: "The result could not be read. Please paste the AI's complete answer.", handoffPromptLbl: "Task text", aiUseHere: "Read with AI and fill in details", aiIsOff: "The AI is off.", aiTurnOn: "Turn AI on",
     detailsTitle: "Document details", detailsTitleN: "Details for {n} documents", detailsHint: "Everything is optional. You can fill in empty fields later.",
     detailsAiHint: "Filled in by the AI – please check.", detailsAiFail: "The AI could not read anything. You can enter the details yourself.",
     fName: "Name", moreFields: "More details", lessFields: "Fewer details", caseNewName: "Name of the new folder", backWord: "Back",
@@ -380,7 +402,7 @@ const UI_STRINGS = {
     storeFound: "This folder already contains Briefe app data ({n} documents). What would you like to do?", storeRestore: "Load the data into the app and connect", storeUseAnyway: "Just connect (folder is overwritten with the app's data)",
     storeSynced: "Storage folder synced.", storeFailN: "{n} file(s) could not be written to the storage folder.", storeRestored: "{c} folder(s) and {l} document(s) loaded from the storage folder.", storeBusy: "Syncing …",
     newFolder: "New folder", folderName: "Folder name", folderColor: "Color (optional)", folderColorAuto: "Automatic", folderCreate: "Create folder", sortManual: "My own order",
-    noFilesYet: "No files selected yet.", pagesOfOne: "These files are pages of a single document",
+    noFilesYet: "No files selected yet.", camShoot: "Take photo", camPages: "{n} page(s) taken", camDone: "Done ({n})", camDelLast: "Delete last", camStarting: "Starting camera …", camHint: "Lay the document flat, all corners in view.", camErr: "The camera is not available or not allowed. You can use the phone's camera app instead.", camFallback: "Phone camera app", camTitle: "Camera", rotateRight: "Rotate right", rotateFail: "Rotating is not possible.", rotatePdfNote: "PDF files cannot be rotated.", rotateLeft: "Rotate left", intakeFolder: "Save in", localRead: "Recognise text on the device (without AI)", localReadNote: "The first time, the app loads the text recognition (a few MB) from this site. Your documents stay on the device.", detailsLocalHint: "Recognised on the device – please check.", detailsLocalFail: "No text was recognised on the device. You can enter the details yourself.", localUnavailable: "Text recognition on the device is not available here.", readLocalNow: "Recognise text on the device", readLocalBusy: "Recognising …", folderAuto: "Assign automatically", pagesOfOne: "These files are pages of a single document",
     intakeLocalNote: "The files stay on your device. Nothing is transmitted.", intakeAiNote: "The files stay on your device. For reading, the content is sent to the AI service.",
     intakeReading: "Reading … ({n} of {total})", startIntake: "Continue",
     assignNew: "New folder", sameSenderHint: "Same sender as in this folder – please check.",
@@ -438,7 +460,7 @@ const UI_STRINGS = {
     obLangTitle: "Welcome! Which language do you speak?", obLangText: "The app shows everything in your language.",
     obAddTitle: "Add documents", obAddText: "Take a photo of a document or upload a photo or PDF – also from your cloud. Several pages belong to one document. At the end you give it a name and put it into a folder. All details are optional.",
     obReadTitle: "AI – only if you want", obReadText: "The AI is off at the start. The app also works without it. If you turn the AI on in the settings, it reads your documents, fills in name, sender and deadline, translates and, if you wish, writes a reply draft. Check every draft yourself. The app never sends anything on its own.",
-    obDeadTitle: "Never miss a deadline", obDeadText: "Enter a deadline for a document – or let the AI detect it. The app reminds you and, if you wish, adds the deadline to your calendar. You can change this anytime under “Deadlines & reminders”.",
+    obReadTextB: "The AI is off at the start. Without AI, the app recognises text, sender, reference number and deadlines directly on your device. If you want, you connect your own AI (for example ChatGPT, Claude or Gemini) with your key or hand tasks over to your AI app. Check every result yourself. The app never sends anything on its own.", obReadTitleOff: "Reading on the device", obReadTextOff: "The app recognises text, sender, reference number and deadlines directly on your device, without AI. Check the details yourself. The app never sends anything on its own.", obPrivTextB: "Documents and files are stored on your device. Without AI nothing leaves your device. If you turn on your own AI, the content goes directly to your provider. When you hand over to your AI app, you share it yourself. The AI can make mistakes and does not replace legal advice. You can lock the app with a PIN and export or delete all data at any time.", obPrivTextOff: "Documents and files are stored on your device. Nothing leaves your device unless you back it up or share it yourself. You can lock the app with a PIN and export or delete all data at any time.", obDeadTitle: "Never miss a deadline", obDeadText: "Enter a deadline for a document – or let it be detected automatically. The app reminds you and, if you wish, adds the deadline to your calendar. You can change this anytime under “Deadlines & reminders”.",
     obPrivTitle: "Your data", obPrivText: "Documents and files are stored on your device. Without AI, nothing leaves your device. Only if you turn the AI on is the content sent to an AI service to read, translate and reply. The AI can make mistakes and does not replace legal advice. You can lock the app with a PIN and export or delete all data at any time.",
     obPayTitle: "What does it cost?", obPayText: "You only pay for the AI functions translation and reply draft. The first {free} documents are free. After that each document costs {price} (up to 10 pages), each additional page {extra}. Before buying you see a summary, and nothing is paid until you order yourself.",
     coHelpTitle: "In short – in your language", coHelpOne: "You pay {price} once for this document (translation and reply draft). No subscription, no automatic renewal.", coHelpSub: "You pay {price} per month. The contract continues until you cancel (notice period: {term}). You can cancel under “Purchases & withdrawal”.",
@@ -536,6 +558,55 @@ const seedCases = [
 ];
 
 /* ---------- Claude API Helper ---------- */
+const AI_ROUTE = { own: null };           // gesetzt von der App: eigener KI-Zugang des Nutzers (Modell B) oder null = Dienst des Betreibers
+const AI_PROVIDERS = {
+  anthropic: { label: "Claude (Anthropic)", kind: "anthropic", base: "https://api.anthropic.com", model: "claude-sonnet-5-5" },
+  openai: { label: "ChatGPT (OpenAI)", kind: "openai", base: "https://api.openai.com/v1", model: "gpt-5", maxKey: "max_completion_tokens", pdf: true },
+  grok: { label: "Grok (xAI)", kind: "openai", base: "https://api.x.ai/v1", model: "grok-4", maxKey: "max_tokens" },
+  gemini: { label: "Gemini (Google)", kind: "gemini", base: "https://generativelanguage.googleapis.com/v1beta", model: "gemini-2.5-flash" },
+  mistral: { label: "Mistral", kind: "openai", base: "https://api.mistral.ai/v1", model: "mistral-large-latest", maxKey: "max_tokens" },
+  custom: { label: "Anderer Anbieter (OpenAI-kompatibel)", kind: "openai", base: "", model: "", maxKey: "max_tokens" },
+};
+const aiModeOf = (flags) => (["A", "B", "AB", "off"].includes(flags?.aiModel) ? flags.aiModel : "B");
+// Anfrage direkt an den Anbieter des Nutzers. Der Schlüssel geht nur dorthin.
+async function askOwn(r, own) {
+  const pv = AI_PROVIDERS[own.provider] || AI_PROVIDERS.custom;
+  const model = (own.model || pv.model || "").trim();
+  const base = String(own.base || pv.base || "").replace(/\/+$/, "");
+  const blocks = r.content || [{ type: "text", text: r.prompt }];
+  let url, headers, body;
+  if (pv.kind === "anthropic") {
+    url = base + "/v1/messages";
+    headers = { "Content-Type": "application/json", "x-api-key": own.key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" };
+    body = { model, max_tokens: r.max, messages: [{ role: "user", content: blocks }] };
+  } else if (pv.kind === "gemini") {
+    url = `${base}/models/${encodeURIComponent(model)}:generateContent`;
+    headers = { "Content-Type": "application/json", "x-goog-api-key": own.key };
+    body = { contents: [{ role: "user", parts: blocks.map((b) => (b.type === "text" ? { text: b.text } : { inlineData: { mimeType: b.source.media_type, data: b.source.data } })) }], generationConfig: { maxOutputTokens: r.max } };
+  } else {
+    url = base + "/chat/completions";
+    headers = { "Content-Type": "application/json", Authorization: "Bearer " + own.key };
+    const parts = [];
+    for (const b of blocks) {
+      if (b.type === "text") parts.push({ type: "text", text: b.text });
+      else if (b.type === "image") parts.push({ type: "image_url", image_url: { url: `data:${b.source.media_type};base64,${b.source.data}` } });
+      else if (b.type === "document" && pv.pdf) parts.push({ type: "file", file: { filename: "dokument.pdf", file_data: `data:application/pdf;base64,${b.source.data}` } });
+    }
+    body = { model, [pv.maxKey || "max_tokens"]: r.max, messages: [{ role: "user", content: parts.length === 1 && parts[0].type === "text" ? parts[0].text : parts }] };
+  }
+  let res;
+  try { res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) }); } catch (e) { throw new Error("cors"); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error("http " + res.status);
+  let text = "";
+  if (pv.kind === "anthropic") text = (data.content || []).map((b) => (b.type === "text" ? b.text : "")).join("\n");
+  else if (pv.kind === "gemini") text = (data.candidates?.[0]?.content?.parts || []).map((x) => x.text || "").join("\n");
+  else { const m = data.choices?.[0]?.message?.content; text = Array.isArray(m) ? m.map((x) => x.text || "").join("\n") : m || ""; }
+  text = String(text).trim();
+  if (!text) throw new Error("empty");
+  return text;
+}
+async function testOwnAi(own) { await askOwn({ prompt: "Antworte mit dem Wort: ok", max: 20 }, own); }
 const AI_MODEL = "claude-sonnet-5-5";      // zentral, damit ein Modellwechsel nur hier nötig ist
 async function askClaude(prompt, maxTokens = 4000) {
   if (typeof window !== "undefined" && window.__briefeAI) return window.__briefeAI({ prompt, maxTokens });   // Vorschau-Umgebung stellt eigene KI bereit
@@ -629,18 +700,17 @@ function BriefeCore({ profileApi }) {
       setReplyLang(code);
     }
   };
-  // Sprache beim Start: zuletzt gewählte, sonst die Sprache des Geräts (z. B. fa-IR → Persisch), sonst Deutsch
+  useEffect(() => { (async () => { try { const v = (await window.storage?.get(PK("briefe-app-aikey")))?.value; if (v) setUserAi(JSON.parse(v)); } catch (e) {} })(); }, []);
+  const saveUserAi = async (cfg) => { setUserAi(cfg); try { await window.storage?.set(PK("briefe-app-aikey"), JSON.stringify(cfg)); } catch (e) {} };
+  const removeUserAi = async () => { setUserAi(null); try { if (window.storage?.delete) await window.storage.delete(PK("briefe-app-aikey")); else await window.storage?.set(PK("briefe-app-aikey"), ""); } catch (e) {} };
+  // Sprache beim Start: zuletzt gewählte, sonst immer Deutsch
   useEffect(() => {
     (async () => {
       let saved = null;
       try { saved = (await window.storage?.get(PK("briefe-app-lang")))?.value || null; } catch (e) {}
       const usable = (code) => !!UI_STRINGS[code] || aiBackend();   // weitere Sprachen übersetzt die KI; ohne KI-Dienst gibt es nur die fest hinterlegten
       if (saved && LANGS.some((l) => l.code === saved) && usable(saved)) return setUiLang(saved, true);
-      const dev = (navigator.languages || [navigator.language || ""]).map((x) => String(x).toLowerCase());
-      for (const d of dev) {
-        const hit = LANGS.find((l) => l.code === d) || LANGS.find((l) => l.code === d.split("-")[0]);
-        if (hit && usable(hit.code)) { if (hit.code !== "de") setUiLang(hit.code, true); return; }
-      }
+      // Ohne gespeicherte Wahl startet die App immer auf Deutsch (keine Geräte-Erkennung)
     })();
   }, []);
   const c = dark ? palette.dark : palette.light;
@@ -750,6 +820,7 @@ function BriefeCore({ profileApi }) {
   const [progress, setProgress] = useState(null);            // { done, total }
   const [notice, setNotice] = useState("");
   const camInputRef = useRef(null);
+  const [camOpen, setCamOpen] = useState(false);          // Serienkamera
   const pickInputRef = useRef(null);
 
   // ---------- Fall-Ansicht · Kachel-Einstellungen · Fristen · Backup · Suche ----------
@@ -770,10 +841,19 @@ function BriefeCore({ profileApi }) {
   const setSortBy = (v) => setPrefs({ caseSort: v });
   const [folderNew, setFolderNew] = useState(null);           // Neuer Ordner: { name, color }
   // KI: vom Betreiber angeboten + Dienst erreichbar = möglich; benutzt wird sie nur, wenn der Nutzer sie eingeschaltet hat
-  const aiPossible = flags.ai !== false && aiBackend();
-  const aiOn = aiPossible && !!prefs.ai;
+  const aiMode = aiModeOf(flags);
+  const opA = aiMode === "A" || aiMode === "AB", opB = aiMode === "B" || aiMode === "AB";
+  const [userAi, setUserAi] = useState(null);                  // { provider, key, model, base } – nur auf diesem Gerät
+  const serviceReady = flags.ai !== false && opA && aiBackend();
+  const ownReady = flags.ai !== false && opB && !!(userAi && userAi.key);
+  const aiPossible = flags.ai !== false && aiMode !== "off" && (serviceReady || opB);
+  const useOwn = ownReady && (!serviceReady || prefs.aiSource !== "service");
+  const aiOn = aiPossible && !!prefs.ai && (ownReady || serviceReady);
+  const handoffOk = flags.ai !== false && opB;                 // „An meine KI-App übergeben“
+  AI_ROUTE.own = aiOn && useOwn ? userAi : null;
   const uiLangs = aiPossible ? LANGS : LANGS.filter((l) => UI_STRINGS[l.code]);
   const [aiConsentOpen, setAiConsentOpen] = useState(false);
+  const [handoff, setHandoff] = useState(null);              // { kind: translate | reply | read }
   const [drafts, setDrafts] = useState(null);                // Angaben-Dialog nach dem Hinzufügen: { items, usedAi, failed }
   const [savingDrafts, setSavingDrafts] = useState(false);
   const [reading, setReading] = useState(false);
@@ -1290,6 +1370,12 @@ function BriefeCore({ profileApi }) {
       return { ...(s || {}), files, pagesTouched: touched, asPages: touched ? !!s.asPages : (files.length > 1 && files.every(isImage)) };
     });
   };
+  const intakeFolderValue = () => intake?.folder || (!activeLetter && openCaseId && visibleCases.some((cs) => cs.id === openCaseId && !cs.demo && cs.id !== "unsorted") ? openCaseId : "auto");
+  const rotateIntake = async (i, deg) => {
+    const f = intake?.files?.[i]; if (!f || !isImage(f)) return;
+    try { const nf = await rotateImageFile(f, deg); setIntake((s) => (s ? { ...s, files: s.files.map((x, k) => (k === i ? nf : x)) } : s)); }
+    catch (e) { setNotice(t.rotateFail); }
+  };
   const onInputChange = (e) => { addToIntake(e.target.files || []); e.target.value = ""; };
 
   const autoUpload = async (items) => {
@@ -1307,13 +1393,14 @@ function BriefeCore({ profileApi }) {
   };
 
   // Vorschlag für die Angaben: mit KI aus dem Dokument, sonst leer. Fall: gleiches Aktenzeichen > geöffneter Fall > gleicher Absender > neu > „Unsortiert“
-  const makeDraft = (group, info) => {
+  const makeDraft = (group, info, chosen) => {
     const pool = casesRef.current.filter((cs) => !cs.demo && cs.id !== "unsorted");   // echte Dokumente nie in Beispielfälle einsortieren
     const sender = cleanVal(info?.sender), subject = cleanVal(info?.subject);
     const m = info ? matchCase(pool, info) : { type: "new" };
     const ctxId = activeLetter ? null : openCaseId;   // in der Fall-Ansicht hinzugefügt = gehört in diesen Fall
     let caseSel = "unsorted", hint = "";
-    if (m.type === "sure") caseSel = m.caseId;
+    if (chosen && chosen !== "auto" && (chosen === "unsorted" || pool.some((cs) => cs.id === chosen))) caseSel = chosen;   // vom Nutzer gewählt: gilt immer
+    else if (m.type === "sure") caseSel = m.caseId;
     else if (ctxId && pool.some((cs) => cs.id === ctxId)) caseSel = ctxId;
     else if (m.type === "ask" && m.candidates.length) { caseSel = m.candidates[0]; hint = "sender"; }
     else if (sender || subject) caseSel = "new";
@@ -1327,19 +1414,25 @@ function BriefeCore({ profileApi }) {
     if (!intake?.files?.length || progress) return;
     const groups = intake.asPages ? [intake.files] : intake.files.map((f) => [f]);
     const useAi = aiOn && intake.ai !== false;
-    const items = []; let failed = 0;
-    if (useAi) setProgress({ done: 0, total: groups.length });
+    const useLocal = !useAi && intake.local !== false;
+    const items = []; let failed = 0; let unavailable = false;
+    if (useAi || useLocal) setProgress({ done: 0, total: groups.length });
     for (let gi = 0; gi < groups.length; gi++) {
       let info = null;
       if (useAi) {
         try { info = await extractLetter(groups[gi]); } catch (e) {}
         if (!info) failed++;
         setProgress({ done: gi + 1, total: groups.length });
+      } else if (useLocal && !unavailable) {
+        try { info = await localRead(groups[gi]); } catch (e) { if (e && e.message === "unavailable") unavailable = true; }
+        if (!info) failed++;
+        setProgress({ done: gi + 1, total: groups.length });
       }
-      items.push(makeDraft(groups[gi], info));
+      items.push(makeDraft(groups[gi], info, intakeFolderValue()));
     }
     setProgress(null);
-    setDrafts({ items, usedAi: useAi, failed, back: intake });
+    if (unavailable) { failed = groups.length; setNotice(t.localUnavailable); }
+    setDrafts({ items, usedAi: useAi, usedLocal: useLocal, unavailable, failed, back: intake });
     setIntake(null);
   };
   // Zurück aus dem Angaben-Dialog: die gewählten Dateien bleiben erhalten
@@ -1383,6 +1476,40 @@ function BriefeCore({ profileApi }) {
     setSavingDrafts(false);
   };
 
+  // Gelesene Angaben (von der KI oder aus der Übergabe) in das Dokument eintragen; vorhandene Angaben bleiben
+  const applyReadInfo = (l, info) => {
+    const patch = { original: cleanVal(info.text), extracted: true };
+    if (l.autoTitle && cleanVal(info.subject)) { patch.subject = cleanVal(info.subject); patch.autoTitle = false; }
+    if ((!l.sender || l.sender === "Unbekannt") && cleanVal(info.sender)) patch.sender = cleanVal(info.sender);
+    if ((!l.caseNumber || l.caseNumber === "—") && cleanVal(info.caseNumber)) patch.caseNumber = cleanVal(info.caseNumber);
+    if (l.date === l.receivedDate && okDate(info.letterDate)) patch.date = info.letterDate;
+    if (!l.deadline && okDate(info.deadline)) patch.deadline = info.deadline;
+    if (!l.deadline && !patch.deadline && !l.deadlineNote && cleanVal(info.deadlineNote)) patch.deadlineNote = cleanVal(info.deadlineNote);
+    updateLetter(l.caseId, l.id, patch);
+    setNotice(t.readDone);
+    if (patch.deadline) autoCalendar([{ ...l, ...patch }]);
+  };
+  // Ergebnis aus der KI-App des Nutzers übernehmen
+  const applyHandoff = (kind, text) => {
+    const l = activeLetter; const txt = String(text || "").trim(); if (!l || !txt) return false;
+    if (kind === "translate") updateLetter(l.caseId, l.id, { translation: txt, translationLang: targetLang, translationCheck: null, translationVia: "extern" });
+    else if (kind === "reply") updateLetter(l.caseId, l.id, { reply: txt, replyConfirmedAt: null, replyLog: withLog(l, { a: "generated", text: txt, via: "extern" }) });
+    else { const info = parseJsonLoose(txt); if (!info) { setNotice(t.handoffBadJson); return false; } applyReadInfo(l, info); }
+    if (kind !== "read") setNotice(t.handoffDone);
+    return true;
+  };
+  // Text eines gespeicherten Dokuments auf dem Gerät erkennen (ohne KI)
+  const doReadLocal = async () => {
+    const l = activeLetter; if (!l || reading) return;
+    setReading(true);
+    try {
+      const files = [];
+      for (const m of (l.files || []).filter((x) => !x.kind)) { const b = await fileGet(m.id); if (b) files.push(new File([b], m.name, { type: m.type || b.type || "" })); }
+      const info = files.length ? await localRead(files) : null;
+      if (!info) setNotice(t.detailsLocalFail); else applyReadInfo(l, info);
+    } catch (e) { setNotice(e && e.message === "unavailable" ? t.localUnavailable : t.detailsLocalFail); }
+    setReading(false);
+  };
   // Text eines schon gespeicherten Dokuments nachträglich mit KI lesen (z. B. wenn die KI beim Hinzufügen aus war)
   const doReadText = async () => {
     const l = activeLetter; if (!l || reading || !aiOn) return;
@@ -1392,18 +1519,7 @@ function BriefeCore({ profileApi }) {
       for (const m of (l.files || []).filter((x) => !x.kind)) { const b = await fileGet(m.id); if (b) files.push(new File([b], m.name, { type: m.type || b.type || "" })); }
       const info = files.length ? await extractLetter(files) : null;
       if (!info) setNotice(t.noTextFail);
-      else {
-        const patch = { original: cleanVal(info.text), extracted: true };
-        if (l.autoTitle && cleanVal(info.subject)) { patch.subject = cleanVal(info.subject); patch.autoTitle = false; }
-        if ((!l.sender || l.sender === "Unbekannt") && cleanVal(info.sender)) patch.sender = cleanVal(info.sender);
-        if ((!l.caseNumber || l.caseNumber === "—") && cleanVal(info.caseNumber)) patch.caseNumber = cleanVal(info.caseNumber);
-        if (l.date === l.receivedDate && okDate(info.letterDate)) patch.date = info.letterDate;
-        if (!l.deadline && okDate(info.deadline)) patch.deadline = info.deadline;
-        if (!l.deadline && !patch.deadline && !l.deadlineNote && cleanVal(info.deadlineNote)) patch.deadlineNote = cleanVal(info.deadlineNote);
-        updateLetter(l.caseId, l.id, patch);
-        setNotice(t.readDone);
-        if (patch.deadline) autoCalendar([{ ...l, ...patch }]);
-      }
+      else applyReadInfo(l, info);
     } catch (e) { setNotice(t.noTextFail); }
     setReading(false);
   };
@@ -1434,6 +1550,15 @@ function BriefeCore({ profileApi }) {
       try { if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file] }); else downloadBlob(b, f.name); } catch (e) {}
     },
     cloud: (f) => setCloudModal({ tab: "export", files: [f] }),
+    rotate: async (letter, f, deg) => {   // gespeichertes Foto drehen
+      try {
+        const b = await fileGet(f.id); if (!b) { setNotice(t.noticeMissing); return false; }
+        const nb = await rotateImageFile(new File([b], f.name, { type: f.type || b.type }), deg);
+        await fileSave(f.id, nb);
+        persist(casesRef.current.map((cs) => (cs.id !== letter.caseId ? cs : { ...cs, letters: cs.letters.map((l) => (l.id !== letter.id ? l : { ...l, files: (l.files || []).map((x) => (x.id === f.id ? { ...x, name: nb.name, type: nb.type, size: nb.size, rev: (x.rev || 0) + 1 } : x)) })) })));
+        return true;
+      } catch (e) { setNotice(t.rotateFail); return false; }
+    },
     add: (letter, list, kind) => addLetterFiles(letter, list, kind),
   };
 
@@ -1741,7 +1866,7 @@ function BriefeCore({ profileApi }) {
   const menuOver = ovl && sidebarOpen && sbFor === ovl;
   // Geöffnete Fenster/Dialoge (oberstes zuerst): Zurück schließt zuerst das Fenster
   const overlays = [
-    [dirFound, () => setDirFound(null)], [folderMove, () => setFolderMove(null)], [folderNew, () => setFolderNew(null)], [storeOpen, () => setStoreOpen(false)], [confirmDel, () => setConfirmDel(null)], [moveFor, () => setMoveFor(null)], [caseEdit, () => setCaseEdit(null)], [viewer, () => setViewer(false)], [aiConsentOpen, () => setAiConsentOpen(false)], [drafts && !savingDrafts, () => draftsBack()],
+    [dirFound, () => setDirFound(null)], [folderMove, () => setFolderMove(null)], [folderNew, () => setFolderNew(null)], [storeOpen, () => setStoreOpen(false)], [confirmDel, () => setConfirmDel(null)], [moveFor, () => setMoveFor(null)], [caseEdit, () => setCaseEdit(null)], [viewer, () => setViewer(false)], [camOpen, () => setCamOpen(false)], [handoff, () => setHandoff(null)], [aiConsentOpen, () => setAiConsentOpen(false)], [drafts && !savingDrafts, () => draftsBack()],
     [showHomeConfirm, () => setShowHomeConfirm(false)], [legalTab, () => setLegalTab(null)], [modal, () => setModal(null)],
     [casePdfFor, () => setCasePdfFor(null)], [exportOpen, () => setExportOpen(null)], [wipeOpen, () => setWipeOpen(false)],
     [lockOpen, () => setLockOpen(false)], [profilesOpen, () => setProfilesOpen(false)], [backupOpen, () => setBackupOpen(false)],
@@ -2068,7 +2193,7 @@ function BriefeCore({ profileApi }) {
               onReplyEdit={replyEdit} onConfirmReply={confirmReply}
               onPdf={replyPdf} onMail={replyMail} onShareReply={replyShare} onRate={rateLetter}
               uiLang={uiLang}
-              aiOn={aiOn} aiPossible={aiPossible} reading={reading} onReadText={doReadText} onTurnAiOn={() => setAiConsentOpen(true)}
+              aiOn={aiOn} aiPossible={aiPossible} reading={reading} onReadText={doReadText} onReadLocal={doReadLocal} onTurnAiOn={() => setAiConsentOpen(true)} handoffOk={handoffOk} onHandoff={(k) => setHandoff({ kind: k })}
               viewer={viewer} setViewer={setViewer}
               onMove={() => setMoveFor({ ids: [activeLetter.id] })} onDelete={() => setConfirmDel({ kind: "docs", ids: [activeLetter.id] })}
             />
@@ -2215,12 +2340,23 @@ function BriefeCore({ profileApi }) {
             <SettingGroup c={c} fontScale={fontScale} label={t.grpAi} />
             <SettingRow c={c} label={t.aiSwitch} fontScale={fontScale}>
               <div style={aiPossible ? undefined : { opacity: 0.45, pointerEvents: "none" }}>
-                <ToggleSwitch c={c} on={aiOn} label={t.aiSwitch} onClick={() => (prefs.ai ? setPrefs({ ai: false }) : setAiConsentOpen(true))} />
+                <ToggleSwitch c={c} on={!!prefs.ai && aiPossible} label={t.aiSwitch} onClick={() => (prefs.ai ? setPrefs({ ai: false }) : setAiConsentOpen(true))} />
               </div>
             </SettingRow>
-            <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, lineHeight: 1.45, padding: "6px 0 10px", borderBottom: `1px solid ${c.border}` }}>
-              {!aiPossible ? t.aiNotSetUp : aiOn ? t.aiOnInfo : t.aiOffInfo}
+            {aiPossible && serviceReady && opB && (
+              <SettingRow c={c} label={t.aiSource} fontScale={fontScale}>
+                <select data-ai-source value={useOwn ? "own" : "service"} onChange={(e) => setPrefs({ aiSource: e.target.value })} style={{ ...fieldStyle(c, fontScale), width: "auto", maxWidth: 220 }}>
+                  <option value="own">{t.aiSourceOwn}</option>
+                  <option value="service">{t.aiSourceService}</option>
+                </select>
+              </SettingRow>
+            )}
+            <div data-ai-info style={{ fontSize: 11.5 * fontScale, color: c.textMuted, lineHeight: 1.45, padding: "6px 0 10px", borderBottom: `1px solid ${c.border}` }}>
+              {!aiPossible ? t.aiNotSetUp : aiOn ? (useOwn ? t.aiInfoOwn : t.aiOnInfo) : prefs.ai && !ownReady && !serviceReady ? t.aiInfoNeedKey : t.aiOffInfo}
             </div>
+            {opB && flags.ai !== false && (
+              <OwnAiForm c={c} t={t} fontScale={fontScale} value={userAi} onSave={async (cfg) => { await saveUserAi(cfg); setNotice(t.aiKeySaved); }} onRemove={async () => { await removeUserAi(); setNotice(t.aiKeyRemoved); }} />
+            )}
             {FEEDBACK_ENDPOINT && aiOn && (
               <div style={{ padding: "10px 0", borderBottom: `1px solid ${c.border}` }}>
                 <CheckRow checked={prefs.fbShare} onChange={(v) => setPrefs({ fbShare: v })}>{t.fbShareLabel}</CheckRow>
@@ -2305,6 +2441,15 @@ function BriefeCore({ profileApi }) {
               {opOpen && (
                 <>
                   <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, marginBottom: 6 }}>Nur für dich als Entwickler. Bausteine sind fertig eingebaut und werden hier aktiviert.</div>
+                  <div style={{ padding: "8px 0", borderBottom: `1px solid ${c.border}` }}>
+                    <div style={{ fontWeight: 600, fontSize: 13 * fontScale, marginBottom: 6 }}>{t.aiModeTitle}</div>
+                    <div role="radiogroup" aria-label={t.aiModeTitle} style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {[["A", t.aiModeA], ["B", t.aiModeB], ["AB", t.aiModeAB], ["off", t.aiModeOff]].map(([k, l]) => (
+                        <button key={k} role="radio" aria-checked={aiMode === k} data-ai-mode={k} onClick={() => setFlag("aiModel", k)}
+                          style={{ ...btnSmall(c), ...(aiMode === k ? { background: c.accent, color: c.onAccent, borderColor: c.accent } : {}) }}>{l}</button>
+                      ))}
+                    </div>
+                  </div>
                   {[
                     ["ai", "KI-Funktionen anbieten (Nutzer schaltet sie selbst ein)"],
                     ["paymentRequired", "Bezahlpflicht ab Dokument 3"],
@@ -2374,9 +2519,16 @@ function BriefeCore({ profileApi }) {
       })()}
 
       {/* ---------- KI einschalten: erst nach Hinweis und Zustimmung ---------- */}
+      {handoff && activeLetter && (
+        <HandoffModal c={c} t={t} fontScale={fontScale} rtl={isRTL} letter={activeLetter} kind={handoff.kind} note={userNote}
+          langLabel={LANGS.find((l) => l.code === targetLang)?.label || targetLang}
+          getFiles={async () => { const out = []; for (const m of (activeLetter.files || []).filter((x) => !x.kind)) { const b = await fileGet(m.id); if (b) out.push(new File([b], m.name, { type: m.type || b.type || "" })); } return out; }}
+          onApply={(k, txt) => { const ok = applyHandoff(k, txt); if (ok) setHandoff(null); return ok; }}
+          onClose={() => setHandoff(null)} />
+      )}
       {aiConsentOpen && (
         <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={t.aiConsentTitle} onClose={() => setAiConsentOpen(false)} maxWidth={440} z={96}>
-          <div style={{ marginBottom: 14, lineHeight: 1.55 }}>{t.aiConsentText}</div>
+          <div data-ai-consent style={{ marginBottom: 14, lineHeight: 1.55 }}>{useOwn || !serviceReady ? t.aiConsentOwn : t.aiConsentText}</div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => setAiConsentOpen(false)} style={btnSmall(c)}>{t.cancel}</button>
             <button onClick={() => { setPrefs({ ai: true }); setAiConsentOpen(false); }} style={{ ...btnPrimary(c, false), flex: 1, width: "auto" }}><Sparkles size={14} /> {t.aiConsentYes}</button>
@@ -2476,14 +2628,26 @@ function BriefeCore({ profileApi }) {
           files={intake.files} asPages={intake.asPages}
           setAsPages={(v) => setIntake((s) => ({ ...s, asPages: v, pagesTouched: true }))}
           aiOn={aiOn} aiPossible={aiPossible} useAi={intake.ai !== false} setUseAi={(v) => setIntake((s) => ({ ...s, ai: v }))}
+          useLocal={intake.local !== false} setUseLocal={(v) => setIntake((s) => ({ ...s, local: v }))}
           onTurnAiOn={() => setAiConsentOpen(true)}
           onCamera={() => camInputRef.current?.click()}
+          onSeries={camSupported() ? () => setCamOpen(true) : null}
           onPick={() => pickInputRef.current?.click()} onFiles={addToIntake}
           onCloud={() => setCloudModal({ tab: "import", files: [] })}
           onNewFolder={flags.folderTools !== false && !progress ? () => { const oc = openCase; const par = oc ? (isTopCase(oc) ? oc.id : oc.parent) : null; setFolderNew({ name: "", color: null, parent: par && parentChoices(null).some((x) => x.id === par) ? par : null }); } : null}
           onRemove={(i) => setIntake((s) => ({ ...s, files: s.files.filter((_, k) => k !== i) }))}
+          onRotate={rotateIntake}
+          folderOptions={labeled(visibleCases.filter((cs) => !cs.demo && cs.id !== "unsorted"))}
+          folder={intakeFolderValue()}
+          setFolder={(v) => setIntake((s) => ({ ...s, folder: v }))}
           onStart={startIntake} onClose={() => setIntake(null)} progress={progress}
         />
+      )}
+      {camOpen && (
+        <CameraModal c={c} t={t} fontScale={fontScale} rtl={isRTL} startIndex={intake?.files?.length || 0}
+          onDone={(list) => { setCamOpen(false); if (list.length) addToIntake(list); }}
+          onFallback={(list) => { setCamOpen(false); if (list.length) addToIntake(list); }}
+          onClose={() => setCamOpen(false)} />
       )}
       {folderNew && (
         <AppModal c={c} fontScale={fontScale} rtl={isRTL} title={folderNew.parent ? t.newSubfolder : t.newFolder} onClose={() => setFolderNew(null)} maxWidth={440}>
@@ -2902,7 +3066,7 @@ function CaseRow({ sid, dragStyle, c, t, fontScale, cs, subs, parentName, onOpen
 /* ---------- Dokument-Ansicht: Datei oben, darunter Reiter (Text · Übersetzung · Antwort) ---------- */
 // Text des Dokuments; ältere Einträge enthalten statt eines leeren Textes noch einen Platzhaltersatz
 const letterText = (l) => { const x = String(l?.original || ""); return x.startsWith("(Der Text konnte nicht gelesen werden") ? "" : x; };
-function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, targetLang, setTargetLang, busy, onTranslate, onReply, userNote, setUserNote, copyText, saved, daysUntil, isMobile, replyLang, setReplyLang, onTranslateReply, isRTL, fileActions, onBackToCase, onEdit, onReplyEdit, onConfirmReply, onPdf, onMail, onShareReply, uiLang, onRate, aiOn, aiPossible, reading, onReadText, onTurnAiOn, viewer, setViewer, onMove, onDelete }) {
+function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, targetLang, setTargetLang, busy, onTranslate, onReply, userNote, setUserNote, copyText, saved, daysUntil, isMobile, replyLang, setReplyLang, onTranslateReply, isRTL, fileActions, onBackToCase, onEdit, onReplyEdit, onConfirmReply, onPdf, onMail, onShareReply, uiLang, onRate, aiOn, aiPossible, reading, onReadText, onReadLocal, onTurnAiOn, handoffOk, onHandoff, viewer, setViewer, onMove, onDelete }) {
   const critical = criticalReasons(letter, daysUntil);
   const d = letter.deadline ? daysUntil(letter.deadline) : null;
   const confirmed = !!letter.replyConfirmedAt;
@@ -2911,7 +3075,7 @@ function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, ta
   const files = letter.files || [];
   const [tab, setTab] = useState("text");
   const [own, setOwn] = useState(false);
-  const showTr = aiOn || !!letter.translation;
+  const showTr = aiOn || !!handoffOk || !!letter.translation;
   const tabs = [["text", t.tabText], ...(showTr ? [["tr", t.translation]] : []), ["reply", t.tabReply]];
   const cur = tabs.some(([k]) => k === tab) ? tab : "text";
   const v = (x) => (x && x !== "—" && x !== "Unbekannt" ? x : "");
@@ -2963,13 +3127,19 @@ function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, ta
             text ? <pre style={{ ...preStyle(c, fontScale), maxHeight: "none" }} dir="auto">{text}</pre> : (
               <div>
                 <div style={{ color: c.textMuted, lineHeight: 1.5 }}>
-                  {!files.length ? t.noTextPlain : !aiPossible ? t.noTextNoBackend : !aiOn ? t.noTextAiOff : t.noTextFail}
+                  {!files.length ? t.noTextPlain : aiOn ? t.noTextFail : t.noTextLocal}
                 </div>
                 {files.length > 0 && aiOn && (
                   <button onClick={onReadText} disabled={reading} style={{ ...btnSmall(c), marginTop: 10 }}><Sparkles size={13} /> {reading ? t.readBusy : t.readNow}</button>
                 )}
                 {files.length > 0 && !aiOn && aiPossible && (
                   <button onClick={onTurnAiOn} style={{ ...btnSmall(c), marginTop: 10 }}><Sparkles size={13} /> {t.aiTurnOn}</button>
+                )}
+                {files.length > 0 && onReadLocal && (
+                  <button data-read-local onClick={onReadLocal} disabled={reading} style={{ ...btnSmall(c), marginTop: 10, marginInlineEnd: 8 }}><FileText size={13} /> {reading ? t.readLocalBusy : t.readLocalNow}</button>
+                )}
+                {files.length > 0 && handoffOk && (
+                  <button data-handoff="read" onClick={() => onHandoff("read")} style={{ ...btnSmall(c), marginTop: 10, marginInlineStart: 8 }}><Send size={13} /> {t.handoffBtn}</button>
                 )}
               </div>
             )
@@ -2983,6 +3153,11 @@ function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, ta
                   <button onClick={onTranslate} disabled={busy || !text} style={{ ...btnSmall(c), opacity: text ? 1 : 0.5 }}>
                     <Sparkles size={13} /> {busy ? "…" : t.translate}
                   </button>
+                </div>
+              )}
+              {handoffOk && (
+                <div style={{ marginBottom: 10 }}>
+                  <button data-handoff="translate" onClick={() => onHandoff("translate")} style={btnSmall(c)}><Send size={13} /> {t.handoffBtn}</button>
                 </div>
               )}
               {!text && !letter.translation
@@ -3012,6 +3187,12 @@ function LetterDetail({ c, t, fontScale, letter, caseObj, onCheckTranslation, ta
                     </button>
                     <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, marginTop: 6, lineHeight: 1.45 }}>{t.replyLiability}</div>
                   </div>
+                </div>
+              )}
+              {handoffOk && (
+                <div style={{ marginBottom: 10 }}>
+                  <button data-handoff="reply" onClick={() => onHandoff("reply")} style={btnSmall(c)}><Send size={13} /> {t.handoffBtn}</button>
+                  {!aiOn && <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, marginTop: 6, lineHeight: 1.45 }}>{t.replyLiability}</div>}
                 </div>
               )}
               {!showEditor && (
@@ -3659,6 +3840,8 @@ function CancelModal({ c, fontScale, subs, onClose, onConfirm }) {
 
 /* ---------- Rechtstexte: immer Deutsch, Platzhalter in orange ---------- */
 function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
+  const mode = flags?.ai === false ? "off" : aiModeOf(flags);
+  const mA = mode === "A" || mode === "AB", mB = mode === "B" || mode === "AB";
   const tabs = [["impressum", "Impressum"], ["datenschutz", "Datenschutz"], ["agb", "AGB"], ["widerruf", "Widerruf"], ["barrierefreiheit", "Barrierefreiheit"]];
   const H = ({ children }) => <div style={{ fontWeight: 700, marginTop: 14, marginBottom: 4 }}>{children}</div>;
   const P = ({ children }) => <div style={{ marginBottom: 6 }}>{children}</div>;
@@ -3704,14 +3887,17 @@ function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
           <P><Ph>{OPERATOR.name}</Ph>, <Ph>{OPERATOR.street}</Ph>, <Ph>{OPERATOR.city}</Ph>, E-Mail: <Ph>{OPERATOR.email}</Ph></P>
           <H>Welche Daten wir verarbeiten und wofür</H>
           <P>Kontodaten (Vorname, Nachname, Geburtsdatum, Adresse, E-Mail-Adresse, Benutzername) zur Bereitstellung Ihres Kontos (Art. 6 Abs. 1 lit. b DSGVO).</P>
-          <P>Hochgeladene Dokumente, Fotos und Anhänge sowie die daraus erzeugten Übersetzungen und Antwortentwürfe zur Erbringung der Leistung (Art. 6 Abs. 1 lit. b DSGVO). Dokumente werden auf Ihrem Gerät gespeichert. Die KI-Funktionen sind beim Start ausgeschaltet; nur wenn Sie sie selbst einschalten, wird der Inhalt Ihrer Dokumente zum Lesen, Übersetzen und für Antwortentwürfe an den KI-Dienst übertragen. Dokumente können besonders schützenswerte Daten enthalten, zum Beispiel Gesundheitsdaten. Diese verarbeiten wir nur auf Grundlage Ihrer ausdrücklichen Einwilligung (Art. 9 Abs. 2 lit. a DSGVO).</P>
+          <P>Hochgeladene Dokumente, Fotos und Anhänge sowie die daraus erzeugten Übersetzungen und Antwortentwürfe zur Erbringung der Leistung (Art. 6 Abs. 1 lit. b DSGVO). Dokumente werden auf Ihrem Gerät gespeichert.{mode === "off" ? " Die App enthält keine KI-Funktionen; Inhalte Ihrer Dokumente werden nicht an uns oder an Dritte übertragen." : " Die KI-Funktionen sind beim Start ausgeschaltet."}</P>
+          {mA && <P data-legal="ds-a">KI über unseren Dienst: Nur wenn Sie die KI selbst einschalten und unseren Dienst verwenden, wird der Inhalt Ihrer Dokumente zum Lesen, Übersetzen und für Antwortentwürfe an den KI-Dienst übertragen. Dokumente können besonders schützenswerte Daten enthalten, zum Beispiel Gesundheitsdaten. Diese verarbeiten wir nur auf Grundlage Ihrer ausdrücklichen Einwilligung (Art. 9 Abs. 2 lit. a DSGVO).</P>}
+          {mB && <P data-legal="ds-b">Ihre eigene KI: Sie können eine KI eines Anbieters, mit dem Sie selbst einen Vertrag haben, mit Ihrem API-Schlüssel verbinden. Dann geht der Inhalt Ihrer Dokumente direkt von Ihrem Gerät an diesen Anbieter; wir erhalten ihn nicht. Der Schlüssel wird nur auf Ihrem Gerät gespeichert und nicht in Sicherungen aufgenommen. Für die Verarbeitung bei diesem Anbieter gelten dessen Bedingungen und Datenschutzhinweise. Mit „An meine KI-App übergeben“ teilen Sie Inhalte selbst über die Teilen-Funktion oder die Zwischenablage Ihres Geräts; auch dabei erhalten wir den Inhalt nicht. <Ph>[Verantwortlichkeit für diese Datenflüsse rechtlich prüfen lassen]</Ph></P>}
+          <P data-legal="ds-local">Texterkennung auf dem Gerät: Ohne KI erkennt die App Text, Absender, Aktenzeichen, Datum und Fristen direkt auf Ihrem Gerät. Dazu lädt die App einmalig die Programmdateien der Texterkennung (Tesseract, PDF.js) von unserer Seite <Ph>[Hosting-Anbieter eintragen]</Ph>; dabei wird wie bei jedem Seitenaufruf Ihre IP-Adresse verarbeitet. Inhalte Ihrer Dokumente werden dabei nicht übertragen.</P>
           <P>Bestell- und Zahlungsdaten zur Vertragsabwicklung und zur Erfüllung gesetzlicher Aufbewahrungspflichten (Art. 6 Abs. 1 lit. b und c DSGVO).</P>
           <H>Empfänger und Dienstleister</H>
           <P>
-            Hosting unseres Servers: <Ph>[Anbieter, Serverstandort in der EU]</Ph>. KI-gestützte Texterkennung, Übersetzung und Antwortentwurf: {SERVER_CFG?.aiProvider === "bedrock"
+            Hosting unseres Servers: <Ph>[Anbieter, Serverstandort in der EU]</Ph>.{mA && <> KI-gestützte Texterkennung, Übersetzung und Antwortentwurf über unseren Dienst: {SERVER_CFG?.aiProvider === "bedrock"
               ? <>Amazon Web Services EMEA SARL (Luxemburg) mit dem KI-Modell Claude von Anthropic über Amazon Bedrock; die Verarbeitung erfolgt in Rechenzentren in der EU <Ph>[mit AWS-Vertrag abgleichen]</Ph>.</>
               : <>Anthropic <Ph>[Vertragspartner und Serverstandort laut Vertrag eintragen; bei Verarbeitung in den USA: Rechtsgrundlage der Übermittlung angeben]</Ph>.</>}
-            {" "}Inhalte Ihrer Dokumente werden dafür nur übertragen, wenn Sie die KI eingeschaltet haben, und nicht auf unserem Server gespeichert. Zahlungsabwicklung: Stripe Payments Europe, Ltd. (Irland); die Zahlungsdaten gibst du direkt bei Stripe ein, wir erhalten sie nicht.
+            {" "}Inhalte Ihrer Dokumente werden dafür nur übertragen, wenn Sie die KI eingeschaltet haben, und nicht auf unserem Server gespeichert.</>} Zahlungsabwicklung: Stripe Payments Europe, Ltd. (Irland); die Zahlungsdaten gibst du direkt bei Stripe ein, wir erhalten sie nicht.
             E-Mail-Versand (Anmeldelinks, Bestellbestätigungen, Newsletter): <Ph>[Anbieter]</Ph>. Cloud-Backup nur auf Ihre ausdrückliche Veranlassung: <Ph>[Anbieter]</Ph>.
             Mit allen Dienstleistern bestehen Auftragsverarbeitungsverträge nach Art. 28 DSGVO <Ph>[vor Livegang abschließen]</Ph>.
           </P>
@@ -3722,7 +3908,7 @@ function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
           <H>Ihre Rechte</H>
           <P>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch. Erteilte Einwilligungen können Sie jederzeit mit Wirkung für die Zukunft widerrufen. Sie können sich außerdem bei einer Datenschutz-Aufsichtsbehörde beschweren <Ph>[zuständige Behörde eintragen]</Ph>.</P>
           <H>Dateiablage auf dem Gerät</H>
-          <P>Fotos, PDFs und andere Dateien, die du hinzufügst, werden auf deinem Gerät gespeichert und nicht auf unseren Servern. Zum Auslesen (Texterkennung, Absender, Aktenzeichen, Fristen) wird der Inhalt an den KI-Dienst <Ph>[Anbieter, Serverstandort]</Ph> gesendet (Art. 6 Abs. 1 lit. b DSGVO; bei Gesundheitsdaten Art. 9 Abs. 2 lit. a DSGVO).</P>
+          <P>Fotos, PDFs und andere Dateien, die du hinzufügst, werden auf deinem Gerät gespeichert und nicht auf unseren Servern. Ohne KI werden sie auf dem Gerät ausgelesen.{mA && <> Nutzt du die KI über unseren Dienst, wird der Inhalt zum Auslesen (Texterkennung, Absender, Aktenzeichen, Fristen) an den KI-Dienst <Ph>[Anbieter, Serverstandort]</Ph> gesendet (Art. 6 Abs. 1 lit. b DSGVO; bei Gesundheitsdaten Art. 9 Abs. 2 lit. a DSGVO).</>}{mB && <> Nutzt du deine eigene KI, geht der Inhalt direkt an deinen Anbieter.</>}</P>
           <H>Cloud-Anbindung (freiwillig)</H>
           <P>Du kannst Google Drive, Microsoft OneDrive, Dropbox, Box und pCloud mit der App verbinden, um Dateien zu holen oder zu sichern; iCloud nutzt du über das Teilen-Menü deines Geräts. Das ist standardmäßig ausgeschaltet. Rechtsgrundlage ist deine ausdrückliche Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die du jederzeit durch Trennen der Verbindung widerrufen kannst. Die Dateien gehen direkt von deinem Gerät in dein Konto beim jeweiligen Anbieter, nicht über unseren Server. Die Anbieter können Daten in Drittländer außerhalb der EU übertragen (z. B. USA); es gelten deren Datenschutzbestimmungen. Beim Verbinden wird ein Skript des Anbieters nachgeladen. Zugangsdaten für die Clouds werden nicht gespeichert und gelten nur für die laufende Sitzung. Ausnahme beim Übertragungsweg: MagentaCLOUD, GMX Cloud, WEB.DE Online-Speicher, HiDrive und Nextcloud (WebDAV) erlauben keinen direkten Zugriff aus dem Browser. Bei diesen Anbietern laufen deine Zugangsdaten und die Dateien verschlüsselt über unseren Server zu deinem Konto beim Anbieter; unser Server speichert und protokolliert sie nicht. Bei Box läuft nur der Abschluss der Anmeldung über unseren Server, die Dateien nicht. Vor dem Speichern in eine Cloud kannst du die Dateien mit einem eigenen Passwort verschlüsseln. <Ph>[Angaben zu Auftragsverarbeitung und Drittlandübermittlung vor Livegang prüfen]</Ph></P>
           <H>Unser Server: Konto, Erinnerungen, Bestellungen</H>
@@ -3751,7 +3937,10 @@ function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
           <H>Geltungsbereich und Vertragssprache</H>
           <P>Diese AGB gelten für die Nutzung der App durch Verbraucher. Vertragssprache ist Deutsch.</P>
           <H>Leistung</H>
-          <P>Die App bietet die Ablage und Ordnung von Dokumenten und die Erinnerung an Fristen. Auf Wunsch des Nutzers zuschaltbar sind KI-gestützte Texterkennung, Übersetzung, Fristenerkennung und Entwürfe für Antwortschreiben. Die Ergebnisse der KI können Fehler enthalten. Die App erbringt keine Rechtsdienstleistung im Sinne des Rechtsdienstleistungsgesetzes und ersetzt keine Rechtsberatung. Antwortentwürfe werden nie automatisch versendet; Sie prüfen jeden Entwurf und bestätigen den Versand selbst.</P>
+          <P>Die App bietet die Ablage und Ordnung von Dokumenten, die Erkennung von Text, Absender, Aktenzeichen und Fristen auf dem Gerät und die Erinnerung an Fristen.{mA && " Auf Wunsch des Nutzers zuschaltbar sind über unseren Dienst KI-gestützte Texterkennung, Übersetzung, Fristenerkennung und Entwürfe für Antwortschreiben."} Automatisch erkannte Angaben und Ergebnisse der KI können Fehler enthalten. Die App erbringt keine Rechtsdienstleistung im Sinne des Rechtsdienstleistungsgesetzes und ersetzt keine Rechtsberatung. Antwortentwürfe werden nie automatisch versendet; Sie prüfen jeden Entwurf und bestätigen den Versand selbst.</P>
+          {mB && (
+            <P data-legal="agb-b">Eigene KI des Nutzers: Die App ermöglicht es, eine KI eines Drittanbieters, mit dem Sie selbst einen Vertrag haben, mit Ihrem Schlüssel anzubinden oder Aufgaben an Ihre KI-App zu übergeben. Die KI-Leistung erbringt dieser Anbieter auf Grundlage Ihres Vertrags mit ihm; wir sind nicht Vertragspartner dieser Leistung, stellen sie nicht bereit und haben keinen Einfluss auf ihre Ergebnisse. Kosten bei diesem Anbieter tragen Sie selbst. <Ph>[Klausel anwaltlich prüfen lassen]</Ph></P>
+          )}
           <H>Preise</H>
           <P>Die ersten {FREE_LETTERS} Dokumente sind kostenlos; kostenlose Dokumente dürfen höchstens 10 Seiten haben. Danach kostet jedes Dokument bis 10 Seiten {fmtEUR(BASE_PRICE)}, jede weitere Seite {fmtEUR(EXTRA_PAGE_PRICE)}. Alle Preise sind Gesamtpreise einschließlich aller Steuern.</P>
           <H>Zahlung</H>
@@ -3774,7 +3963,8 @@ function LegalModal({ c, fontScale, flags, tab, setTab, onClose }) {
           <P>(1) Wir haften unbeschränkt bei Vorsatz und grober Fahrlässigkeit, bei der Verletzung von Leben, Körper oder Gesundheit, nach dem Produkthaftungsgesetz sowie im Umfang einer von uns übernommenen Garantie.</P>
           <P>(2) Bei leicht fahrlässiger Verletzung einer wesentlichen Vertragspflicht ist unsere Haftung auf den vertragstypischen, vorhersehbaren Schaden begrenzt. Wesentlich sind Pflichten, deren Erfüllung die ordnungsgemäße Durchführung des Vertrags überhaupt erst ermöglicht und auf deren Einhaltung Sie regelmäßig vertrauen dürfen.</P>
           <P>(3) Im Übrigen ist unsere Haftung für leichte Fahrlässigkeit ausgeschlossen.</P>
-          <P>(4) Die App erbringt keine Rechtsberatung und ersetzt keinen Anwalt. Übersetzungen, erkannte Fristen und Antwortentwürfe werden automatisiert mit KI erstellt und können Fehler enthalten. Maßgeblich ist stets das deutsche Originalschreiben. Sie prüfen Fristen und Entwürfe selbst und entscheiden selbst, ob und was Sie absenden.</P>
+          <P>(4) Die App erbringt keine Rechtsberatung und ersetzt keinen Anwalt. {mode === "off" ? "Auf dem Gerät erkannte Angaben und Fristen werden automatisiert ermittelt und können Fehler enthalten." : "Auf dem Gerät erkannte Angaben, Übersetzungen, erkannte Fristen und Antwortentwürfe werden automatisiert, teils mit KI, erstellt und können Fehler enthalten."} Maßgeblich ist stets das deutsche Originalschreiben. Sie prüfen Fristen{mode === "off" ? "" : " und Entwürfe"} selbst und entscheiden selbst, ob und was Sie absenden.</P>
+          {mB && <P data-legal="haft-b">(4a) Für Ergebnisse einer von Ihnen selbst angebundenen KI oder Ihrer KI-App sind wir nicht verantwortlich, da wir diese Leistung weder erbringen noch beeinflussen; die Absätze 1 und 2 bleiben unberührt. <Ph>[anwaltlich prüfen lassen]</Ph></P>}
           <P>(5) Die vorstehenden Regelungen gelten auch zugunsten unserer gesetzlichen Vertreter und Erfüllungsgehilfen.</P>
           <P><Ph>[Entwurf der Haftungsregelung – vor Verwendung anwaltlich prüfen lassen]</Ph></P>
           <H>Schlussbestimmungen</H>
@@ -4026,10 +4216,10 @@ async function dirSync(root, cases) {
       if (used.has((parts.join("/") + "/" + name).toLowerCase())) name = String(f.id).slice(-5) + "_" + name;
       used.add((parts.join("/") + "/" + name).toLowerCase());
       const o = oldFiles[f.id];
-      if (o && o.n === name && o.p.join("/") === parts.join("/")) { files[f.id] = o; continue; }   // liegt schon an der richtigen Stelle
+      if (o && o.n === name && o.p.join("/") === parts.join("/") && (o.r || 0) === (f.rev || 0)) { files[f.id] = o; continue; }   // liegt schon an der richtigen Stelle (und ist nicht inzwischen gedreht worden)
       const blob = await fileGet(f.id);
       if (!blob) { if (o) files[f.id] = o; failed++; continue; }
-      try { await dirWrite(root, parts, name, blob); files[f.id] = { p: parts, n: name }; written++; if (o) await dirRemove(root, o.p, o.n); }
+      try { await dirWrite(root, parts, name, blob); files[f.id] = { p: parts, n: name, r: f.rev || 0 }; written++; if (o && (o.n !== name || o.p.join("/") !== parts.join("/"))) await dirRemove(root, o.p, o.n); }
       catch (e) { if (o) files[f.id] = o; failed++; }
     }
   }
@@ -4098,6 +4288,21 @@ async function fileGet(id) {
 /* ---------- Datei-Helfer ---------- */
 const fileExt = (n) => (String(n).split(".").pop() || "").toLowerCase();
 const isImage = (f) => (f.type || "").startsWith("image/") || ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"].includes(fileExt(f.name));
+// Foto um 90° drehen: das gedrehte Bild ersetzt die Datei (gleicher Name, gleiche Bildart)
+async function rotateImageFile(file, deg) {
+  const bmp = await createImageBitmap(file);
+  const turn = ((deg % 360) + 360) % 360;
+  const swap = turn === 90 || turn === 270;
+  const cv = document.createElement("canvas");
+  cv.width = swap ? bmp.height : bmp.width; cv.height = swap ? bmp.width : bmp.height;
+  const g = cv.getContext("2d");
+  g.translate(cv.width / 2, cv.height / 2); g.rotate((turn * Math.PI) / 180);
+  g.drawImage(bmp, -bmp.width / 2, -bmp.height / 2);
+  const png = file.type === "image/png";
+  const blob = await new Promise((r) => cv.toBlob(r, png ? "image/png" : "image/jpeg", 0.92));
+  if (!blob) throw new Error("rotate");
+  return new File([blob], file.name.replace(/\.[^./\\]+$/, "") + (png ? ".png" : ".jpg"), { type: png ? "image/png" : "image/jpeg", lastModified: Date.now() });
+}
 const isPdf = (f) => f.type === "application/pdf" || fileExt(f.name) === "pdf";
 const fmtSize = (b) => (b > 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB");
 const MIME_BY_EXT = {
@@ -4177,6 +4382,167 @@ async function officeText(file) {
     if (["txt", "csv", "md"].includes(ext) || (file.type || "").startsWith("text/")) return (await file.text()).slice(0, 20000);
   } catch (e) {}
   return "";
+}
+
+/* ---------- Lesen ohne KI: Regeln für Absender, Aktenzeichen, Datum, Frist, Betreff ---------- */
+const DE_MON = { januar: 1, jan: 1, februar: 2, feb: 2, "märz": 3, maerz: 3, "mär": 3, mrz: 3, april: 4, apr: 4, mai: 5, juni: 6, jun: 6, juli: 7, jul: 7, august: 8, aug: 8, september: 9, sep: 9, sept: 9, oktober: 10, okt: 10, november: 11, nov: 11, dezember: 12, dez: 12 };
+const RX_DATE = String.raw`(\d{1,2})\s?\.\s?(\d{1,2})\s?\.\s?(\d{4}|\d{2})(?!\d)|(\d{1,2})\.?\s+(Januar|Jan\.?|Februar|Feb\.?|März|Maerz|Mär\.?|Mrz\.?|April|Apr\.?|Mai|Juni|Jun\.?|Juli|Jul\.?|August|Aug\.?|September|Sept?\.?|Oktober|Okt\.?|November|Nov\.?|Dezember|Dez\.?)\s+(\d{4})`;
+function deDateIso(m) {
+  let d, mo, y;
+  if (m[1]) { d = +m[1]; mo = +m[2]; y = +m[3]; if (y < 100) y += 2000; }
+  else { d = +m[4]; mo = DE_MON[String(m[5]).toLowerCase().replace(/\.$/, "")]; y = +m[6]; }
+  if (!mo || mo > 12 || d < 1 || d > 31 || y < 1990 || y > 2100) return null;
+  const dt = new Date(Date.UTC(y, mo - 1, d)); if (dt.getUTCDate() !== d) return null;
+  return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+const firstDate = (s) => { const re = new RegExp(RX_DATE, "i"); const m = String(s).match(re); return m ? deDateIso(m) : null; };
+const SENDER_HINT = /(jobcenter|agentur für arbeit|bundesagentur|familienkasse|finanzamt|städteregion|staedteregion|stadt\s|stadtverwaltung|kreis|landkreis|bezirksamt|bürgeramt|buergeramt|ausländerbehörde|auslaenderbehoerde|ordnungsamt|sozialamt|jugendamt|wohngeldstelle|amtsgericht|landgericht|sozialgericht|verwaltungsgericht|arbeitsgericht|gericht|staatsanwaltschaft|polizei|krankenkasse|\baok\b|techniker|\btk\b|barmer|\bdak\b|\bikk\b|\bbkk\b|knappschaft|rentenversicherung|unfallkasse|berufsgenossenschaft|beitragsservice|rundfunk|versicherung|stadtwerke|telekom|vodafone|\bo2\b|telefónica|telefonica|inkasso|sparkasse|volksbank|\bbank\b|gewoge|wohnungs|hausverwaltung|gmbh|\bag\b|\bkg\b|e\.\s?v\.|\bamt\b|behörde|ministerium|universität|hochschule|schule)/i;
+const RECIPIENT = /^(herrn?|frau|familie|eheleute|an\s)/i;
+function ruleExtract(text) {
+  const raw = String(text || "").replace(/\r/g, "");
+  const lines = raw.split("\n").map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean);
+  const head = lines.slice(0, 30);
+  const flat = raw.replace(/\s+/g, " ");
+  // Aktenzeichen / Geschäftszeichen / Kundennummer …
+  const CN = [
+    /(?:Aktenzeichen|Az\.)\s*[:.]?\s*([A-Z0-9][A-Za-z0-9./\-]*(?:[ ][A-Za-z0-9./\-]*\d[A-Za-z0-9./\-]*){0,3})/,
+    /(?:Geschäftszeichen|Geschaeftszeichen|Gesch\.\s?-?Z(?:eichen)?\.?)\s*[:.]?\s*([A-Z0-9][A-Za-z0-9./\-]*(?:[ ][A-Za-z0-9./\-]*\d[A-Za-z0-9./\-]*){0,3})/,
+    /(?:Unser Zeichen|Unser Az\.?|Mein Zeichen)\s*[:.]?\s*([A-Z0-9][A-Za-z0-9./\-]*(?:[ ][A-Za-z0-9./\-]*\d[A-Za-z0-9./\-]*){0,3})/,
+    /(?:BG-?Nummer|Nummer der Bedarfsgemeinschaft|Bedarfsgemeinschaft(?:snummer)?)\s*[:.]?\s*([A-Z0-9][A-Za-z0-9./\-]*(?:[ ][A-Za-z0-9./\-]*\d[A-Za-z0-9./\-]*){0,2})/,
+    /(?:Kundennummer|Kunden-?Nr\.?|Kd\.-?Nr\.?|Versicherungsnummer|Vers\.-?Nr\.?|Mitgliedsnummer|Vertragsnummer|Vertrags-?Nr\.?|Steuernummer|St\.-?Nr\.?|Beitragsnummer|Rechnungsnummer|Rechnungs-?Nr\.?|Mandatsreferenz)\s*[:.]?\s*([A-Z0-9][A-Za-z0-9./\-]*(?:[ ][A-Za-z0-9./\-]*\d[A-Za-z0-9./\-]*){0,2})/,
+  ];
+  let caseNumber = null;
+  outer: for (const re of CN) for (const l of lines) { const m = l.match(re); if (m && /\d/.test(m[1])) { caseNumber = m[1].replace(/\s+(Datum|Date|Telefon|Tel\.?).*$/i, "").replace(/[ .,:;-]+$/, "").trim(); break outer; } }
+  // Datum des Schreibens
+  let letterDate = null;
+  for (const l of head) {
+    const m = l.match(new RegExp(String.raw`(?:^|\b)(?:Datum|Date)\s*[:.]?\s*(?:${RX_DATE})`, "i"));
+    if (m) { letterDate = deDateIso(m.slice(1)) || firstDate(l); if (letterDate) break; }
+  }
+  if (!letterDate) for (const l of head) {
+    const m = l.match(new RegExp(String.raw`^[A-ZÄÖÜ][A-Za-zÄÖÜäöüß .\-]{1,40},\s*(?:den\s+)?(?:${RX_DATE})`));
+    if (m) { letterDate = deDateIso(m.slice(1)); if (letterDate) break; }
+  }
+  if (!letterDate) for (const l of head) { if (/geb(?:oren|\.)|geburt/i.test(l)) continue; const d = firstDate(l); if (d) { letterDate = d; break; } }
+  // Frist mit Datum
+  let deadline = null;
+  const DL = new RegExp(String.raw`(?:bis\s+(?:spätestens\s+|spaetestens\s+)?(?:zum\s+|am\s+)?|spätestens\s+(?:bis\s+)?(?:zum\s+|am\s+)?|spaetestens\s+(?:bis\s+)?(?:zum\s+|am\s+)?|Frist[^.\n]{0,40}?(?:bis\s+)?(?:zum\s+|am\s+)?|fällig\s+(?:am\s+|zum\s+)?|faellig\s+(?:am\s+|zum\s+)?|zahlbar\s+bis\s+(?:zum\s+)?|Termin\s*[:.]?\s*(?:am\s+)?)(?:den\s+)?(?:${RX_DATE})`, "gi");
+  for (const m of flat.matchAll(DL)) {
+    const sub = m[0].match(new RegExp(RX_DATE, "i")); const iso = sub ? deDateIso(sub) : null;
+    if (iso && (!letterDate || iso >= letterDate)) { deadline = iso; break; }
+  }
+  // Frist als Zeitspanne
+  let deadlineNote = null;
+  if (!deadline) {
+    const m = flat.match(/(?:innerhalb|binnen)\s+(?:von\s+)?(?:\d+|einer|eines|einem|zwei|drei|vier|sechs|acht|zehn|vierzehn)\s+(?:Tagen|Tage|Wochen|Woche|Monaten|Monats|Monat)(?:\s+(?:nach|ab|seit)\s+[^.,;]{3,60})?/i);
+    if (m) deadlineNote = m[0].trim();
+  }
+  // Absender
+  let sender = null;
+  for (const l of head) {
+    if (RECIPIENT.test(l) || /^(sehr geehrt|betreff|betr\.)/i.test(l)) continue;
+    if (!SENDER_HINT.test(l)) continue;
+    let s = l.split(/\s[·•|]\s|\s[-–]\s|,\s(?=Postfach|\d{5}|[A-ZÄÖÜ][a-zäöüß]+str)/)[0].trim();
+    s = s.replace(/\s+(Postfach|Telefon|Tel\.|Fax|E-Mail|www\.).*$/i, "").trim();
+    if (s.length >= 3 && s.length <= 80 && !/^\d/.test(s)) { sender = s; break; }
+  }
+  // Betreff
+  let subject = null;
+  const sm = raw.match(/(?:^|\n)\s*(?:Betreff|Betr\.)\s*[:.]?\s*([^\n]{3,140})/i);
+  if (sm) subject = sm[1].trim();
+  if (!subject) {
+    const i = lines.findIndex((l) => /^sehr geehrte|^guten tag|^hallo/i.test(l));
+    for (let k = i - 1; k >= Math.max(0, i - 4) && i > 0; k--) {
+      const l = lines[k];
+      if (l.length < 5 || l.length > 140 || /\d{5}\s/.test(l) || /^(datum|ihr zeichen|unser zeichen|aktenzeichen|telefon|tel\.|fax|e-mail)/i.test(l) || firstDate(l) === firstDate(l) && new RegExp(RX_DATE, "i").test(l) && l.length < 30) continue;
+      if (RECIPIENT.test(l)) break;
+      subject = l; break;
+    }
+  }
+  if (!subject) {
+    const kw = lines.find((l) => /^(bescheid|änderungsbescheid|bewilligungsbescheid|ablehnungsbescheid|widerspruchsbescheid|steuerbescheid|beitragsbescheid|mahnung|zahlungserinnerung|rechnung|anhörung|aufforderung|erinnerung|einladung|mitteilung|kündigung|vorladung|ladung|information|hinweis)/i.test(l) && l.length <= 140);
+    if (kw) subject = kw;
+  }
+  if (subject) subject = subject.replace(/[\s.:;,-]+$/, "");
+  return { subject, sender, caseNumber, letterDate, deadline, deadlineNote };
+}
+
+/* ---------- Texterkennung auf dem Gerät (Fotos: Tesseract, PDF: PDF.js) ----------
+   Die Programmdateien liegen auf derselben Seite wie die App (Ordner ocr/ und pdf/).
+   Der Inhalt der Dokumente verlässt das Gerät dabei nicht. */
+const assetBase = () => { try { return location.href.replace(/[?#].*$/, "").replace(/[^/]*$/, ""); } catch (e) { return "./"; } };
+function loadScriptOnce(src) {
+  return new Promise((res, rej) => {
+    const had = [...document.scripts].find((x) => x.dataset && x.dataset.src === src);
+    if (had) { if (had.dataset.ok) return res(); had.addEventListener("load", () => res()); had.addEventListener("error", () => rej(new Error("unavailable"))); return; }
+    const sc = document.createElement("script"); sc.src = src; sc.async = true; sc.dataset.src = src;
+    sc.onload = () => { sc.dataset.ok = "1"; res(); }; sc.onerror = () => { sc.remove(); rej(new Error("unavailable")); };
+    document.head.appendChild(sc);
+  });
+}
+let ocrWorkerP = null;
+function ocrWorker() {
+  if (!ocrWorkerP) ocrWorkerP = (async () => {
+    const base = assetBase() + "ocr/";
+    await loadScriptOnce(base + "tesseract.min.js");
+    const T = window.Tesseract; if (!T || !T.createWorker) throw new Error("unavailable");
+    try { return await T.createWorker("deu", 1, { workerPath: base + "worker.min.js", corePath: base, langPath: base, gzip: false, workerBlobURL: false }); }
+    catch (e) { throw new Error("unavailable"); }
+  })().catch((e) => { ocrWorkerP = null; throw e; });
+  return ocrWorkerP;
+}
+// Foto für die Erkennung vorbereiten: verkleinern, Graustufen
+async function ocrPrep(src) {
+  const bmp = src instanceof HTMLCanvasElement ? src : await createImageBitmap(src);
+  const s = Math.min(1, 2400 / Math.max(bmp.width, bmp.height));
+  const cv = document.createElement("canvas"); cv.width = Math.round(bmp.width * s); cv.height = Math.round(bmp.height * s);
+  const g = cv.getContext("2d"); g.filter = "grayscale(1) contrast(1.15)"; g.drawImage(bmp, 0, 0, cv.width, cv.height);
+  return cv;
+}
+async function ocrImage(src) { const w = await ocrWorker(); const { data } = await w.recognize(await ocrPrep(src)); return String(data?.text || "").trim(); }
+let pdfjsP = null;
+function pdfLib() {
+  if (!pdfjsP) pdfjsP = (async () => {
+    const base = assetBase() + "pdf/";
+    let lib; try { lib = await import(/* @vite-ignore */ base + "pdf.min.mjs"); } catch (e) { throw new Error("unavailable"); }
+    lib.GlobalWorkerOptions.workerSrc = base + "pdf.worker.min.mjs";
+    return lib;
+  })().catch((e) => { pdfjsP = null; throw e; });
+  return pdfjsP;
+}
+// PDF: eingebetteten Text lesen; Seiten ohne Text (eingescannt) werden als Bild erkannt
+async function pdfText(file) {
+  const lib = await pdfLib();
+  const doc = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  const out = [];
+  for (let n = 1; n <= Math.min(doc.numPages, 15); n++) {
+    const page = await doc.getPage(n);
+    const tc = await page.getTextContent();
+    let tx = ""; for (const it of tc.items) { tx += it.str || ""; if (it.hasEOL) tx += "\n"; else if (it.str) tx += " "; }
+    if (tx.replace(/\s/g, "").length < 40) {
+      try {
+        const vp = page.getViewport({ scale: 2 }); const cv = document.createElement("canvas"); cv.width = vp.width; cv.height = vp.height;
+        await page.render({ canvasContext: cv.getContext("2d"), canvas: cv, viewport: vp }).promise;
+        tx = await ocrImage(cv);
+      } catch (e) { if (e && e.message === "unavailable" && !out.length && n === 1) throw e; }
+    }
+    out.push(tx.replace(/[ \t]+\n/g, "\n").trim());
+  }
+  return { text: out.filter(Boolean).join("\n\n"), pages: doc.numPages };
+}
+// Dokument auf dem Gerät lesen: Text erkennen, dann Angaben nach Regeln heraussuchen
+async function localRead(files) {
+  const parts = []; let unavailable = false; let pages = 0;
+  for (const f of files) {
+    try {
+      if (isImage(f)) { const tx = await ocrImage(f); if (tx) parts.push(tx); pages++; }
+      else if (isPdf(f)) { const r = await pdfText(f); if (r.text) parts.push(r.text); pages += r.pages || 1; }
+      else { const tx = await officeText(f); if (tx) parts.push(tx); pages++; }
+    } catch (e) { if (e && e.message === "unavailable") unavailable = true; }
+  }
+  const text = parts.join("\n\n").trim();
+  if (text.replace(/\s/g, "").length < 20) { if (unavailable) throw new Error("unavailable"); return null; }
+  return { ...ruleExtract(text), text, pages: pages || 1, local: true };
 }
 
 /* ---------- Brief auslesen (KI) ---------- */
@@ -4615,8 +4981,193 @@ function NoticeToast({ c, fontScale, text, onClose, bottom = 16 }) {
   );
 }
 
+/* ---------- Eigene KI (Modell B): Anbieter, Schlüssel, Modell ---------- */
+function OwnAiForm({ c, t, fontScale, value, onSave, onRemove }) {
+  const [prov, setProv] = useState(value?.provider || "openai");
+  const [key, setKey] = useState(value?.key || "");
+  const [model, setModel] = useState(value?.model || "");
+  const [base, setBase] = useState(value?.base || "");
+  const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (value) { setProv(value.provider || "openai"); setKey(value.key || ""); setModel(value.model || ""); setBase(value.base || ""); } }, [value]);
+  const pv = AI_PROVIDERS[prov];
+  const cfg = () => ({ provider: prov, key: key.trim(), model: model.trim(), base: base.trim() });
+  const test = async () => {
+    if (!key.trim()) return;
+    setBusy(true); setMsg(t.aiTestWait);
+    try { await testOwnAi(cfg()); setMsg(t.aiTestOk); }
+    catch (e) {
+      const m = String(e.message || ""); const code = (m.match(/http (\d+)/) || [])[1];
+      setMsg(m === "cors" ? t.aiTestCors : code === "401" || code === "403" ? t.aiTestAuth : code === "404" || code === "400" ? t.aiTestNotFound : code === "429" ? t.aiTestRate : t.aiTestOther.replace("{s}", code || m));
+    }
+    setBusy(false);
+  };
+  return (
+    <div data-own-ai style={{ padding: "10px 0", borderBottom: `1px solid ${c.border}` }}>
+      <div style={{ fontWeight: 600, marginBottom: 8 }}>{t.aiOwnTitle}</div>
+      <FieldRow c={c} fontScale={fontScale} label={t.aiProvider}>
+        <select data-ai-provider value={prov} onChange={(e) => { setProv(e.target.value); setModel(""); }} style={fieldStyle(c, fontScale)}>
+          {Object.entries(AI_PROVIDERS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+        </select>
+      </FieldRow>
+      <FieldRow c={c} fontScale={fontScale} label={t.aiKey}>
+        <input data-ai-key type="password" autoComplete="off" spellCheck={false} dir="ltr" value={key} onChange={(e) => setKey(e.target.value)} style={fieldStyle(c, fontScale)} />
+      </FieldRow>
+      <FieldRow c={c} fontScale={fontScale} label={t.aiModelLbl}>
+        <input data-ai-model dir="ltr" spellCheck={false} value={model} placeholder={pv.model} onChange={(e) => setModel(e.target.value)} style={fieldStyle(c, fontScale)} />
+      </FieldRow>
+      {prov === "custom" && (
+        <FieldRow c={c} fontScale={fontScale} label={t.aiBase}>
+          <input data-ai-base dir="ltr" spellCheck={false} value={base} placeholder="https://…/v1" onChange={(e) => setBase(e.target.value)} style={fieldStyle(c, fontScale)} />
+        </FieldRow>
+      )}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+        <button data-ai-save disabled={!key.trim() || (prov === "custom" && (!base.trim() || !model.trim()))} onClick={() => onSave(cfg())} style={btnSmall(c)}>{t.aiKeySave}</button>
+        <button data-ai-test disabled={!key.trim() || busy} onClick={test} style={btnSmall(c)}>{t.aiKeyTest}</button>
+        {value && <button data-ai-remove onClick={() => { setKey(""); setModel(""); setBase(""); onRemove(); }} style={btnSmall(c)}><Trash2 size={13} /> {t.aiKeyRemove}</button>}
+      </div>
+      {msg && <div data-ai-msg role="status" style={{ fontSize: 12 * fontScale, marginBottom: 6 }}>{msg}</div>}
+      <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, lineHeight: 1.45 }}>{t.aiKeyNote}</div>
+    </div>
+  );
+}
+
+/* ---------- Übergabe an die KI-App des Nutzers ---------- */
+function handoffPrompt(kind, p) {
+  const attached = p.files ? "Das Schreiben ist als Foto oder Datei angehängt. Lies es zuerst vollständig. " : "";
+  if (kind === "translate") {
+    if (p.text) return buildAiRequest("translate", { lang: p.lang, text: p.text }).prompt;
+    return `${attached}Übersetze das deutsche Schreiben exakt und vollständig nach ${p.lang}. Übernimm Datumsangaben, Beträge, Aktenzeichen, Kontonummern, Namen und Adressen unverändert. Gib NUR die Übersetzung zurück, keine Erklärungen, keine Einleitung.`;
+  }
+  if (kind === "reply") {
+    if (p.text) return buildAiRequest("reply", { original: p.text, note: p.note, history: "" }).prompt;
+    return `${attached}Du hilfst, einen formellen deutschen Antwortbrief zu diesem Schreiben zu entwerfen. Nutze AUSSCHLIESSLICH Fakten aus dem Schreiben und der Angabe des Nutzers. Erfinde keine Gesetze, Fristen oder Zusagen. Formuliere höflich und sachlich auf Deutsch.\n\nAngabe des Nutzers: ${p.note || "(keine, bitte allgemein und vorsichtig formulieren)"}\n\nGib NUR den fertigen Brieftext zurück.`;
+  }
+  return EXTRACT_PROMPT + (p.text ? `\n\nText des Schreibens:\n${p.text}` : p.files ? "\n\nDas Schreiben ist als Foto oder Datei angehängt." : "");
+}
+function HandoffModal({ c, t, fontScale, rtl, letter, kind: kind0, note, langLabel, getFiles, onApply, onClose }) {
+  const text = letterText(letter);
+  const hasFiles = (letter.files || []).some((f) => !f.kind);
+  const [kind, setKind] = useState(kind0);
+  const [withFiles, setWithFiles] = useState(!text && hasFiles);
+  const [paste, setPaste] = useState(""); const [msg, setMsg] = useState("");
+  const promptRef = useRef(null);
+  const prompt = handoffPrompt(kind, { text, lang: langLabel, note, files: withFiles && hasFiles });
+  const canShare = typeof navigator !== "undefined" && !!navigator.share;
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(prompt); setMsg(t.handoffCopied); }
+    catch (e) { try { promptRef.current?.select(); document.execCommand("copy"); setMsg(t.handoffCopied); } catch (e2) {} }
+  };
+  const share = async () => {
+    try {
+      const files = withFiles && hasFiles ? await getFiles() : [];
+      const data = { text: prompt };
+      if (files.length && navigator.canShare && navigator.canShare({ files })) data.files = files;
+      await navigator.share(data);
+    } catch (e) {}
+  };
+  const kinds = [["translate", t.handoffTaskTranslate.replace("{lang}", langLabel)], ["reply", t.handoffTaskReply], ["read", t.handoffTaskRead]];
+  return (
+    <AppModal c={c} fontScale={fontScale} rtl={rtl} title={t.handoffTitle} onClose={onClose} maxWidth={520} z={96}>
+      <div data-handoff-modal>
+        <div style={{ fontSize: 12 * fontScale, color: c.textMuted, marginBottom: 6 }}>{t.handoffTask}</div>
+        <div role="radiogroup" style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+          {kinds.map(([k, l]) => (
+            <label key={k} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 8, border: `1px solid ${kind === k ? c.accent : c.border}`, background: kind === k ? c.accentSoft : "transparent", cursor: "pointer" }}>
+              <input type="radio" name="handoffkind" data-handoff-kind={k} checked={kind === k} onChange={() => setKind(k)} /> <span>{l}</span>
+            </label>
+          ))}
+        </div>
+        <div style={{ fontWeight: 600, marginBottom: 6 }}>{t.handoffStep1}</div>
+        {hasFiles && <CheckRow checked={withFiles} onChange={setWithFiles}>{t.handoffWithFiles}</CheckRow>}
+        <textarea ref={promptRef} data-handoff-prompt readOnly aria-label={t.handoffPromptLbl} value={prompt} rows={5} dir="auto" style={{ ...fieldStyle(c, fontScale), resize: "vertical", marginBottom: 8 }} />
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+          <button data-handoff-copy onClick={copy} style={btnSmall(c)}><Copy size={13} /> {t.handoffCopy}</button>
+          {canShare && <button data-handoff-share onClick={share} style={btnSmall(c)}><Share2 size={13} /> {t.handoffShare}</button>}
+        </div>
+        {msg && <div role="status" style={{ fontSize: 12 * fontScale, marginBottom: 6 }}>{msg}</div>}
+        <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, lineHeight: 1.45, marginBottom: 14 }}>{t.handoffNote}</div>
+        <div style={{ fontWeight: 600, marginBottom: 6 }}>{t.handoffStep2}</div>
+        <textarea data-handoff-paste aria-label={t.handoffPaste} placeholder={t.handoffPaste} value={paste} onChange={(e) => setPaste(e.target.value)} rows={5} dir="auto" style={{ ...fieldStyle(c, fontScale), resize: "vertical", marginBottom: 8 }} />
+        <button data-handoff-apply disabled={!paste.trim()} onClick={() => onApply(kind, paste)} style={btnPrimary(c, !paste.trim())}>{t.handoffApply}</button>
+      </div>
+    </AppModal>
+  );
+}
+
+/* ---------- Serienkamera: bleibt offen, mehrere Seiten hintereinander ---------- */
+const camSupported = () => { try { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.isSecureContext); } catch (e) { return false; } };
+function CameraModal({ c, t, fontScale, rtl, startIndex, onDone, onFallback, onClose }) {
+  const vref = useRef(null); const streamRef = useRef(null);
+  const [state, setState] = useState("starting");   // starting | live | error
+  const [shots, setShots] = useState([]);           // { file, url }
+  const [flash, setFlash] = useState(false);
+  useEffect(() => {
+    let dead = false;
+    (async () => {
+      try {
+        const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 2560 }, height: { ideal: 1920 } }, audio: false });
+        if (dead) { st.getTracks().forEach((x) => x.stop()); return; }
+        streamRef.current = st;
+        const v = vref.current; if (v) { v.srcObject = st; await v.play().catch(() => {}); }
+        setState("live");
+      } catch (e) { if (!dead) setState("error"); }
+    })();
+    return () => { dead = true; if (streamRef.current) streamRef.current.getTracks().forEach((x) => x.stop()); };
+  }, []);
+  const urlsRef = useRef([]);
+  useEffect(() => () => { urlsRef.current.forEach((u) => { try { URL.revokeObjectURL(u); } catch (e) {} }); }, []);
+  const shoot = async () => {
+    const v = vref.current; if (!v || !v.videoWidth) return;
+    const cv = document.createElement("canvas"); cv.width = v.videoWidth; cv.height = v.videoHeight;
+    cv.getContext("2d").drawImage(v, 0, 0);
+    const blob = await new Promise((r) => cv.toBlob(r, "image/jpeg", 0.92));
+    if (!blob) return;
+    const d = new Date(); const z = (n) => String(n).padStart(2, "0");
+    const name = `Foto-${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}-${startIndex + shots.length + 1}.jpg`;
+    const file = new File([blob], name, { type: "image/jpeg" });
+    const url = URL.createObjectURL(blob); urlsRef.current.push(url);
+    setShots((a) => [...a, { file, url }]);
+    setFlash(true); setTimeout(() => setFlash(false), 120);
+  };
+  const dropLast = () => setShots((a) => a.slice(0, -1));
+  const pickFallback = (e) => { const l = Array.from(e.target.files || []); e.target.value = ""; onFallback([...shots.map((x) => x.file), ...l]); };
+  const btn = { background: "rgba(255,255,255,.14)", color: "#fff", border: "1px solid rgba(255,255,255,.3)", borderRadius: 12, padding: "12px 16px", fontSize: 14 * fontScale, fontFamily: "inherit", cursor: "pointer", minHeight: 44 };
+  return (
+    <div role="dialog" aria-modal="true" aria-label={t.camTitle} dir={rtl ? "rtl" : "ltr"} data-camera style={{ position: "fixed", inset: 0, zIndex: 97, background: "#000", color: "#fff", display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, position: "relative", minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <video ref={vref} playsInline muted autoPlay style={{ width: "100%", height: "100%", objectFit: "contain", display: state === "error" ? "none" : "block" }} />
+        {flash && <div style={{ position: "absolute", inset: 0, background: "#fff", opacity: 0.7 }} />}
+        {state === "starting" && <div style={{ position: "absolute" }}>{t.camStarting}</div>}
+        {state === "error" && (
+          <div style={{ padding: 24, textAlign: "center", lineHeight: 1.5 }}>
+            <div style={{ marginBottom: 16 }}>{t.camErr}</div>
+            <label style={{ ...btn, display: "inline-flex", alignItems: "center", gap: 8, position: "relative", overflow: "hidden" }}>
+              <Camera size={16} /> {t.camFallback}
+              <input type="file" accept="image/*" capture="environment" onChange={pickFallback} style={{ position: "absolute", inset: 0, opacity: 0, width: "100%", height: "100%", cursor: "pointer" }} aria-label={t.camFallback} />
+            </label>
+          </div>
+        )}
+        {state === "live" && <div style={{ position: "absolute", top: 12, left: 12, right: 12, textAlign: "center", fontSize: 12.5 * fontScale, textShadow: "0 1px 3px #000" }}>{t.camHint}</div>}
+      </div>
+      <div style={{ padding: "10px 14px calc(14px + env(safe-area-inset-bottom))", background: "#111" }}>
+        <div aria-live="polite" style={{ textAlign: "center", fontSize: 13 * fontScale, marginBottom: 8, minHeight: 18 }}>{shots.length ? t.camPages.replace("{n}", shots.length) : ""}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button data-cam-cancel onClick={onClose} style={btn}>{t.cancel}</button>
+          <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", gap: 10 }}>
+            {shots.length > 0 && <img data-cam-last src={shots[shots.length - 1].url} alt="" style={{ width: 40, height: 52, objectFit: "cover", borderRadius: 6, border: "1px solid rgba(255,255,255,.5)" }} />}
+            <button data-cam-shoot disabled={state !== "live"} onClick={shoot} aria-label={t.camShoot} title={t.camShoot} style={{ width: 70, height: 70, borderRadius: "50%", border: "4px solid #fff", background: state === "live" ? "#e8e8e8" : "#555", cursor: "pointer", padding: 0, flexShrink: 0 }} />
+            {shots.length > 0 && <button data-cam-dellast onClick={dropLast} aria-label={t.camDelLast} title={t.camDelLast} style={{ ...btn, padding: "10px 12px" }}><Trash2 size={16} /></button>}
+          </div>
+          <button data-cam-done disabled={!shots.length} onClick={() => onDone(shots.map((x) => x.file))} style={{ ...btn, background: shots.length ? "#1E8F73" : "rgba(255,255,255,.1)", opacity: shots.length ? 1 : 0.5 }}>{t.camDone.replace("{n}", shots.length)}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Dokument hinzufügen (Kamera / Dateien / Cloud) ---------- */
-function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamera, onPick, onFiles, onCloud, onNewFolder, onRemove, onStart, onClose, progress, aiOn, aiPossible, useAi, setUseAi, onTurnAiOn }) {
+function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamera, onPick, onFiles, onCloud, onNewFolder, onSeries, onRemove, onRotate, folderOptions = [], folder = "auto", setFolder, onStart, onClose, progress, aiOn, aiPossible, useAi, setUseAi, useLocal, setUseLocal, onTurnAiOn }) {
   // Das Datei-Feld liegt direkt unter dem Finger (nicht per Programm ausgelöst): so lassen es auch App-Ansichten zu
   const hiddenInput = { position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" };
   const pick = (e) => { const fl = Array.from(e.target.files || []); e.target.value = ""; if (fl.length) onFiles(fl); };
@@ -4625,10 +5176,14 @@ function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamer
   return (
     <AppModal c={c} fontScale={fontScale} rtl={rtl} title={t.intakeTitle} onClose={busy ? () => {} : onClose} noBackdropClose={files.length > 0}>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-        <label style={{ ...big, position: "relative", overflow: "hidden" }}>
-          <Camera size={15} /> {files.length ? t.addPage : t.takePhoto}
-          {!busy && <input type="file" accept="image/*" capture="environment" onChange={pick} style={hiddenInput} aria-label={t.takePhoto} />}
-        </label>
+        {onSeries ? (
+          <button data-camera-series disabled={busy} onClick={onSeries} style={big}><Camera size={15} /> {files.length ? t.addPage : t.takePhoto}</button>
+        ) : (
+          <label style={{ ...big, position: "relative", overflow: "hidden" }}>
+            <Camera size={15} /> {files.length ? t.addPage : t.takePhoto}
+            {!busy && <input type="file" accept="image/*" capture="environment" onChange={pick} style={hiddenInput} aria-label={t.takePhoto} />}
+          </label>
+        )}
         <label style={{ ...big, position: "relative", overflow: "hidden" }}>
           <Paperclip size={15} /> {t.chooseFiles}
           {!busy && <input type="file" multiple onChange={pick} style={hiddenInput} aria-label={t.chooseFiles} />}
@@ -4645,13 +5200,25 @@ function IntakeModal({ c, t, fontScale, rtl, files, asPages, setAsPages, onCamer
               <FileThumb c={c} file={f} />
               <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} dir="ltr">{f.name}</span>
               <span style={{ color: c.textMuted, fontSize: 11.5 * fontScale, flexShrink: 0 }}>{fmtSize(f.size)}</span>
+              {!busy && isImage(f) && onRotate && <button type="button" data-rotate onClick={() => onRotate(i, 90)} aria-label={t.rotateRight} title={t.rotateRight} style={{ background: "transparent", border: `1px solid ${c.border}`, borderRadius: 8, color: "inherit", cursor: "pointer", padding: "7px 8px", display: "inline-flex", flexShrink: 0 }}><RotateCw size={16} /></button>}
               {!busy && <button type="button" onClick={() => onRemove(i)} aria-label={A11Y.close} title={A11Y.close} style={{ background: "transparent", border: "none", color: "inherit", cursor: "pointer", padding: 4, margin: -4, display: "inline-flex", flexShrink: 0 }}><X size={15} /></button>}
             </div>
           ))}
         </div>
       )}
       {files.length > 1 && <CheckRow checked={asPages} onChange={setAsPages}>{t.pagesOfOne}</CheckRow>}
+      {setFolder && (
+        <label style={{ display: "block", margin: "6px 0 10px" }}>
+          <div style={{ fontSize: 12 * fontScale, color: c.textMuted, marginBottom: 3 }}>{t.intakeFolder}</div>
+          <select data-intake-folder disabled={busy} value={folder} onChange={(e) => setFolder(e.target.value)} style={fieldStyle(c, fontScale)}>
+            <option value="auto">{t.folderAuto}</option>
+            {folderOptions.map((cs) => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
+            <option value="unsorted">{t.unsortedCase}</option>
+          </select>
+        </label>
+      )}
       {aiOn && <CheckRow checked={useAi} onChange={setUseAi}>{t.aiUseHere}</CheckRow>}
+      {!(aiOn && useAi) && setUseLocal && <><CheckRow checked={useLocal} onChange={setUseLocal}>{t.localRead}</CheckRow>{useLocal && <div style={{ fontSize: 11.5 * fontScale, color: c.textMuted, margin: "-2px 0 8px", lineHeight: 1.45 }}>{t.localReadNote}</div>}</>}
       <InfoBox c={c}>
         {aiOn && useAi ? t.intakeAiNote : t.intakeLocalNote}
         {!aiOn && aiPossible && <> {t.aiIsOff} <LinkBtn c={c} onClick={onTurnAiOn}>{t.aiTurnOn}</LinkBtn></>}
@@ -4720,7 +5287,7 @@ function MoveModal({ c, t, fontScale, rtl, count, cases, currentId, onMove, onCl
 function DetailsModal({ c, t, fontScale, rtl, drafts, cases, uiLang, saving, onSave, onClose }) {
   const [items, setItems] = useState(drafts.items);
   const one = items.length === 1;
-  const [more, setMore] = useState(() => (one && drafts.usedAi ? { 0: true } : {}));
+  const [more, setMore] = useState(() => (one && (drafts.usedAi || (drafts.usedLocal && !drafts.failed)) ? { 0: true } : {}));
   const set = (i, k) => (e) => { const val = e.target.value; setItems((arr) => arr.map((d, j) => (j === i ? { ...d, f: { ...d.f, [k]: val } } : d))); };
   const inp = fieldStyle(c, fontScale);
   const autoName = t.docFrom.replace("{d}", fmtD(localIso(), uiLang));
@@ -4728,7 +5295,7 @@ function DetailsModal({ c, t, fontScale, rtl, drafts, cases, uiLang, saving, onS
   return (
     <AppModal c={c} fontScale={fontScale} rtl={rtl} title={one ? t.detailsTitle : t.detailsTitleN.replace("{n}", items.length)} onClose={saving ? () => {} : onClose} maxWidth={520} noBackdropClose>
       <div style={{ color: c.textMuted, marginBottom: 12 }}>
-        {drafts.usedAi ? (drafts.failed >= items.length ? t.detailsAiFail : t.detailsAiHint) : t.detailsHint}
+        {drafts.usedAi ? (drafts.failed >= items.length ? t.detailsAiFail : t.detailsAiHint) : drafts.usedLocal ? (drafts.unavailable ? t.localUnavailable : drafts.failed >= items.length ? t.detailsLocalFail : t.detailsLocalHint) : t.detailsHint}
       </div>
       {items.map((d, i) => (
         <div key={d.id} style={one ? { marginBottom: 4 } : { border: `1px solid ${c.border}`, borderRadius: 10, padding: 10, marginBottom: 10 }}>
@@ -4792,8 +5359,10 @@ function DocFiles({ c, t, fontScale, letter, files, actions, isMobile, viewer, s
       setPrev({ id: cur.id, url: made });
     })();
     return () => { dead = true; if (made) URL.revokeObjectURL(made); };
-  }, [curId]);
+  }, [curId, cur ? cur.rev || 0 : 0]);
   useEffect(() => { if (!viewer) setZoom(false); }, [viewer]);
+  const [turning, setTurning] = useState(false);
+  const turn = async () => { if (turning || !cur) return; setTurning(true); try { await actions.rotate(letter, cur, 90); } finally { setTurning(false); } };
   const url = prev && prev.id === curId ? prev.url : null;
   const missing = prev && prev.id === curId && prev.missing;
   const img = cur && isImage(cur);
@@ -4853,6 +5422,7 @@ function DocFiles({ c, t, fontScale, letter, files, actions, isMobile, viewer, s
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button style={btnSmall(c)} disabled={!url} onClick={() => (img ? setViewer(true) : openTab())}><Maximize2 size={13} /> {img ? t.viewLarge : t.view}</button>
+          {img && <button data-rotate-stored disabled={!url || turning} onClick={turn} aria-label={t.rotateRight} title={t.rotateRight} style={btnSmall(c)}><RotateCw size={13} /></button>}
           {canShare && <button style={btnSmall(c)} onClick={() => actions.share(cur)}><Share2 size={13} /> {t.shareFile}</button>}
           <MoreMenu c={c} fontScale={fontScale} label={t.more} align="start" items={[
             { label: t.download, icon: Download, onClick: () => actions.download(cur) },
@@ -4866,6 +5436,7 @@ function DocFiles({ c, t, fontScale, letter, files, actions, isMobile, viewer, s
       {viewer && img && url && (
         <div style={{ position: "fixed", inset: 0, zIndex: 97, background: "rgba(0,0,0,.94)", overflow: "auto", WebkitOverflowScrolling: "touch" }}>
           <img src={url} alt={letter.subject} onClick={() => setZoom((z) => !z)} style={{ display: "block", width: zoom ? "240%" : "100%", maxWidth: "none", minHeight: zoom ? 0 : "100%", objectFit: "contain", cursor: zoom ? "zoom-out" : "zoom-in", margin: "0 auto" }} />
+          <button data-rotate-viewer aria-label={t.rotateRight} title={t.rotateRight} disabled={turning} onClick={turn} style={{ position: "fixed", top: 12, insetInlineEnd: 64, width: 42, height: 42, borderRadius: 21, border: "none", background: "rgba(255,255,255,.92)", color: "#111", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><RotateCw size={20} /></button>
           <button aria-label={t.closeWord} onClick={() => setViewer(false)} style={{ position: "fixed", top: 12, insetInlineEnd: 12, width: 42, height: 42, borderRadius: 21, border: "none", background: "rgba(255,255,255,.92)", color: "#111", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><X size={20} /></button>
         </div>
       )}
@@ -6240,7 +6811,7 @@ function ExportModal({ c, t, fontScale, rtl, cases, initialIds, format, setForma
 let ACTIVE_PROFILE = "main";
 // Speicherschlüssel je Profil; das erste Profil nutzt die alten Schlüssel, damit vorhandene Daten erhalten bleiben
 const PK = (k, id = ACTIVE_PROFILE) => (id === "main" ? k : `${k}@${id}`);
-const PROFILE_KEYS = ["briefe-app-cases", "briefe-app-prefs", "briefe-app-cloud", "briefe-app-account", "briefe-app-lang", "briefe-app-onboarded", "briefe-app-session"];
+const PROFILE_KEYS = ["briefe-app-cases", "briefe-app-prefs", "briefe-app-cloud", "briefe-app-account", "briefe-app-lang", "briefe-app-onboarded", "briefe-app-session", "briefe-app-aikey"];
 const sGet = async (k) => { try { const r = await window.storage?.get(k); return r?.value ?? null; } catch (e) { return null; } };
 const sSet = async (k, v) => { try { await window.storage?.set(k, v); } catch (e) {} };
 const sDel = async (k) => { try { if (window.storage?.delete) await window.storage.delete(k); else await window.storage?.set(k, ""); } catch (e) {} };
@@ -6259,7 +6830,7 @@ function detectLang() {
 }
 // Texte für Profilauswahl und Sperrbildschirm (bevor die eigentliche App geladen ist)
 async function gateStrings(profileId) {
-  const lang = (await sGet(PK("briefe-app-lang", profileId))) || detectLang();
+  const lang = (await sGet(PK("briefe-app-lang", profileId))) || "de";
   const rtl = RTL_LANGS.includes(lang);
   if (UI_STRINGS[lang]) return { t: UI_STRINGS[lang], rtl };
   try { const cache = JSON.parse((await sGet("briefe-app-ui-" + lang)) || "{}"); return { t: { ...UI_STRINGS.de, ...(cache.strings || {}) }, rtl }; }
@@ -6728,15 +7299,16 @@ function ObArt({ kind, c }) {
   </g>);
 }
 function Onboarding({ c, t, fontScale, rtl, uiLang, setUiLang, langs, translating, flags, onDone }) {
+  const obMode = flags?.ai === false ? "off" : aiModeOf(flags);
   const [step, setStep] = useState(0);
   const fill = (x) => String(x || "").replace("{free}", String(FREE_LETTERS)).replace("{price}", fmtEUR(BASE_PRICE)).replace("{extra}", fmtEUR(EXTRA_PAGE_PRICE));
   const steps = [
     { art: "lang", icon: Languages, title: t.obLangTitle, text: t.obLangText, lang: true },
     { art: "add", icon: Camera, title: t.obAddTitle, text: t.obAddText },
-    { art: "ai", icon: Sparkles, title: t.obReadTitle, text: t.obReadText },
+    { art: "ai", icon: Sparkles, title: obMode === "off" ? t.obReadTitleOff : t.obReadTitle, text: obMode === "off" ? t.obReadTextOff : obMode === "A" ? t.obReadText : t.obReadTextB },
     { art: "deadline", icon: Bell, title: t.obDeadTitle, text: t.obDeadText },
     ...(flags?.paymentRequired ? [{ art: "pay", icon: CreditCard, title: t.obPayTitle, text: fill(t.obPayText) }] : []),
-    { art: "privacy", icon: Lock, title: t.obPrivTitle, text: t.obPrivText },
+    { art: "privacy", icon: Lock, title: t.obPrivTitle, text: obMode === "off" ? t.obPrivTextOff : obMode === "A" ? t.obPrivText : t.obPrivTextB },
   ];
   const s0 = steps[step]; const last = step === steps.length - 1;
   return (
@@ -6816,6 +7388,7 @@ function buildAiRequest(kind, p) {
 // Gegenprobe durch die KI: vergleicht Original und Übersetzung (Text muss mit lib/ai.js auf dem Server übereinstimmen)
 const CHECK_PROMPT = (lang) => `Du prüfst die Übersetzung eines deutschen Behördenbriefs. Vergleiche das deutsche Original mit der Übersetzung. Prüfe: Fehlt etwas? Wurde etwas hinzugefügt? Ist ein Datum, eine Frist, ein Betrag, ein Aktenzeichen, ein Name oder die Bedeutung eines Satzes verändert? Antworte auf ${lang}. Wenn du keine Abweichung findest, antworte mit einem einzigen kurzen Satz, dass keine Abweichungen gefunden wurden. Sonst liste die Abweichungen kurz auf und zitiere dabei die Stelle aus dem deutschen Original. Erfinde nichts und bewerte den Inhalt des Briefs nicht.`;
 async function aiTask(kind, p) {
+  if (AI_ROUTE.own) return askOwn(buildAiRequest(kind, p), AI_ROUTE.own);
   if (SERVER_URL) return (await srv("/ai/" + kind, p)).text;
   const r = buildAiRequest(kind, p);
   return r.content ? askClaudeBlocks(r.content, r.max) : askClaude(r.prompt, r.max);
